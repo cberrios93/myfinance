@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Settings2, Landmark, ArrowLeftRight,
   CalendarClock, TrendingUp, GitBranch, FileDown, FileUp, Settings, LogOut, Menu, X,
   Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard, Calculator,
-  Users, AlertCircle, Lightbulb, ChevronDown, ChevronRight
+  Users, AlertCircle, Lightbulb, ChevronRight
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { useScenario } from '../../data/ScenarioContext'

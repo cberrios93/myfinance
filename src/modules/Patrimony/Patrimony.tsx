@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Plus, Trash2, Edit2, Check, X, AlertTriangle, Link2 } from 'lucide-react'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import { useScenario } from '../../data/ScenarioContext'
-import { useTipoCambio } from '../../hooks/useTipoCambio'
 import { CATEGORIAS_PATRIMONIO } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
@@ -17,7 +16,6 @@ const CAT_COLORS: Record<string, string> = {
   'Liability': '#EF4444',
 }
 
-const CAT_ORDER = Object.fromEntries(CATEGORIAS_PATRIMONIO.map((c, i) => [c, i]))
 
 const EMPTY: Omit<CuentaPatrimonio, 'id' | 'creadoEn' | 'actualizadoEn'> = {
   nombre: '',
@@ -35,9 +33,6 @@ function fmt(n: number) {
 export default function Patrimony() {
   const { cuentas, loading, agregarCuenta, actualizarCuenta, borrarCuenta } = usePatrimony()
   const { escenarioActivo } = useScenario()
-  const { tc: tcData, actualizar: actualizarTC } = useTipoCambio()
-  const tc = tcData?.compra ?? 3.7
-
   // IDs de cuentas que están vinculadas a algún instrumento del escenario activo
   const cuentasVinculadas = new Set(
     (escenarioActivo?.instrumentos ?? [])
@@ -51,8 +46,6 @@ export default function Patrimony() {
 
   const totalPEN = cuentas.reduce((s, c) => s + (c.montoPEN ?? 0), 0)
   const totalUSD = cuentas.reduce((s, c) => s + (c.montoUSD ?? 0), 0)
-  const totalConsolidadoPEN = totalPEN + totalUSD * tc
-
   const grouped = CATEGORIAS_PATRIMONIO.map(cat => ({
     cat,
     items: cuentas.filter(c => c.categoria === cat).sort((a, b) => a.orden - b.orden),

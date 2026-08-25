@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
-import { v4 as uuid } from 'uuid'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import type { Suscripcion, PersonaSuscripcion } from '../../data/types'

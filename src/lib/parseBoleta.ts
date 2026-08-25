@@ -23,7 +23,7 @@ async function pdfToBase64Images(file: File): Promise<string[]> {
     canvas.width = viewport.width
     canvas.height = viewport.height
     const ctx = canvas.getContext('2d')!
-    await page.render({ canvasContext: ctx, viewport }).promise
+    await page.render({ canvasContext: ctx, canvas, viewport } as Parameters<typeof page.render>[0]).promise
     results.push(canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, ''))
   }
 

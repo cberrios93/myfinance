@@ -100,7 +100,7 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   // Generic CRUD factory
-  function makeCRUD<T extends { id: string; actualizadoEn: string }>(
+  function makeCRUD<T extends { id: string; creadoEn: string; actualizadoEn: string }>(
     setter: React.Dispatch<React.SetStateAction<T[]>>,
     saveFn: (item: T) => Promise<void>,
     deleteFn: (id: string) => Promise<void>,

@@ -277,7 +277,7 @@ export interface GastoFamilia {
 
 // --- Deudas pendientes ---
 
-export type EstadoDeuda = 'Pendiente' | 'En proceso judicial' | 'Cobrado parcial' | 'Cobrado total'
+export type EstadoDeuda = 'Pendiente' | 'Parcial' | 'Pagado'
 
 export interface DeudaPendiente {
   id: string
