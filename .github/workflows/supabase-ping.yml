@@ -1,0 +1,24 @@
+name: Supabase Keep-Alive (PROD)
+
+on:
+  schedule:
+    # Cada 4 días a las 8:00 UTC — evita la pausa por 7 días de inactividad del free tier
+    - cron: '0 8 */4 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase PROD
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY_PROD }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY_PROD }}" \
+            "${{ secrets.SUPABASE_URL_PROD }}/rest/v1/escenarios?select=id&limit=1")
+          echo "HTTP response: $response"
+          if [ "$response" != "200" ] && [ "$response" != "401" ]; then
+            echo "Ping fallido: respuesta inesperada $response"
+            exit 1
+          fi
+          echo "Ping exitoso — Supabase PROD activo"

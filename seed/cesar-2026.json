@@ -1,0 +1,31 @@
+{
+  "general": { "edadActual": 32, "edadRetiro": 65, "anioActual": 2026, "swr": 0.0375, "metas": [{"nombre":"Meta 1","montoMensual":50000},{"nombre":"Meta 2","montoMensual":60000}] },
+  "instrumentos": [
+    { "id":"fd","nombre":"Prestamype FD","montoInicial":160000,"tasaReal":0.05,"categoria":"Alto riesgo","esPool":false },
+    { "id":"h15","nombre":"Prestamype hip. 15%","montoInicial":96000,"tasaReal":0.12,"categoria":"Alto riesgo","esPool":false },
+    { "id":"h195","nombre":"Prestamype hip. 19.5%","montoInicial":140000,"tasaReal":0.165,"categoria":"Alto riesgo","esPool":false,"cambioTasa":{"anioT":4,"nuevaTasa":0.12} },
+    { "id":"efe","nombre":"Efectibank","montoInicial":60000,"tasaReal":0.03,"categoria":"Diversificado","esPool":false },
+    { "id":"flip","nombre":"Flip / Cobra Achorada","montoInicial":79900,"tasaReal":0.07,"categoria":"Diversificado","esPool":false },
+    { "id":"schwab","nombre":"Schwab (ETF)","montoInicial":52700,"tasaReal":0.06,"categoria":"Diversificado","esPool":false },
+    { "id":"hapi","nombre":"Hapi","montoInicial":17000,"tasaReal":0.06,"categoria":"Diversificado","esPool":false },
+    { "id":"sab","nombre":"SAB Peru (Meta)","montoInicial":17000,"tasaReal":0.06,"categoria":"Diversificado","esPool":false },
+    { "id":"sap","nombre":"SAP stock","montoInicial":28220,"tasaReal":0.03,"categoria":"Diversificado","esPool":false },
+    { "id":"pool","nombre":"Pool aportes/disponible","montoInicial":555000,"tasaReal":0.05,"categoria":"Efectivo/pool","esPool":true }
+  ],
+  "movimientos": [],
+  "eventosVida": [
+    { "nombre":"Inicial vivienda","retiroUnico":{"anioT":1,"monto":72000} },
+    { "nombre":"Hipoteca (60%)","gastoRecurrente":{"anioInicioT":2,"anioFinT":26,"montoMensual":4252} },
+    { "nombre":"Cuota auto","gastoRecurrente":{"anioInicioT":2,"anioFinT":11,"montoMensual":946} },
+    { "nombre":"Matrimonio","retiroUnico":{"anioT":3,"monto":221000} },
+    { "nombre":"Hijo 1 (0-2)","gastoRecurrente":{"anioInicioT":2,"anioFinT":4,"montoMensual":1500} },
+    { "nombre":"Hijo 1 (3-5)","gastoRecurrente":{"anioInicioT":5,"anioFinT":7,"montoMensual":2500} },
+    { "nombre":"Hijo 1 (6-17)","gastoRecurrente":{"anioInicioT":8,"anioFinT":19,"montoMensual":3500} },
+    { "nombre":"Hijo 1 (18-22)","gastoRecurrente":{"anioInicioT":20,"anioFinT":24,"montoMensual":5000} },
+    { "nombre":"Hijo 2 (0-2)","gastoRecurrente":{"anioInicioT":5,"anioFinT":7,"montoMensual":1500} },
+    { "nombre":"Hijo 2 (3-5)","gastoRecurrente":{"anioInicioT":8,"anioFinT":10,"montoMensual":2500} },
+    { "nombre":"Hijo 2 (6-17)","gastoRecurrente":{"anioInicioT":11,"anioFinT":22,"montoMensual":3500} },
+    { "nombre":"Hijo 2 (18-22)","gastoRecurrente":{"anioInicioT":23,"anioFinT":27,"montoMensual":5000} }
+  ],
+  "carrera": { "aporteAnualBase": 240000, "crecimientoRealAnual": 0.023, "saltos": [] }
+}
