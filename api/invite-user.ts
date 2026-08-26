@@ -36,7 +36,13 @@ export default async function handler(req: Request) {
 
   // Use service role to invite
   const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
-  const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email)
+  // Redirige al app para que el usuario cree su contraseña
+  const referer = req.headers.get('referer') ?? req.headers.get('origin') ?? ''
+  const siteUrl = referer ? new URL(referer).origin : 'https://fin.cesarberrios.com'
+
+  const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    redirectTo: siteUrl,
+  })
 
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {

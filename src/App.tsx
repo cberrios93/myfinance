@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { LogOut, ShieldAlert } from 'lucide-react'
 import { useAuth } from './auth/AuthContext'
 import { ScenarioProvider } from './data/ScenarioContext'
 import { PatrimonyProvider } from './data/PatrimonyContext'
 import { FinanceDataProvider } from './data/FinanceDataContext'
 import AppLayout from './components/Layout/AppLayout'
 import LoginPage from './modules/Auth/LoginPage'
+import AcceptInvite from './modules/Auth/AcceptInvite'
 import Dashboard from './modules/Dashboard/Dashboard'
 import Parameters from './modules/Parameters/Parameters'
 import Instruments from './modules/Instruments/Instruments'
@@ -27,18 +30,59 @@ import Debts from './modules/Debts/Debts'
 import Notes from './modules/Notes/Notes'
 import Analytics from './modules/Analytics/Analytics'
 
-function ProtectedRoutes() {
-  const { session, loading } = useAuth()
+function Loading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-fondo)' }}>
+      <div className="text-sm" style={{ color: 'var(--color-muted)' }}>Cargando…</div>
+    </div>
+  )
+}
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-fondo)' }}>
-        <div className="text-sm" style={{ color: 'var(--color-muted)' }}>Cargando…</div>
+function BlockedScreen({ reason, onSignOut }: { reason: string | null; onSignOut: () => void }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--color-fondo)' }}>
+      <div className="text-center space-y-4 max-w-sm">
+        <ShieldAlert size={48} style={{ color: '#ef4444', margin: '0 auto' }} />
+        <h1 className="text-xl font-bold" style={{ color: 'var(--color-texto)' }}>Cuenta bloqueada</h1>
+        <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+          {reason ?? 'Tu cuenta ha sido suspendida. Contacta al administrador para más información.'}
+        </p>
+        <button
+          onClick={onSignOut}
+          className="flex items-center gap-2 mx-auto px-4 py-2 rounded-lg text-sm font-medium text-white"
+          style={{ background: '#ef4444' }}
+        >
+          <LogOut size={15} />
+          Cerrar sesión
+        </button>
       </div>
-    )
+    </div>
+  )
+}
+
+function ProtectedRoutes() {
+  const { session, loading, userStatus, blockReason, signOut } = useAuth()
+
+  // Detecta si el usuario llegó desde un link de invitación (hash type=invite)
+  const [isInvitePending] = useState(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : '')
+    const isInvite = params.get('type') === 'invite'
+    if (isInvite) history.replaceState(null, '', window.location.pathname)
+    return isInvite
+  })
+
+  if (loading) return <Loading />
+  if (!session) return <Navigate to="/login" replace />
+
+  // Muestra formulario de contraseña si es invite o cuenta pendiente
+  if (isInvitePending || userStatus === 'pending') {
+    return <AcceptInvite onComplete={() => window.location.reload()} />
   }
 
-  if (!session) return <Navigate to="/login" replace />
+  if (userStatus === 'blocked') {
+    return <BlockedScreen reason={blockReason} onSignOut={signOut} />
+  }
 
   return (
     <ScenarioProvider>
@@ -79,13 +123,7 @@ function ProtectedRoutes() {
 export default function App() {
   const { session, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-fondo)' }}>
-        <div className="text-sm" style={{ color: 'var(--color-muted)' }}>Cargando…</div>
-      </div>
-    )
-  }
+  if (loading) return <Loading />
 
   return (
     <Routes>

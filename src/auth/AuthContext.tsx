@@ -3,11 +3,14 @@ import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase/client'
 
 type UserRole = 'admin' | 'guest' | null
+type UserStatus = 'active' | 'blocked' | 'pending' | null
 
 interface AuthContextValue {
   session: Session | null
   user: User | null
   userRole: UserRole
+  userStatus: UserStatus
+  blockReason: string | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
@@ -18,15 +21,19 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [userRole, setUserRole] = useState<UserRole>(null)
+  const [userStatus, setUserStatus] = useState<UserStatus>(null)
+  const [blockReason, setBlockReason] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   async function fetchRole(userId: string) {
     const { data } = await supabase
       .from('user_profiles')
-      .select('role')
+      .select('role, status, block_reason')
       .eq('user_id', userId)
       .single()
     setUserRole((data?.role as UserRole) ?? 'guest')
+    setUserStatus((data?.status as UserStatus) ?? null)
+    setBlockReason(data?.block_reason ?? null)
   }
 
   useEffect(() => {
@@ -62,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, userRole, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, userRole, userStatus, blockReason, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )
