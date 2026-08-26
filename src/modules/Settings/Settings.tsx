@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { useConfig } from '../../config/ConfigContext'
 import { PALETAS, TIPOGRAFIAS } from '../../config/themes'
+import { obtenerHistorialAuto, setHistorialAuto } from '../../lib/supabase/preferences'
 
 const MODULOS_OPCIONALES = [
   { to: '/haberes', label: 'Haberes' },
@@ -13,6 +15,25 @@ const MODULOS_OPCIONALES = [
 
 export default function Settings() {
   const { config, setConfig } = useConfig()
+  const [historialAuto, setHistorialAutoState] = useState(false)
+  const [guardandoAuto, setGuardandoAuto] = useState(false)
+
+  useEffect(() => {
+    obtenerHistorialAuto().then(setHistorialAutoState)
+  }, [])
+
+  async function toggleHistorialAuto() {
+    const nuevoValor = !historialAuto
+    setHistorialAutoState(nuevoValor)
+    setGuardandoAuto(true)
+    try {
+      await setHistorialAuto(nuevoValor)
+    } catch {
+      setHistorialAutoState(!nuevoValor)
+    } finally {
+      setGuardandoAuto(false)
+    }
+  }
 
   function toggleModulo(ruta: string) {
     const ocultos = config.modulosOcultos.includes(ruta)
@@ -216,6 +237,32 @@ export default function Settings() {
         <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
           <span>Día 1</span><span>Día 10</span><span>Día 20</span>
         </div>
+      </div>
+
+      {/* Automatización */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Automatización</h2>
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>Historial mensual automático</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
+              El sistema registra tu patrimonio automáticamente el 1° de cada mes.
+            </p>
+          </div>
+          <div
+            onClick={guardandoAuto ? undefined : toggleHistorialAuto}
+            className="relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0 ml-4"
+            style={{
+              background: historialAuto ? 'var(--color-acento)' : 'var(--color-borde)',
+              opacity: guardandoAuto ? 0.5 : 1,
+            }}
+          >
+            <div
+              className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform"
+              style={{ transform: historialAuto ? 'translateX(18px)' : 'translateX(2px)' }}
+            />
+          </div>
+        </label>
       </div>
 
       {/* Módulos visibles */}

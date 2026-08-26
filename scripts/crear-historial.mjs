@@ -1,13 +1,11 @@
-// Script: crear registro de historial mensual
+// Script: crear registro de historial mensual para todos los usuarios con historial_auto=true
 // Ejecutado por GitHub Actions el día 1 de cada mes
-// Captura el patrimonio del mes anterior
 
-const SUPABASE_URL          = process.env.SUPABASE_URL
-const SUPABASE_SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY
-const USER_ID               = process.env.SUPABASE_USER_ID
+const SUPABASE_URL         = process.env.SUPABASE_URL
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !USER_ID) {
-  console.error('Faltan variables de entorno: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_USER_ID')
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error('Faltan variables de entorno: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY')
   process.exit(1)
 }
 
@@ -20,37 +18,14 @@ const headers = {
 // Fecha de referencia: último día del mes anterior
 const hoy = new Date()
 const ultimoDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0)
-const fecha = ultimoDiaMesAnterior.toISOString().slice(0, 10)
-const mes   = String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')
-const anio  = ultimoDiaMesAnterior.getFullYear()
+const fecha   = ultimoDiaMesAnterior.toISOString().slice(0, 10)
+const mes     = String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')
+const anio    = ultimoDiaMesAnterior.getFullYear()
 const periodo = `${mes} - ${anio}`
 
-console.log(`Creando historial para período: ${periodo} (fecha: ${fecha})`)
+console.log(`Período: ${periodo} (fecha: ${fecha})`)
 
-// 1. Obtener cuentas del usuario
-const cuentasRes = await fetch(
-  `${SUPABASE_URL}/rest/v1/cuentas?user_id=eq.${USER_ID}&select=monto_pen,monto_usd,categoria`,
-  { headers }
-)
-if (!cuentasRes.ok) {
-  console.error('Error al obtener cuentas:', await cuentasRes.text())
-  process.exit(1)
-}
-const cuentas = await cuentasRes.json()
-
-// Sumar totales (Liabilities restan)
-let totalPEN = 0
-let totalUSD = 0
-for (const c of cuentas) {
-  const esLiability = c.categoria === 'Liability'
-  const factor = esLiability ? -1 : 1
-  if (c.monto_pen) totalPEN += factor * Number(c.monto_pen)
-  if (c.monto_usd) totalUSD += factor * Number(c.monto_usd)
-}
-
-console.log(`Total PEN: ${totalPEN.toFixed(2)} | Total USD: ${totalUSD.toFixed(2)}`)
-
-// 2. Obtener tipo de cambio desde Rextie
+// 1. Obtener tipo de cambio desde Rextie (una sola vez para todos)
 let tipoCambio = 3.70
 try {
   const tcRes = await fetch('https://app.rextie.com/api/v1/fxrates/rate/', {
@@ -69,28 +44,79 @@ try {
   console.warn('Error al obtener TC de Rextie, usando TC por defecto: 3.70')
 }
 
-// 3. Insertar en historial_mensual (upsert — no duplica si ya existe)
-const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_mensual`, {
-  method: 'POST',
-  headers: {
-    ...headers,
-    'Prefer': 'resolution=merge-duplicates',
-  },
-  body: JSON.stringify({
-    user_id: USER_ID,
-    fecha,
-    periodo,
-    total_pen: Math.round(totalPEN * 100) / 100,
-    total_usd: Math.round(totalUSD * 100) / 100,
-    tipo_cambio: tipoCambio,
-    nota: `Creado automáticamente por GitHub Actions`,
-    actualizado_en: new Date().toISOString(),
-  }),
-})
-
-if (!upsertRes.ok) {
-  console.error('Error al guardar historial:', await upsertRes.text())
+// 2. Obtener todos los usuarios con historial_auto=true
+const perfilesRes = await fetch(
+  `${SUPABASE_URL}/rest/v1/user_profiles?historial_auto=eq.true&select=user_id`,
+  { headers }
+)
+if (!perfilesRes.ok) {
+  console.error('Error al obtener perfiles:', await perfilesRes.text())
   process.exit(1)
 }
+const perfiles = await perfilesRes.json()
+console.log(`Usuarios con historial_auto=true: ${perfiles.length}`)
 
-console.log(`✓ Historial ${periodo} guardado correctamente`)
+if (perfiles.length === 0) {
+  console.log('Ningún usuario tiene el historial automático activado. Fin.')
+  process.exit(0)
+}
+
+// 3. Procesar cada usuario
+let exitosos = 0
+let fallidos = 0
+
+for (const { user_id } of perfiles) {
+  try {
+    // Obtener cuentas del usuario
+    const cuentasRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/cuentas?user_id=eq.${user_id}&select=monto_pen,monto_usd,categoria`,
+      { headers }
+    )
+    if (!cuentasRes.ok) {
+      console.error(`[${user_id}] Error al obtener cuentas:`, await cuentasRes.text())
+      fallidos++
+      continue
+    }
+    const cuentas = await cuentasRes.json()
+
+    // Sumar totales (Liabilities restan)
+    let totalPEN = 0
+    let totalUSD = 0
+    for (const c of cuentas) {
+      const factor = c.categoria === 'Liability' ? -1 : 1
+      if (c.monto_pen) totalPEN += factor * Number(c.monto_pen)
+      if (c.monto_usd) totalUSD += factor * Number(c.monto_usd)
+    }
+
+    // Upsert en historial_mensual
+    const upsertRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_mensual`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        user_id,
+        fecha,
+        periodo,
+        total_pen: Math.round(totalPEN * 100) / 100,
+        total_usd: Math.round(totalUSD * 100) / 100,
+        tipo_cambio: tipoCambio,
+        nota: 'Creado automáticamente por GitHub Actions',
+        actualizado_en: new Date().toISOString(),
+      }),
+    })
+
+    if (!upsertRes.ok) {
+      console.error(`[${user_id}] Error al guardar historial:`, await upsertRes.text())
+      fallidos++
+      continue
+    }
+
+    console.log(`✓ [${user_id}] Historial ${periodo} guardado (PEN: ${totalPEN.toFixed(2)}, USD: ${totalUSD.toFixed(2)})`)
+    exitosos++
+  } catch (err) {
+    console.error(`[${user_id}] Error inesperado:`, err)
+    fallidos++
+  }
+}
+
+console.log(`\nResumen: ${exitosos} exitosos, ${fallidos} fallidos`)
+if (fallidos > 0) process.exit(1)
