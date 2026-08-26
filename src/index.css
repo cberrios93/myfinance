@@ -51,3 +51,59 @@ input[type="number"]::-webkit-outer-spin-button {
   background: var(--color-borde);
   border-radius: 3px;
 }
+
+/* Dual range slider — pointer-events: none en el input, all en el thumb */
+input[type="range"] {
+  pointer-events: none;
+}
+
+/* Webkit: el track transparente debe tener la misma altura que el input
+   para que el thumb quede centrado sin margin-top manual */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 20px;        /* igual que el contenedor del slider */
+  background: transparent;
+  border: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  pointer-events: all;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-acento);
+  border: 3px solid var(--color-fondo);
+  box-shadow: 0 0 0 1.5px var(--color-acento), 0 2px 6px rgba(0,0,0,0.25);
+  cursor: grab;
+  transition: transform 0.1s, box-shadow 0.1s;
+  /* Con track-height == input-height el thumb ya queda centrado */
+  margin-top: 0;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-acento) 20%, transparent), 0 2px 6px rgba(0,0,0,0.25);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  height: 20px;
+  background: transparent;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  pointer-events: all;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-acento);
+  border: 3px solid var(--color-fondo);
+  box-shadow: 0 0 0 1.5px var(--color-acento), 0 2px 6px rgba(0,0,0,0.25);
+  cursor: grab;
+}

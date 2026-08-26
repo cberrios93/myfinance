@@ -50,6 +50,7 @@ export interface GastoRecurrente {
 export interface EventoVida {
   id: string
   nombre: string
+  tipoEvento?: string
   retiroUnico?: RetiroUnico
   gastoRecurrente?: GastoRecurrente
 }
