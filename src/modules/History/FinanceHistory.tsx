@@ -5,6 +5,7 @@ import type { HistorialMensual } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
 import { tcCacheado } from '../../lib/tipoCambio'
+import { useConfig } from '../../config/ConfigContext'
 
 function fmt(n: number, dec = 2) {
   return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec })
@@ -34,22 +35,18 @@ function calcGrowth(current: number, prev: number) {
   return ((current - prev) / prev) * 100
 }
 
-function makeEmpty(): Omit<HistorialMensual, 'id' | 'creadoEn' | 'actualizadoEn'> {
+function makeEmpty(threshold = 10): Omit<HistorialMensual, 'id' | 'creadoEn' | 'actualizadoEn'> {
   const fecha = new Date().toISOString().slice(0, 10)
   const tc = tcCacheado()?.venta ?? 3.7
-  return { fecha, periodo: fechaToPeriodo(fecha), totalPEN: 0, totalUSD: 0, tipoCambio: tc, nota: '' }
+  return { fecha, periodo: fechaToPeriodo(fecha, threshold), totalPEN: 0, totalUSD: 0, tipoCambio: tc, nota: '' }
 }
 
-// Día 1-10 del mes → el registro corresponde al mes ANTERIOR (se hace a principios del siguiente mes)
-// Día 11+ → corresponde al mes actual
-const PERIODO_THRESHOLD = 10
-
-function fechaToPeriodo(fecha: string): string {
+function fechaToPeriodo(fecha: string, threshold = 10): string {
   const d = new Date(fecha + 'T12:00:00')
   const day = d.getDate()
-  const ref = day <= PERIODO_THRESHOLD
-    ? new Date(d.getFullYear(), d.getMonth() - 1, 1)  // mes anterior
-    : new Date(d.getFullYear(), d.getMonth(), 1)        // mes actual
+  const ref = day <= threshold
+    ? new Date(d.getFullYear(), d.getMonth() - 1, 1)
+    : new Date(d.getFullYear(), d.getMonth(), 1)
   const m = String(ref.getMonth() + 1).padStart(2, '0')
   return `${m} - ${ref.getFullYear()}`
 }
@@ -93,7 +90,7 @@ function parseDate(raw: string): string {
   return s
 }
 
-function parseCSV(text: string): Omit<HistorialMensual, 'id' | 'creadoEn' | 'actualizadoEn'>[] {
+function parseCSV(text: string, threshold = 10): Omit<HistorialMensual, 'id' | 'creadoEn' | 'actualizadoEn'>[] {
   const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim())
   if (lines.length < 2) throw new Error('El archivo no tiene datos.')
 
@@ -130,7 +127,7 @@ function parseCSV(text: string): Omit<HistorialMensual, 'id' | 'creadoEn' | 'act
     const tipoCambio= colTC   >= 0 ? parseNum(cols[colTC])   : 3.7
     const nota      = colNota >= 0 ? (cols[colNota] || undefined) : undefined
 
-    results.push({ fecha, periodo: fechaToPeriodo(fecha), totalPEN, totalUSD, tipoCambio: tipoCambio || 3.7, nota })
+    results.push({ fecha, periodo: fechaToPeriodo(fecha, threshold), totalPEN, totalUSD, tipoCambio: tipoCambio || 3.7, nota })
   }
 
   if (results.length === 0) throw new Error('No se encontraron filas válidas.')
@@ -141,6 +138,8 @@ function parseCSV(text: string): Omit<HistorialMensual, 'id' | 'creadoEn' | 'act
 
 export default function FinanceHistory() {
   const { historial, loading, agregarHistorial, actualizarHistorial, borrarHistorial } = usePatrimony()
+  const { config } = useConfig()
+  const diaCorte = config.diaCorteHistorial
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState(makeEmpty())
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -153,14 +152,14 @@ export default function FinanceHistory() {
   const sorted = [...historial].sort((a, b) => a.fecha.localeCompare(b.fecha))
 
   // Registros donde el periodo almacenado NO coincide con la lógica actual
-  const wrongPeriods = historial.filter(h => h.periodo !== fechaToPeriodo(h.fecha))
+  const wrongPeriods = historial.filter(h => h.periodo !== fechaToPeriodo(h.fecha, diaCorte))
 
   async function handleRecalcularPeriodos() {
     if (wrongPeriods.length === 0) return
     setRecalculating(true)
     try {
       for (const h of wrongPeriods) {
-        await actualizarHistorial({ ...h, periodo: fechaToPeriodo(h.fecha) })
+        await actualizarHistorial({ ...h, periodo: fechaToPeriodo(h.fecha, diaCorte) })
       }
       setImportStatus({ ok: wrongPeriods.length })
     } catch {
@@ -178,7 +177,7 @@ export default function FinanceHistory() {
     setImportStatus(null)
     try {
       const text = await file.text()
-      const rows = parseCSV(text)
+      const rows = parseCSV(text, diaCorte)
       // Filter out rows that already exist by fecha
       const existingFechas = new Set(historial.map(h => h.fecha))
       const newRows = rows.filter(r => !existingFechas.has(r.fecha))
@@ -208,7 +207,7 @@ export default function FinanceHistory() {
     // periodo ya viene del form (con la lógica aplicada o sobrescrito manualmente)
     await agregarHistorial(newDraft)
     setAdding(false)
-    setNewDraft(makeEmpty())
+    setNewDraft(makeEmpty(diaCorte))
   }
 
   async function handleSaveEdit() {
@@ -261,7 +260,7 @@ export default function FinanceHistory() {
             </button>
           )}
           <button
-            onClick={() => { setAdding(true); setNewDraft(makeEmpty()) }}
+            onClick={() => { setAdding(true); setNewDraft(makeEmpty(diaCorte)) }}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
             style={{ background: 'var(--color-acento)' }}
           >
@@ -294,7 +293,7 @@ export default function FinanceHistory() {
             value={newDraft}
             onChange={setNewDraft}
             onSave={handleAdd}
-            onCancel={() => { setAdding(false); setNewDraft(makeEmpty()) }}
+            onCancel={() => { setAdding(false); setNewDraft(makeEmpty(diaCorte)) }}
           />
         </div>
       )}
@@ -395,13 +394,15 @@ function HistorialForm({
   onCancel: () => void
 }) {
   useSubmitOnCmdEnter(onSave)
+  const { config: cfg } = useConfig()
+  const diaCorte = cfg.diaCorteHistorial
   const inputStyle = {
     background: 'var(--color-fondo)',
     color: 'var(--color-texto)',
     border: '1px solid var(--color-borde)',
   }
 
-  const periodoAuto = value.fecha ? fechaToPeriodo(value.fecha) : ''
+  const periodoAuto = value.fecha ? fechaToPeriodo(value.fecha, diaCorte) : ''
   const periodoModificado = value.periodo !== periodoAuto
 
   return (
@@ -416,8 +417,8 @@ function HistorialForm({
               const nuevaFecha = e.target.value
               // Solo actualiza el periodo automáticamente si el usuario no lo ha modificado manualmente
               const periodoActual = value.periodo
-              const eraAuto = periodoActual === fechaToPeriodo(value.fecha) || !periodoActual
-              onChange({ ...value, fecha: nuevaFecha, periodo: eraAuto ? fechaToPeriodo(nuevaFecha) : periodoActual })
+              const eraAuto = periodoActual === fechaToPeriodo(value.fecha, diaCorte) || !periodoActual
+              onChange({ ...value, fecha: nuevaFecha, periodo: eraAuto ? fechaToPeriodo(nuevaFecha, diaCorte) : periodoActual })
             }}
             className="w-full px-3 py-2 rounded-lg text-sm outline-none"
             style={inputStyle}

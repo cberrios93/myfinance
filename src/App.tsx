@@ -12,9 +12,9 @@ import Movements from './modules/Movements/Movements'
 import LifeEvents from './modules/LifeEvents/LifeEvents'
 import Career from './modules/Career/Career'
 import Scenarios from './modules/Scenarios/Scenarios'
-import ExportExcel from './modules/ExportImport/ExportExcel'
-import ImportExcel from './modules/ExportImport/ImportExcel'
+import ExportImport from './modules/ExportImport/ExportImport'
 import Settings from './modules/Settings/Settings'
+import UserManagement from './modules/Admin/UserManagement'
 import Patrimony from './modules/Patrimony/Patrimony'
 import FinanceHistory from './modules/History/FinanceHistory'
 import CashFlow from './modules/CashFlow/CashFlow'
@@ -25,6 +25,7 @@ import Tax5th from './modules/Tax5th/Tax5th'
 import FamilyExpenses from './modules/FamilyExpenses/FamilyExpenses'
 import Debts from './modules/Debts/Debts'
 import Notes from './modules/Notes/Notes'
+import Analytics from './modules/Analytics/Analytics'
 
 function ProtectedRoutes() {
   const { session, loading } = useAuth()
@@ -55,6 +56,7 @@ function ProtectedRoutes() {
               <Route path="/gastos-familia" element={<FamilyExpenses />} />
               <Route path="/deudas" element={<Debts />} />
               <Route path="/notas" element={<Notes />} />
+              <Route path="/analisis" element={<Analytics />} />
               <Route path="/impuesto-5ta" element={<Tax5th />} />
               <Route path="/parametros" element={<Parameters />} />
               <Route path="/instrumentos" element={<Instruments />} />
@@ -62,9 +64,9 @@ function ProtectedRoutes() {
               <Route path="/eventos" element={<LifeEvents />} />
               <Route path="/carrera" element={<Career />} />
               <Route path="/escenarios" element={<Scenarios />} />
-              <Route path="/exportar" element={<ExportExcel />} />
-              <Route path="/importar" element={<ImportExcel />} />
+              <Route path="/exportar" element={<ExportImport />} />
               <Route path="/configuracion" element={<Settings />} />
+              <Route path="/admin/usuarios" element={<UserManagement />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AppLayout>

@@ -92,6 +92,10 @@ export interface AppConfig {
   tamanoTexto: number
   densidad: 'compacto' | 'comodo'
   altoContraste: boolean
+  monedaPrincipal: 'PEN' | 'USD'
+  decimales: 0 | 1 | 2
+  diaCorteHistorial: number
+  modulosOcultos: string[]
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -101,6 +105,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   tamanoTexto: 100,
   densidad: 'comodo',
   altoContraste: false,
+  monedaPrincipal: 'PEN',
+  decimales: 0,
+  diaCorteHistorial: 10,
+  modulosOcultos: [],
 }
 
 export function loadConfig(): AppConfig {

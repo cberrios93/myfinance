@@ -2,12 +2,13 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Settings2, Landmark, ArrowLeftRight,
-  CalendarClock, TrendingUp, GitBranch, FileDown, FileUp, Settings, LogOut, Menu, X,
+  CalendarClock, TrendingUp, GitBranch, ArrowUpDown, Settings, LogOut, Menu, X,
   Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard, Calculator,
-  Users, AlertCircle, Lightbulb, ChevronRight
+  Users, AlertCircle, Lightbulb, ChevronRight, LineChart, ShieldCheck
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { useScenario } from '../../data/ScenarioContext'
+import { useConfig } from '../../config/ConfigContext'
 
 type NavSection = { section: string; items: { to: string; label: string; icon: React.ElementType }[] }
 
@@ -33,6 +34,12 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    section: 'Análisis',
+    items: [
+      { to: '/analisis', label: 'Análisis', icon: LineChart },
+    ],
+  },
+  {
     section: 'Calculadoras',
     items: [
       { to: '/impuesto-5ta', label: 'Impuesto 5ta', icon: Calculator },
@@ -52,8 +59,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     section: 'Sistema',
     items: [
-      { to: '/exportar', label: 'Exportar Excel', icon: FileDown },
-      { to: '/importar', label: 'Importar Excel', icon: FileUp },
+      { to: '/exportar', label: 'Exportar / Importar', icon: ArrowUpDown },
       { to: '/configuracion', label: 'Configuración', icon: Settings },
     ],
   },
@@ -136,9 +142,15 @@ function CollapsibleSection({ section, items, onNavClick }: {
 }
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { signOut, user } = useAuth()
+  const { signOut, user, userRole } = useAuth()
   const { escenarioActivo, escenarios, seleccionarEscenario } = useScenario()
+  const { config } = useConfig()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const navSections = NAV_SECTIONS.map(sec => ({
+    ...sec,
+    items: sec.items.filter(item => !config.modulosOcultos.includes(item.to)),
+  })).filter(sec => sec.items.length > 0)
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-fondo)', fontFamily: 'var(--font-family)' }}>
@@ -173,7 +185,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         )}
 
         <nav className="flex-1 overflow-y-auto py-2 space-y-1">
-          {NAV_SECTIONS.map(({ section, items }) =>
+          {navSections.map(({ section, items }) =>
             section === '' ? (
               items.map(({ to, label, icon: Icon }) => (
                 <NavLink
@@ -201,6 +213,13 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                 onNavClick={() => setSidebarOpen(false)}
               />
             )
+          )}
+          {userRole === 'admin' && (
+            <CollapsibleSection
+              section="Admin"
+              items={[{ to: '/admin/usuarios', label: 'Gestión de Usuarios', icon: ShieldCheck }]}
+              onNavClick={() => setSidebarOpen(false)}
+            />
           )}
         </nav>
 

@@ -1,15 +1,32 @@
 import { useConfig } from '../../config/ConfigContext'
 import { PALETAS, TIPOGRAFIAS } from '../../config/themes'
 
+const MODULOS_OPCIONALES = [
+  { to: '/haberes', label: 'Haberes' },
+  { to: '/suscripciones', label: 'Suscripciones' },
+  { to: '/gastos-familia', label: 'Gastos Familia' },
+  { to: '/deudas', label: 'Deudas' },
+  { to: '/notas', label: 'Ideas & Notas' },
+  { to: '/analisis', label: 'Análisis' },
+  { to: '/impuesto-5ta', label: 'Impuesto 5ta' },
+]
+
 export default function Settings() {
   const { config, setConfig } = useConfig()
+
+  function toggleModulo(ruta: string) {
+    const ocultos = config.modulosOcultos.includes(ruta)
+      ? config.modulosOcultos.filter(r => r !== ruta)
+      : [...config.modulosOcultos, ruta]
+    setConfig({ ...config, modulosOcultos: ocultos })
+  }
 
   return (
     <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Configuración visual</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Configuración</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
-          Preferencias de presentación. No afectan los datos del plan.
+          Preferencias de la app. Se guardan localmente en este navegador.
         </p>
       </div>
 
@@ -135,6 +152,96 @@ export default function Settings() {
             />
           </div>
         </label>
+      </div>
+
+      {/* Moneda principal */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Moneda principal</h2>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>La moneda que aparece primero en totales y resúmenes</p>
+        <div className="flex gap-3">
+          {(['PEN', 'USD'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setConfig({ ...config, monedaPrincipal: m })}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: config.monedaPrincipal === m ? 'var(--color-acento)' : 'transparent',
+                color: config.monedaPrincipal === m ? '#fff' : 'var(--color-muted)',
+                border: `1px solid ${config.monedaPrincipal === m ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+              }}
+            >
+              {m === 'PEN' ? 'S/ Soles (PEN)' : '$ Dólares (USD)'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Decimales */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Decimales en montos</h2>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Ejemplo: <span className="font-mono">S/ 12,500</span> vs <span className="font-mono">S/ 12,500.43</span></p>
+        <div className="flex gap-3">
+          {([0, 1, 2] as const).map(d => (
+            <button
+              key={d}
+              onClick={() => setConfig({ ...config, decimales: d })}
+              className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: config.decimales === d ? 'var(--color-acento)' : 'transparent',
+                color: config.decimales === d ? '#fff' : 'var(--color-muted)',
+                border: `1px solid ${config.decimales === d ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+              }}
+            >
+              {d === 0 ? '0 decimales' : d === 1 ? '1 decimal' : '2 decimales'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Día de corte del historial */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Día de corte — Historial</h2>
+          <span className="text-sm font-mono" style={{ color: 'var(--color-acento)' }}>día {config.diaCorteHistorial}</span>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+          Si registras antes del día {config.diaCorteHistorial}, el período se asigna al mes anterior. Día {config.diaCorteHistorial + 1}+ → mes actual.
+        </p>
+        <input
+          type="range" min={1} max={20} step={1}
+          value={config.diaCorteHistorial}
+          onChange={e => setConfig({ ...config, diaCorteHistorial: parseInt(e.target.value) })}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+          <span>Día 1</span><span>Día 10</span><span>Día 20</span>
+        </div>
+      </div>
+
+      {/* Módulos visibles */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Módulos visibles en sidebar</h2>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Oculta módulos que no usas. Los datos se conservan.</p>
+        <div className="space-y-2">
+          {MODULOS_OPCIONALES.map(({ to, label }) => {
+            const oculto = config.modulosOcultos.includes(to)
+            return (
+              <label key={to} className="flex items-center gap-3 cursor-pointer">
+                <div
+                  onClick={() => toggleModulo(to)}
+                  className="relative w-9 h-5 rounded-full transition-colors cursor-pointer flex-shrink-0"
+                  style={{ background: oculto ? 'var(--color-borde)' : 'var(--color-acento)' }}
+                >
+                  <div
+                    className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform"
+                    style={{ transform: oculto ? 'translateX(2px)' : 'translateX(18px)' }}
+                  />
+                </div>
+                <span className="text-sm" style={{ color: oculto ? 'var(--color-muted)' : 'var(--color-texto)' }}>{label}</span>
+              </label>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
