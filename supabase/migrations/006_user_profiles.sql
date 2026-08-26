@@ -16,15 +16,23 @@ create policy "users view own profile"
   on public.user_profiles for select
   using (auth.uid() = user_id);
 
--- Admin ve todos los perfiles
+-- Función SECURITY DEFINER para evitar recursión infinita en la policy de admin
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists (
+    select 1 from public.user_profiles
+    where user_id = auth.uid() and role = 'admin'
+  );
+$$;
+
+-- Admin ve todos los perfiles (usa función para evitar recursión)
 create policy "admin views all profiles"
   on public.user_profiles for select
-  using (
-    exists (
-      select 1 from public.user_profiles p
-      where p.user_id = auth.uid() and p.role = 'admin'
-    )
-  );
+  using (public.is_admin());
 
 -- Solo service role puede insertar/actualizar (via trigger o Edge Function)
 -- No se permiten inserts desde el cliente anon
