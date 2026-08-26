@@ -21,11 +21,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function fetchRole(userId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('user_id', userId)
       .single()
+    if (error) console.error('[AuthContext] fetchRole error:', error.code, error.message)
+    console.log('[AuthContext] fetchRole result:', { userId, role: data?.role })
     setUserRole((data?.role as UserRole) ?? 'guest')
   }
 
