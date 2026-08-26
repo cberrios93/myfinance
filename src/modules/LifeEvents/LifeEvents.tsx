@@ -195,7 +195,7 @@ function useLoanCalc(s: LoanState, tcVenta: number, anioT: number) {
   }, [s, tcVenta, anioT])
 }
 
-function LoanCalculator({
+export function LoanCalculator({
   tipoId,
   anioT,
   anioCalendario,
@@ -231,7 +231,7 @@ function LoanCalculator({
     plazoMeses: defaults.plazoMeses ?? 60,
   })
 
-  const { valorPEN, inicialPEN, principal, cuotaMensual, totalPagar, totalIntereses, plazoAnios, anioFinT } =
+  const { inicialPEN, principal, cuotaMensual, totalPagar, totalIntereses, plazoAnios, anioFinT } =
     useLoanCalc(s, tcVenta, anioT)
 
   const edadInicio = anioTToEdad(anioT, general.edadActual)

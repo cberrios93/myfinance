@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   Check, X, ArrowLeft, RefreshCw, Star, TrendingDown,
-  Home, Car, Plus, Trash2, ChevronDown, ChevronUp, Info,
+  Plus, Trash2, ChevronDown, ChevronUp, Info,
 } from 'lucide-react'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
 import type { EventoVida, GeneralParams } from '../../data/types'
@@ -118,7 +118,7 @@ function runScenario(s: SimScenario, valorPEN: number, tea: number, plazo: numbe
   return { scenario: s, cuotaMensual, cuotaRealMensual, miCuotaMedia: cuotaRealMensual * pct, inicialPEN, principalPEN, rows, totalIntereses, totalSeguros, totalPagar, mesesReales, gastosCierre: gc }
 }
 
-function generarEscenarios(p: SimProfile, valorPEN: number, tea: number, plazo: number, tipoId: string, vc?: ViviendaConfig): SimScenario[] {
+function generarEscenarios(p: SimProfile, valorPEN: number, _tea: number, _plazo: number, tipoId: string, vc?: ViviendaConfig): SimScenario[] {
   const esV = tipoId === 'vivienda'
   const ib = p.capitalDisponible === 'bajo' ? 10 : p.capitalDisponible === 'medio' ? 15 : p.capitalDisponible === 'alto' ? 25 : 10
   const a: SimScenario = { id: 'a', label: `Mínimo (${ib}% inicial)`, inicialPct: ib, prepagos: [], aplicaGratificacion: false, plazoExtra: 0 }
@@ -157,7 +157,7 @@ const M = (n: number) => Math.round(n).toLocaleString('es-PE')
 
 // ── Componente principal ────────────────────────────────────────────────────────
 
-export function LoanSimulator({ tipoId, tipoLabel, anioT, general, onConfirm, onCancel }: {
+export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onConfirm, onCancel }: {
   tipoId: string; tipoLabel: string; anioT: number; anioCalendario: number
   general: GeneralParams; onConfirm: (eventos: Omit<EventoVida, 'id'>[]) => void; onCancel: () => void
 }) {
@@ -192,7 +192,6 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general, onConfirm, on
   )
 
   const badgeId       = useMemo(() => getBadge(results, profile.prioridad), [results, profile.prioridad])
-  const activeResult  = results.find(r => r.scenario.id === tabActivo)
   const detalleResult = results.find(r => r.scenario.id === detalleId)
 
   function siguiente() {
@@ -670,8 +669,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general, onConfirm, on
 
 // ── Helpers de estado ──────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function setStep(step: SimStep) { /* used inline */ }
+function setStep(_step: SimStep) { /* used inline */ }
 
 // ── Sub-componentes ────────────────────────────────────────────────────────────
 

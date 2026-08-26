@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Check, X, Baby, GraduationCap, School, BookOpen, Sparkles } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import type { EventoVida, GeneralParams } from '../../data/types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,8 +164,7 @@ export function HijoWizard({
 
   const preview = useMemo(() => generarEventos(s, general), [s, general])
 
-  const totalMensualAnual = useMemo(() => {
-    // suma de costos activos por año promedio (referencia)
+  useMemo(() => {
     let sum = 0
     for (const etapa of ETAPAS) {
       if (etapa.opcional && !s.habilitadas[etapa.id]) continue

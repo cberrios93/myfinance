@@ -403,7 +403,7 @@ function PatrimonioTab() {
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--color-muted)' }} interval="preserveStartEnd" />
               <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={45} />
               <Tooltip
-                formatter={(v: number) => [`${v.toFixed(2)}%`, '% cambio']}
+                formatter={(v: unknown) => [`${(v as number).toFixed(2)}%`, '% cambio']}
                 contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
               />
               <ReferenceLine y={0} stroke="var(--color-borde)" />
@@ -819,7 +819,7 @@ function RendimientosTab() {
                   {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
                 <Tooltip
-                  formatter={(v: number) => [`S/ ${fmt(v)} (${((v / totalPos) * 100).toFixed(1)}%)`, '']}
+                  formatter={(v: unknown) => { const n = v as number; return [`S/ ${fmt(n)} (${((n / totalPos) * 100).toFixed(1)}%)`, ''] }}
                   contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
                 />
               </PieChart>
@@ -858,7 +858,7 @@ function RendimientosTab() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
                 <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'var(--color-muted)' }} interval={0} angle={-30} textAnchor="end" height={45} />
                 <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={45} />
-                <Tooltip formatter={(v: number) => [`${v.toFixed(2)}%`, 'Rentabilidad']} contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }} />
+                <Tooltip formatter={(v: unknown) => [`${(v as number).toFixed(2)}%`, 'Rentabilidad']} contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }} />
                 <ReferenceLine y={0} stroke="var(--color-borde)" />
                 <Line type="monotone" dataKey="Rentabilidad" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
               </LineChart>
