@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { useConfig } from '../../config/ConfigContext'
+import { formatMonto } from '../../lib/formatMonto'
 
 const UIT_DEFAULT = 5350 // 2026
-
-function fmt(n: number) { return n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
 
 const TRAMOS = [
   { label: 'Hasta 5 UIT', tasa: 0.08, uitMax: 5 },
@@ -35,6 +35,7 @@ function calcImpuesto(rentaNeta: number, uit: number) {
 const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }
 
 export default function Tax5th() {
+  const { config } = useConfig()
   const [ingresoBruto, setIngresoBruto] = useState(0)
   const [uit, setUIT] = useState(UIT_DEFAULT)
   const [descuentosExtra, setDescuentosExtra] = useState(0)
@@ -83,9 +84,9 @@ export default function Tax5th() {
           {/* Resumen */}
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: 'Ingresos brutos anuales', val: `S/ ${fmt(ingresoBruto)}` },
-              { label: 'Deducción 7 UIT', val: `S/ ${fmt(deduccion7UIT)}` },
-              { label: 'Renta neta gravable', val: `S/ ${fmt(rentaNeta)}`, highlight: true },
+              { label: 'Ingresos brutos anuales', val: `${formatMonto(ingresoBruto, config)}` },
+              { label: 'Deducción 7 UIT', val: `${formatMonto(deduccion7UIT, config)}` },
+              { label: 'Renta neta gravable', val: `${formatMonto(rentaNeta, config)}`, highlight: true },
             ].map(({ label, val, highlight }) => (
               <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
                 <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</p>
@@ -94,7 +95,7 @@ export default function Tax5th() {
             ))}
             <div className="rounded-xl p-4" style={{ background: 'var(--color-acento)', border: '1px solid var(--color-acento)' }}>
               <p className="text-xs mb-1 text-white opacity-80">Retención mensual estimada</p>
-              <p className="font-bold font-mono text-lg text-white">S/ {fmt(retencionMensual)}</p>
+              <p className="font-bold font-mono text-lg text-white">{formatMonto(retencionMensual, config)}</p>
             </div>
           </div>
 
@@ -114,13 +115,13 @@ export default function Tax5th() {
                   <tr key={i} style={{ background: 'var(--color-card)', borderTop: '1px solid var(--color-borde)' }}>
                     <td className="px-4 py-2.5 text-sm" style={{ color: 'var(--color-texto)' }}>{d.label}</td>
                     <td className="px-4 py-2.5 text-center text-xs font-mono" style={{ color: 'var(--color-muted)' }}>{(d.tasa * 100).toFixed(0)}%</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-texto)' }}>S/ {fmt(d.monto)}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs font-semibold" style={{ color: '#ef4444' }}>S/ {fmt(d.impuesto)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-texto)' }}>{formatMonto(d.monto, config)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-xs font-semibold" style={{ color: '#ef4444' }}>{formatMonto(d.impuesto, config)}</td>
                   </tr>
                 ))}
                 <tr style={{ background: 'var(--color-fondo)', borderTop: '2px solid var(--color-borde)' }}>
                   <td colSpan={3} className="px-4 py-2.5 font-semibold text-sm" style={{ color: 'var(--color-texto)' }}>Total IR anual</td>
-                  <td className="px-4 py-2.5 text-right font-bold font-mono" style={{ color: '#ef4444' }}>S/ {fmt(impuesto)}</td>
+                  <td className="px-4 py-2.5 text-right font-bold font-mono" style={{ color: '#ef4444' }}>{formatMonto(impuesto, config)}</td>
                 </tr>
               </tbody>
             </table>
@@ -128,7 +129,7 @@ export default function Tax5th() {
 
           <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
             Cálculo referencial. La retención exacta la determina el empleador mensualmente según la proyección actualizada del año.
-            UIT {new Date().getFullYear()}: S/ {fmt(uit)}.
+            UIT {new Date().getFullYear()}: {formatMonto(uit, config)}.
           </p>
         </>
       )}

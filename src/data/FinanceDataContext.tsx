@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react'
 import { v4 as uuid } from 'uuid'
 import { useAuth } from '../auth/AuthContext'
+import { useUndo } from '../contexts/UndoContext'
 import type {
   FlujoCajaItem, Rendimiento, ReciboHaberes,
-  Suscripcion, GastoFamilia, DeudaPendiente, Nota,
+  Suscripcion, GastoFamilia, DeudaPendiente, Nota, FlujoCapital,
 } from './types'
 import {
   listarFlujoCaja, guardarFlujoCajaItem, eliminarFlujoCajaItem,
@@ -13,6 +14,7 @@ import {
   listarGastosFamilia, guardarGastoFamilia, eliminarGastoFamilia,
   listarDeudas, guardarDeuda, eliminarDeuda,
   listarNotas, guardarNota, eliminarNota,
+  listarFlujosCapital, guardarFlujoCapital, eliminarFlujoCapital,
 } from '../lib/supabase/finance'
 
 type Omitido<T> = Omit<T, 'id' | 'creadoEn' | 'actualizadoEn'>
@@ -26,6 +28,11 @@ interface FinanceDataContextValue {
   gastosFamilia: GastoFamilia[]
   deudas: DeudaPendiente[]
   notas: Nota[]
+  flujosCapital: FlujoCapital[]
+  // Flujos de capital
+  agregarFlujoCapital: (d: Omitido<FlujoCapital>) => Promise<void>
+  actualizarFlujoCapital: (f: FlujoCapital) => Promise<void>
+  borrarFlujoCapital: (id: string) => Promise<void>
   // Flujo de caja
   agregarFlujo: (d: Omitido<FlujoCajaItem>) => Promise<void>
   actualizarFlujo: (item: FlujoCajaItem) => Promise<void>
@@ -66,6 +73,7 @@ function nuevo<T extends { id: string; creadoEn: string; actualizadoEn: string }
 
 export function FinanceDataProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const { showUndo } = useUndo()
   const [loading, setLoading] = useState(true)
   const [flujoCaja, setFlujoCaja] = useState<FlujoCajaItem[]>([])
   const [rendimientos, setRendimientos] = useState<Rendimiento[]>([])
@@ -74,17 +82,36 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
   const [gastosFamilia, setGastosFamilia] = useState<GastoFamilia[]>([])
   const [deudas, setDeudas] = useState<DeudaPendiente[]>([])
   const [notas, setNotas] = useState<Nota[]>([])
+  const [flujosCapital, setFlujosCapital] = useState<FlujoCapital[]>([])
+
+  // Refs para acceder al estado actual sin stale closures en funciones de undo
+  const fcRef = useRef(flujoCaja); fcRef.current = flujoCaja
+  const rendRef = useRef(rendimientos); rendRef.current = rendimientos
+  const recRef = useRef(recibos); recRef.current = recibos
+  const susRef = useRef(suscripciones); susRef.current = suscripciones
+  const gfRef = useRef(gastosFamilia); gfRef.current = gastosFamilia
+  const deuRef = useRef(deudas); deuRef.current = deudas
+  const notRef = useRef(notas); notRef.current = notas
+  const fkRef = useRef(flujosCapital); fkRef.current = flujosCapital
 
   const recargar = useCallback(async () => {
     if (!user) return
     setLoading(true)
     try {
-      const [fc, rend, rec, sus, gf, deu, not] = await Promise.all([
+      const [fc, rend, rec, sus, gf, deu, not, fk] = await Promise.all([
         listarFlujoCaja(), listarRendimientos(), listarRecibos(),
         listarSuscripciones(), listarGastosFamilia(), listarDeudas(), listarNotas(),
+        listarFlujosCapital(),
       ])
-      setFlujoCaja(fc); setRendimientos(rend); setRecibos(rec)
-      setSuscripciones(sus); setGastosFamilia(gf); setDeudas(deu); setNotas(not)
+      const susMap = new Map(sus.filter(s => s.flujoCajaItemId).map(s => [s.flujoCajaItemId!, s.id]))
+      const gfMap = new Map(gf.filter(g => g.flujoCajaItemId).map(g => [g.flujoCajaItemId!, g.id]))
+      const fcAnotado = fc.map(item => ({
+        ...item,
+        suscripcionId: susMap.get(item.id) ?? item.suscripcionId,
+        gastoFamiliaId: gfMap.get(item.id) ?? item.gastoFamiliaId,
+      }))
+      setFlujoCaja(fcAnotado); setRendimientos(rend); setRecibos(rec)
+      setSuscripciones(sus); setGastosFamilia(gf); setDeudas(deu); setNotas(not); setFlujosCapital(fk)
     } finally {
       setLoading(false)
     }
@@ -94,43 +121,70 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
     if (user) recargar()
     else {
       setFlujoCaja([]); setRendimientos([]); setRecibos([])
-      setSuscripciones([]); setGastosFamilia([]); setDeudas([]); setNotas([])
+      setSuscripciones([]); setGastosFamilia([]); setDeudas([]); setNotas([]); setFlujosCapital([])
       setLoading(false)
     }
   }, [user])
 
-  // Generic CRUD factory
+  // Fábrica CRUD genérica con soporte de undo
   function makeCRUD<T extends { id: string; creadoEn: string; actualizadoEn: string }>(
+    stateRef: React.MutableRefObject<T[]>,
     setter: React.Dispatch<React.SetStateAction<T[]>>,
     saveFn: (item: T) => Promise<void>,
     deleteFn: (id: string) => Promise<void>,
+    entityName: string,
+    getLabel: (item: T) => string,
   ) {
     return {
       agregar: async (data: Omitido<T>) => {
         const item = nuevo<T>(data as Omitido<T>)
         await saveFn(item)
         setter(prev => [...prev, item])
+        showUndo(`${entityName} "${getLabel(item)}" creado`, async () => {
+          await deleteFn(item.id)
+          setter(prev => prev.filter(x => x.id !== item.id))
+        })
       },
       actualizar: async (item: T) => {
+        const anterior = stateRef.current.find(x => x.id === item.id)
         const updated = { ...item, actualizadoEn: ahora() }
         await saveFn(updated)
         setter(prev => prev.map(x => x.id === updated.id ? updated : x))
+        if (anterior) {
+          showUndo(`${entityName} "${getLabel(updated)}" actualizado`, async () => {
+            await saveFn(anterior)
+            setter(prev => prev.map(x => x.id === anterior.id ? anterior : x))
+          })
+        }
       },
       borrar: async (id: string) => {
+        const snapshot = stateRef.current.find(x => x.id === id)
         await deleteFn(id)
         setter(prev => prev.filter(x => x.id !== id))
+        if (snapshot) {
+          showUndo(`${entityName} "${getLabel(snapshot)}" eliminado`, async () => {
+            await saveFn(snapshot)
+            setter(prev => [...prev, snapshot])
+          })
+        }
       },
     }
   }
 
-  const fc = makeCRUD(setFlujoCaja, guardarFlujoCajaItem, eliminarFlujoCajaItem)
-  const rend = makeCRUD(setRendimientos, guardarRendimiento, eliminarRendimiento)
-  const rec = makeCRUD(setRecibos, guardarRecibo, eliminarRecibo)
-  const gf = makeCRUD(setGastosFamilia, guardarGastoFamilia, eliminarGastoFamilia)
-  const deu = makeCRUD(setDeudas, guardarDeuda, eliminarDeuda)
-  const not = makeCRUD(setNotas, guardarNota, eliminarNota)
+  const fc = makeCRUD(fcRef, setFlujoCaja, guardarFlujoCajaItem, eliminarFlujoCajaItem,
+    'Flujo', (i) => i.nombre)
+  const fk = makeCRUD(fkRef, setFlujosCapital, guardarFlujoCapital, eliminarFlujoCapital,
+    'Flujo de capital', (f) => `${f.tipo === 'aporte' ? 'Aporte' : 'Retiro'} ${f.moneda} ${f.monto}`)
+  const rend = makeCRUD(rendRef, setRendimientos, guardarRendimiento, eliminarRendimiento,
+    'Rendimiento', (r) => r.instrumentoNombre)
+  const rec = makeCRUD(recRef, setRecibos, guardarRecibo, eliminarRecibo,
+    'Recibo', (r) => r.fecha)
+  const deu = makeCRUD(deuRef, setDeudas, guardarDeuda, eliminarDeuda,
+    'Deuda', (d) => `${d.deudor} — ${d.concepto}`)
+  const not = makeCRUD(notRef, setNotas, guardarNota, eliminarNota,
+    'Nota', (n) => n.titulo)
 
-  // Convierte una Suscripcion en los datos del FlujoCajaItem mensual equivalente
+  // --- Suscripciones (con cascade a FlujoCaja) ---
   function susToFlujoData(s: Suscripcion, suscripcionId: string): Omitido<FlujoCajaItem> {
     const mensual = s.periodicidad === 'Mensual' ? s.montoTotal : s.montoTotal / 12
     return {
@@ -145,24 +199,28 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // CRUD de suscripciones con sync automático a Flujo de Caja
   const sus = {
     agregar: async (data: Omitido<Suscripcion>) => {
-      const sus: Suscripcion = { ...data, id: uuid(), creadoEn: ahora(), actualizadoEn: ahora() }
-      // Crear FlujoCajaItem vinculado
-      const fcItem: FlujoCajaItem = { ...susToFlujoData(sus, sus.id), id: uuid(), creadoEn: ahora(), actualizadoEn: ahora() }
+      const s: Suscripcion = { ...data, id: uuid(), creadoEn: ahora(), actualizadoEn: ahora() }
+      const fcItem: FlujoCajaItem = { ...susToFlujoData(s, s.id), id: uuid(), creadoEn: ahora(), actualizadoEn: ahora() }
       await guardarFlujoCajaItem(fcItem)
       setFlujoCaja(prev => [...prev, fcItem])
-      // Guardar suscripción con referencia al item
-      const susConLink: Suscripcion = { ...sus, flujoCajaItemId: fcItem.id }
+      const susConLink: Suscripcion = { ...s, flujoCajaItemId: fcItem.id }
       await guardarSuscripcion(susConLink)
       setSuscripciones(prev => [...prev, susConLink])
+      showUndo(`Suscripción "${susConLink.nombre}" creada`, async () => {
+        await eliminarFlujoCajaItem(fcItem.id)
+        setFlujoCaja(prev => prev.filter(x => x.id !== fcItem.id))
+        await eliminarSuscripcion(susConLink.id)
+        setSuscripciones(prev => prev.filter(x => x.id !== susConLink.id))
+      })
     },
     actualizar: async (s: Suscripcion) => {
+      const anterior = susRef.current.find(x => x.id === s.id)
+      const anteriorFc = anterior?.flujoCajaItemId ? fcRef.current.find(x => x.id === anterior.flujoCajaItemId) : undefined
       const updated: Suscripcion = { ...s, actualizadoEn: ahora() }
       await guardarSuscripcion(updated)
       setSuscripciones(prev => prev.map(x => x.id === updated.id ? updated : x))
-      // Sincronizar FlujoCajaItem vinculado
       if (updated.flujoCajaItemId) {
         const fcUpdated: FlujoCajaItem = {
           ...susToFlujoData(updated, updated.id),
@@ -173,25 +231,124 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
         await guardarFlujoCajaItem(fcUpdated)
         setFlujoCaja(prev => prev.map(x => x.id === fcUpdated.id ? fcUpdated : x))
       }
+      if (anterior) {
+        showUndo(`Suscripción "${updated.nombre}" actualizada`, async () => {
+          await guardarSuscripcion(anterior)
+          setSuscripciones(prev => prev.map(x => x.id === anterior.id ? anterior : x))
+          if (anteriorFc) {
+            await guardarFlujoCajaItem(anteriorFc)
+            setFlujoCaja(prev => prev.map(x => x.id === anteriorFc.id ? anteriorFc : x))
+          }
+        })
+      }
     },
     borrar: async (id: string) => {
-      // Buscar el flujoCajaItemId antes de borrar
-      setSuscripciones(prev => {
-        const sus = prev.find(x => x.id === id)
-        if (sus?.flujoCajaItemId) {
-          eliminarFlujoCajaItem(sus.flujoCajaItemId).then(() => {
-            setFlujoCaja(fc => fc.filter(x => x.id !== sus.flujoCajaItemId))
-          })
-        }
-        return prev.filter(x => x.id !== id)
-      })
+      const susSnapshot = susRef.current.find(x => x.id === id)
+      const fcSnapshot = susSnapshot?.flujoCajaItemId ? fcRef.current.find(x => x.id === susSnapshot.flujoCajaItemId) : undefined
+      if (susSnapshot?.flujoCajaItemId) {
+        await eliminarFlujoCajaItem(susSnapshot.flujoCajaItemId)
+        setFlujoCaja(prev => prev.filter(x => x.id !== susSnapshot.flujoCajaItemId))
+      }
       await eliminarSuscripcion(id)
+      setSuscripciones(prev => prev.filter(x => x.id !== id))
+      if (susSnapshot) {
+        showUndo(`Suscripción "${susSnapshot.nombre}" eliminada`, async () => {
+          if (fcSnapshot) {
+            await guardarFlujoCajaItem(fcSnapshot)
+            setFlujoCaja(prev => [...prev, fcSnapshot])
+          }
+          await guardarSuscripcion(susSnapshot)
+          setSuscripciones(prev => [...prev, susSnapshot])
+        })
+      }
+    },
+  }
+
+  // --- Gastos Familia (con cascade a FlujoCaja) ---
+  function gfToFlujoData(g: GastoFamilia, gastoFamiliaId: string): Omitido<FlujoCajaItem> {
+    const mensual = g.periodicidad === 'Mensual' ? (g.montoPEN ?? 0) : (g.montoPEN ?? 0) / 12
+    const mensualUSD = g.periodicidad === 'Mensual' ? (g.montoUSD ?? 0) : (g.montoUSD ?? 0) / 12
+    return {
+      nombre: `${g.beneficiario} — ${g.descripcion}`,
+      tipo: 'Expense',
+      categoria: 'Gastos Familia',
+      montoPEN: g.montoPEN != null ? mensual : undefined,
+      montoUSD: g.montoUSD != null ? mensualUSD : undefined,
+      activo: g.activo,
+      orden: 998,
+      gastoFamiliaId,
+    }
+  }
+
+  const gf = {
+    agregar: async (data: Omitido<GastoFamilia>) => {
+      const g: GastoFamilia = { ...data, id: uuid(), creadoEn: ahora(), actualizadoEn: ahora() }
+      const fcItem: FlujoCajaItem = { ...gfToFlujoData(g, g.id), id: uuid(), creadoEn: ahora(), actualizadoEn: ahora() }
+      await guardarFlujoCajaItem(fcItem)
+      setFlujoCaja(prev => [...prev, fcItem])
+      const gConLink: GastoFamilia = { ...g, flujoCajaItemId: fcItem.id }
+      await guardarGastoFamilia(gConLink)
+      setGastosFamilia(prev => [...prev, gConLink])
+      showUndo(`Gasto "${gConLink.descripcion}" creado`, async () => {
+        await eliminarFlujoCajaItem(fcItem.id)
+        setFlujoCaja(prev => prev.filter(x => x.id !== fcItem.id))
+        await eliminarGastoFamilia(gConLink.id)
+        setGastosFamilia(prev => prev.filter(x => x.id !== gConLink.id))
+      })
+    },
+    actualizar: async (g: GastoFamilia) => {
+      const anterior = gfRef.current.find(x => x.id === g.id)
+      const anteriorFc = anterior?.flujoCajaItemId ? fcRef.current.find(x => x.id === anterior.flujoCajaItemId) : undefined
+      const updated: GastoFamilia = { ...g, actualizadoEn: ahora() }
+      await guardarGastoFamilia(updated)
+      setGastosFamilia(prev => prev.map(x => x.id === updated.id ? updated : x))
+      if (updated.flujoCajaItemId) {
+        const fcUpdated: FlujoCajaItem = {
+          ...gfToFlujoData(updated, updated.id),
+          id: updated.flujoCajaItemId,
+          creadoEn: ahora(),
+          actualizadoEn: ahora(),
+        }
+        await guardarFlujoCajaItem(fcUpdated)
+        setFlujoCaja(prev => prev.map(x => x.id === fcUpdated.id ? fcUpdated : x))
+      }
+      if (anterior) {
+        showUndo(`Gasto "${updated.descripcion}" actualizado`, async () => {
+          await guardarGastoFamilia(anterior)
+          setGastosFamilia(prev => prev.map(x => x.id === anterior.id ? anterior : x))
+          if (anteriorFc) {
+            await guardarFlujoCajaItem(anteriorFc)
+            setFlujoCaja(prev => prev.map(x => x.id === anteriorFc.id ? anteriorFc : x))
+          }
+        })
+      }
+    },
+    borrar: async (id: string) => {
+      const gSnapshot = gfRef.current.find(x => x.id === id)
+      const fcSnapshot = gSnapshot?.flujoCajaItemId ? fcRef.current.find(x => x.id === gSnapshot.flujoCajaItemId) : undefined
+      if (gSnapshot?.flujoCajaItemId) {
+        await eliminarFlujoCajaItem(gSnapshot.flujoCajaItemId)
+        setFlujoCaja(prev => prev.filter(x => x.id !== gSnapshot.flujoCajaItemId))
+      }
+      await eliminarGastoFamilia(id)
+      setGastosFamilia(prev => prev.filter(x => x.id !== id))
+      if (gSnapshot) {
+        showUndo(`Gasto "${gSnapshot.descripcion}" eliminado`, async () => {
+          if (fcSnapshot) {
+            await guardarFlujoCajaItem(fcSnapshot)
+            setFlujoCaja(prev => [...prev, fcSnapshot])
+          }
+          await guardarGastoFamilia(gSnapshot)
+          setGastosFamilia(prev => [...prev, gSnapshot])
+        })
+      }
     },
   }
 
   return (
     <Ctx.Provider value={{
-      loading, flujoCaja, rendimientos, recibos, suscripciones, gastosFamilia, deudas, notas,
+      loading, flujoCaja, rendimientos, recibos, suscripciones, gastosFamilia, deudas, notas, flujosCapital,
+      agregarFlujoCapital: fk.agregar, actualizarFlujoCapital: fk.actualizar, borrarFlujoCapital: fk.borrar,
       agregarFlujo: fc.agregar, actualizarFlujo: fc.actualizar, borrarFlujo: fc.borrar,
       agregarRendimiento: rend.agregar, actualizarRendimiento: rend.actualizar, borrarRendimiento: rend.borrar,
       agregarRecibo: rec.agregar, actualizarRecibo: rec.actualizar, borrarRecibo: rec.borrar,

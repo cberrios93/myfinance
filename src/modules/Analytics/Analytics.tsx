@@ -7,6 +7,7 @@ import {
 import { Sparkles, Copy, Check, X as XIcon } from 'lucide-react'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import { useFinanceData } from '../../data/FinanceDataContext'
+import { useConfig } from '../../config/ConfigContext'
 import type { HistorialMensual, Rendimiento, FlujoCajaItem } from '../../data/types'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -14,10 +15,7 @@ import type { HistorialMensual, Rendimiento, FlujoCajaItem } from '../../data/ty
 function fmt(n: number, dec = 0) {
   return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec })
 }
-function fmtPct(n: number, sign = true) {
-  const s = sign && n >= 0 ? `+${n.toFixed(2)}%` : `${n.toFixed(2)}%`
-  return s
-}
+
 function totalEnPEN(h: HistorialMensual) {
   return h.totalPEN + h.totalUSD * h.tipoCambio
 }
@@ -90,34 +88,7 @@ function DualRangeSlider({
   }, [labels])
 
   return (
-    <div className="w-full select-none space-y-3">
-      {/* Periodo seleccionado — fila de chips */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs" style={{ color: 'var(--color-muted)' }}>De</span>
-        <span
-          className="text-xs font-semibold font-mono px-2.5 py-1 rounded-full"
-          style={{ background: 'var(--color-acento)', color: '#fff', letterSpacing: '0.02em' }}
-        >
-          {labels[fromIdx]}
-        </span>
-        <span className="text-xs" style={{ color: 'var(--color-muted)' }}>hasta</span>
-        <span
-          className="text-xs font-semibold font-mono px-2.5 py-1 rounded-full"
-          style={{ background: 'var(--color-acento)', color: '#fff', letterSpacing: '0.02em' }}
-        >
-          {labels[toIdx]}
-        </span>
-        {fromIdx > 0 || toIdx < max ? (
-          <button
-            onClick={() => onChange(0, max)}
-            className="text-xs px-2 py-0.5 rounded-full"
-            style={{ color: 'var(--color-muted)', border: '1px solid var(--color-borde)' }}
-          >
-            Reset
-          </button>
-        ) : null}
-      </div>
-
+    <div className="w-full select-none">
       {/* Slider */}
       <div style={{ padding: '0 9px' }}>
         {/*
@@ -204,10 +175,14 @@ function DualRangeSlider({
 // TAB 1: Patrimonio
 // ════════════════════════════════════════════════════════════════════════════
 
+const ALL_LINES = ['Total (S/)', 'PEN (S/)', 'USD→PEN'] as const
+type LineName = typeof ALL_LINES[number]
+
 function PatrimonioTab() {
   const { historial } = usePatrimony()
+  const { config } = useConfig()
+  const inflacionAnual = config.inflacionAnual ?? 6
 
-  // Only records with real data (no nota)
   const valid = useMemo(
     () => [...historial].filter(h => !h.nota).sort((a, b) => a.fecha.localeCompare(b.fecha)),
     [historial]
@@ -218,47 +193,53 @@ function PatrimonioTab() {
   const [fromIdx, setFromIdx] = useState(0)
   const [toIdx, setToIdx] = useState(0)
   const [granularity, setGranularity] = useState<Granularity>('mensual')
+  const [activeLines, setActiveLines] = useState<Set<LineName>>(new Set(['Total (S/)', 'PEN (S/)', 'USD→PEN']))
 
   const maxIdx = Math.max(0, valid.length - 1)
 
-  // Cuando carga el historial, posicionar el handle derecho al final
   useEffect(() => {
     setToIdx(prev => prev === 0 ? maxIdx : Math.min(prev, maxIdx))
   }, [maxIdx])
 
-  // Filtered records
   const filtered = useMemo(() => {
     if (!valid.length) return []
     return valid.slice(fromIdx, toIdx + 1)
   }, [valid, fromIdx, toIdx])
 
-  // Aggregated to annual if needed
+  // Chart data con línea de inflación
   const chartData = useMemo(() => {
+    if (!filtered.length) return []
     if (granularity === 'mensual') {
-      return filtered.map(h => ({
+      return filtered.map((h, i) => ({
         label: h.periodo,
         'Total (S/)': Math.round(totalEnPEN(h)),
         'PEN (S/)': Math.round(h.totalPEN),
         'USD→PEN': Math.round(h.totalUSD * h.tipoCambio),
+        _prev: i > 0 ? Math.round(totalEnPEN(filtered[i - 1])) : null,
       }))
     }
-    // Annual: take last record of each year
-    const byYear: Record<number, HistorialMensual> = {}
+    const byYear: Record<number, HistorialMensual[]> = {}
     for (const h of filtered) {
       const { year } = periodoToYearMonth(h.periodo)
-      byYear[year] = h
+      if (!byYear[year]) byYear[year] = []
+      byYear[year].push(h)
     }
-    return Object.entries(byYear)
-      .sort(([a], [b]) => parseInt(a) - parseInt(b))
-      .map(([year, h]) => ({
+    const entries = Object.entries(byYear).sort(([a], [b]) => parseInt(a) - parseInt(b))
+    return entries.map(([year, records], i) => {
+      const h = records[records.length - 1]
+      const prevRecords = i > 0 ? Object.values(byYear)[i - 1] : null
+      const prevH = prevRecords ? prevRecords[prevRecords.length - 1] : null
+      return {
         label: year,
         'Total (S/)': Math.round(totalEnPEN(h)),
         'PEN (S/)': Math.round(h.totalPEN),
         'USD→PEN': Math.round(h.totalUSD * h.tipoCambio),
-      }))
-  }, [filtered, granularity])
+        _prev: prevH ? Math.round(totalEnPEN(prevH)) : null,
+      }
+    })
+  }, [filtered, granularity, inflacionAnual])
 
-  // Growth stats
+  // Stats del período seleccionado
   const stats = useMemo(() => {
     if (filtered.length < 2) return null
     const first = filtered[0]
@@ -272,10 +253,10 @@ function PatrimonioTab() {
     const months = (y2 - y1) * 12 + (m2 - m1)
     const years = months / 12
     const cagrVal = cagr(startVal, endVal, years)
-    return { startVal, endVal, diff, pct, cagrVal, years: parseFloat(years.toFixed(1)) }
+    return { startVal, endVal, diff, pct, cagrVal, years: parseFloat(years.toFixed(1)), first: first.periodo, last: last.periodo }
   }, [filtered])
 
-  // Month-over-month growth series
+  // Variación MoM sobre el rango filtrado
   const growthData = useMemo(() => {
     if (filtered.length < 2) return []
     return filtered.slice(1).map((h, i) => {
@@ -287,6 +268,58 @@ function PatrimonioTab() {
     })
   }, [filtered])
 
+  // Racha actual — sobre todos los registros válidos (no depende del rango)
+  const racha = useMemo(() => {
+    if (valid.length < 2) return null
+    const changes: boolean[] = []
+    for (let i = 1; i < valid.length; i++) {
+      const cur = totalEnPEN(valid[i])
+      const prv = totalEnPEN(valid[i - 1])
+      changes.push(cur >= prv)
+    }
+    const lastSign = changes[changes.length - 1]
+    let count = 0
+    for (let i = changes.length - 1; i >= 0; i--) {
+      if (changes[i] === lastSign) count++
+      else break
+    }
+    return { count, positive: lastSign }
+  }, [valid])
+
+  // Aceleración — últimos 12m vs 12m anteriores (sobre todos los válidos)
+  const aceleracion = useMemo(() => {
+    if (valid.length < 3) return null
+    const last12 = valid.slice(-13)
+    const prev12 = valid.length >= 25 ? valid.slice(-25, -12) : valid.slice(0, Math.max(2, valid.length - 12))
+    const rate = (records: HistorialMensual[]) => {
+      if (records.length < 2) return null
+      const s = totalEnPEN(records[0])
+      const e = totalEnPEN(records[records.length - 1])
+      return s > 0 ? ((e - s) / s) * 100 : null
+    }
+    const r1 = rate(last12)
+    const r2 = rate(prev12)
+    if (r1 === null || r2 === null) return null
+    return { last12: r1, prev12: r2, delta: r1 - r2 }
+  }, [valid])
+
+  // Interpretación CAGR
+  function cagrLabel(c: number): { text: string; color: string } {
+    if (c >= 10) return { text: 'Por encima del objetivo', color: '#22c55e' }
+    if (c >= 6)  return { text: 'Por encima de inflación', color: '#86efac' }
+    if (c >= 0)  return { text: 'Bajo inflación estimada', color: '#f59e0b' }
+    return { text: 'Patrimonio en retroceso', color: '#ef4444' }
+  }
+
+  function toggleLine(name: LineName) {
+    setActiveLines(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) { if (next.size > 1) next.delete(name) }
+      else next.add(name)
+      return next
+    })
+  }
+
   if (!valid.length) {
     return (
       <div className="text-center py-20 text-sm" style={{ color: 'var(--color-muted)' }}>
@@ -296,35 +329,33 @@ function PatrimonioTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Controls */}
+    <div className="space-y-5">
+
+      {/* ── Rango de análisis ── */}
       <div
-        className="rounded-xl p-4 space-y-4"
+        className="rounded-xl px-4 pt-3 pb-2"
         style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}
       >
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <p className="text-xs font-medium" style={{ color: 'var(--color-muted)' }}>
-            Rango de análisis —{' '}
-            <span style={{ color: 'var(--color-texto)' }}>
-              {filtered.length} registro{filtered.length !== 1 ? 's' : ''}
-              {stats ? ` · ${stats.years} años` : ''}
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-muted)', fontSize: 10 }}>Rango</span>
+            <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-texto)' }}>
+              {periodOptions[fromIdx]}
             </span>
-          </p>
-          <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
-            {(['mensual', 'anual'] as Granularity[]).map(g => (
-              <button
-                key={g}
-                onClick={() => setGranularity(g)}
-                className="px-4 py-1.5 text-xs capitalize"
-                style={{
-                  background: granularity === g ? 'var(--color-acento)' : 'transparent',
-                  color: granularity === g ? '#fff' : 'var(--color-muted)',
-                }}
-              >
-                {g}
-              </button>
-            ))}
+            <span style={{ color: 'var(--color-borde)', fontSize: 12 }}>→</span>
+            <span className="text-xs font-mono font-semibold" style={{ color: 'var(--color-texto)' }}>
+              {periodOptions[Math.min(toIdx, maxIdx)]}
+            </span>
           </div>
+          {(fromIdx > 0 || toIdx < maxIdx) && (
+            <button
+              onClick={() => { setFromIdx(0); setToIdx(maxIdx) }}
+              className="text-xs px-2 py-0.5 rounded"
+              style={{ color: 'var(--color-muted)', border: '1px solid var(--color-borde)' }}
+            >
+              Reset
+            </button>
+          )}
         </div>
         {periodOptions.length > 1 && (
           <DualRangeSlider
@@ -337,28 +368,105 @@ function PatrimonioTab() {
         )}
       </div>
 
-      {/* Stat cards */}
-      {stats && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Patrimonio inicial" value={`S/ ${fmt(stats.startVal)}`} />
-          <StatCard label="Patrimonio actual" value={`S/ ${fmt(stats.endVal)}`} />
-          <StatCard
-            label="Variación total"
-            value={`S/ ${fmt(stats.diff)}`}
-            sub={fmtPct(stats.pct)}
-            positive={stats.diff >= 0}
-          />
-          <StatCard
-            label={`CAGR (${stats.years}a)`}
-            value={fmtPct(stats.cagrVal, false)}
-            positive={stats.cagrVal >= 0}
-          />
+      {/* ── 4 KPIs en fila única: Racha · Aceleración · Variación · CAGR ── */}
+      {(racha || aceleracion || stats) && (
+        <div className="grid grid-cols-4 gap-3">
+          {racha && (
+            <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+              <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Racha actual</p>
+              <p className="text-2xl font-bold font-mono" style={{ color: racha.positive ? '#22c55e' : '#ef4444' }}>
+                {racha.positive ? '▲' : '▼'} {racha.count} {racha.count === 1 ? 'mes' : 'meses'}
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+                {racha.positive ? 'consecutivos en positivo' : 'consecutivos en negativo'}
+              </p>
+            </div>
+          )}
+          {aceleracion && (
+            <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+              <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Aceleración patrimonial</p>
+              <p className="text-2xl font-bold font-mono" style={{ color: aceleracion.delta >= 0 ? '#22c55e' : '#ef4444' }}>
+                {aceleracion.delta >= 0 ? '+' : ''}{aceleracion.delta.toFixed(1)}%
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+                Últimos 12m <span className="font-mono" style={{ color: 'var(--color-texto)' }}>{aceleracion.last12 >= 0 ? '+' : ''}{aceleracion.last12.toFixed(1)}%</span>
+                {' vs '} 12m ant. <span className="font-mono" style={{ color: 'var(--color-texto)' }}>{aceleracion.prev12 >= 0 ? '+' : ''}{aceleracion.prev12.toFixed(1)}%</span>
+              </p>
+            </div>
+          )}
+          {stats && (
+            <>
+              <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Variación del período</p>
+                <p className="text-2xl font-bold font-mono" style={{ color: stats.diff >= 0 ? '#22c55e' : '#ef4444' }}>
+                  {stats.diff >= 0 ? '+' : ''}S/ {fmt(stats.diff)}
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+                  <span>Inicio </span>
+                  <span className="font-mono" style={{ color: 'var(--color-texto)' }}>S/ {fmt(stats.startVal)}</span>
+                  <span className="mx-1.5" style={{ color: 'var(--color-borde)' }}>·</span>
+                  <span>Fin </span>
+                  <span className="font-mono" style={{ color: 'var(--color-texto)' }}>S/ {fmt(stats.endVal)}</span>
+                  <span className="font-mono font-semibold ml-1.5" style={{ color: stats.pct >= 0 ? '#22c55e' : '#ef4444' }}>
+                    ({stats.pct >= 0 ? '+' : ''}{stats.pct.toFixed(1)}%)
+                  </span>
+                </p>
+              </div>
+              {(() => {
+                const { text, color } = cagrLabel(stats.cagrVal)
+                return (
+                  <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+                    <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>CAGR · {stats.years}a</p>
+                    <p className="text-2xl font-bold font-mono" style={{ color }}>
+                      {stats.cagrVal >= 0 ? '+' : ''}{stats.cagrVal.toFixed(2)}%
+                    </p>
+                    <p className="text-xs mt-1 font-semibold" style={{ color }}>{text}</p>
+                  </div>
+                )
+              })()}
+            </>
+          )}
         </div>
       )}
 
-      {/* Main area chart */}
+      {/* ── Evolución del patrimonio + toggle ── */}
       <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
-        <p className="text-sm font-semibold mb-4" style={{ color: 'var(--color-texto)' }}>Evolución del patrimonio total (S/)</p>
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <p className="text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Evolución del patrimonio (S/)</p>
+          <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
+            {(['mensual', 'anual'] as Granularity[]).map(g => (
+              <button
+                key={g}
+                onClick={() => setGranularity(g)}
+                className="px-3 py-1 text-xs capitalize"
+                style={{
+                  background: granularity === g ? 'var(--color-acento)' : 'transparent',
+                  color: granularity === g ? '#fff' : 'var(--color-muted)',
+                }}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* Checkboxes de líneas */}
+        <div className="flex gap-4 mb-3 flex-wrap">
+          {([
+            { key: 'Total (S/)' as LineName, color: '#3b82f6', label: 'Total' },
+            { key: 'PEN (S/)' as LineName, color: '#22c55e', label: 'PEN' },
+            { key: 'USD→PEN' as LineName, color: '#f59e0b', label: 'USD→PEN' },
+          ]).map(({ key, color, label }) => (
+            <button
+              key={key}
+              onClick={() => toggleLine(key)}
+              className="flex items-center gap-1.5 text-xs"
+              style={{ opacity: activeLines.has(key) ? 1 : 0.35, color: 'var(--color-muted)' }}
+            >
+              <span style={{ width: 10, height: 3, borderRadius: 2, background: color, display: 'inline-block' }} />
+              {label}
+            </button>
+          ))}
+        </div>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <defs>
@@ -377,21 +485,25 @@ function PatrimonioTab() {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
             <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} interval="preserveStartEnd" />
-            <YAxis
-              tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`}
-              tick={{ fontSize: 11, fill: 'var(--color-muted)' }}
-              width={60}
+            <YAxis tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={60} />
+            <Tooltip
+              contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, color: 'var(--color-texto)', fontSize: 11 }}
+              formatter={(value, name, props: any) => {
+                const v = value as number
+                const n = name as string
+                const prev = props?.payload?._prev
+                const delta = n === 'Total (S/)' && prev != null ? ` (${v - prev >= 0 ? '+' : ''}S/ ${fmt(v - prev)})` : ''
+                return [`S/ ${fmt(v)}${delta}`, n]
+              }}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Area type="monotone" dataKey="Total (S/)" stroke="#3b82f6" strokeWidth={2} fill="url(#gradTotal)" dot={false} />
-            <Area type="monotone" dataKey="PEN (S/)" stroke="#22c55e" strokeWidth={1.5} fill="url(#gradPEN)" dot={false} strokeDasharray="4 2" />
-            <Area type="monotone" dataKey="USD→PEN" stroke="#f59e0b" strokeWidth={1.5} fill="url(#gradUSD)" dot={false} strokeDasharray="4 2" />
+            {activeLines.has('Total (S/)') && <Area type="monotone" dataKey="Total (S/)" stroke="#3b82f6" strokeWidth={2} fill="url(#gradTotal)" dot={false} />}
+            {activeLines.has('PEN (S/)') && <Area type="monotone" dataKey="PEN (S/)" stroke="#22c55e" strokeWidth={1.5} fill="url(#gradPEN)" dot={false} strokeDasharray="4 2" />}
+            {activeLines.has('USD→PEN') && <Area type="monotone" dataKey="USD→PEN" stroke="#f59e0b" strokeWidth={1.5} fill="url(#gradUSD)" dot={false} strokeDasharray="4 2" />}
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* MoM / YoY growth bar chart */}
+      {/* ── Variación MoM/YoY — barras rojo/verde ── */}
       {growthData.length > 1 && (
         <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
           <p className="text-sm font-semibold mb-4" style={{ color: 'var(--color-texto)' }}>
@@ -405,27 +517,28 @@ function PatrimonioTab() {
               <Tooltip
                 formatter={(v: unknown) => [`${(v as number).toFixed(2)}%`, '% cambio']}
                 contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: '#f1f5f9', fontWeight: 600, marginBottom: 4 }}
+                itemStyle={{ color: '#f1f5f9' }}
               />
               <ReferenceLine y={0} stroke="var(--color-borde)" />
-              <Bar
-                dataKey="% cambio"
-                radius={[3, 3, 0, 0]}
-                fill="#3b82f6"
-                // color bars red/green
-                label={false}
-              />
+              <Bar dataKey="% cambio" radius={[3, 3, 0, 0]}>
+                {growthData.map((entry, i) => (
+                  <Cell key={i} fill={entry['% cambio'] >= 0 ? '#22c55e' : '#ef4444'} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Heatmap de crecimiento mensual */}
+      {/* ── Heatmap con totales por año ── */}
       {(() => {
-        // Construir mapa año → mes → %cambio
         const allValid = [...historial].filter(h => !h.nota).sort((a, b) => a.fecha.localeCompare(b.fecha))
         if (allValid.length < 2) return null
-        type Cell = { pct: number | null }
-        const map: Record<number, Record<number, Cell>> = {}
+        type HeatCell = { pct: number | null }
+        const map: Record<number, Record<number, HeatCell>> = {}
+        const yearTotals: Record<number, { start: number; end: number }> = {}
+
         for (let i = 1; i < allValid.length; i++) {
           const cur = allValid[i], prev = allValid[i - 1]
           const { year, month } = periodoToYearMonth(cur.periodo)
@@ -434,6 +547,22 @@ function PatrimonioTab() {
           if (!map[year]) map[year] = {}
           map[year][month] = { pct }
         }
+
+        // Para totales de año: primer y último registro de cada año
+        const byYear: Record<number, HistorialMensual[]> = {}
+        for (const h of allValid) {
+          const { year } = periodoToYearMonth(h.periodo)
+          if (!byYear[year]) byYear[year] = []
+          byYear[year].push(h)
+        }
+        for (const [y, records] of Object.entries(byYear)) {
+          const yr = parseInt(y)
+          yearTotals[yr] = {
+            start: totalEnPEN(records[0]),
+            end: totalEnPEN(records[records.length - 1]),
+          }
+        }
+
         const years = Object.keys(map).map(Number).sort()
         const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
@@ -448,7 +577,7 @@ function PatrimonioTab() {
         }
         function heatText(pct: number | null) {
           if (pct === null) return ''
-          return Math.abs(pct) >= 1 ? `${pct > 0 ? '+' : ''}${pct.toFixed(1)}` : ''
+          return `${pct > 0 ? '+' : ''}${pct.toFixed(1)}`
         }
 
         return (
@@ -457,46 +586,57 @@ function PatrimonioTab() {
               Heatmap de crecimiento mensual (%)
             </p>
             <div className="overflow-x-auto">
-              <table className="text-xs border-separate" style={{ borderSpacing: 3, minWidth: 500 }}>
+              <table className="text-xs border-separate" style={{ borderSpacing: 3 }}>
                 <thead>
                   <tr>
-                    <th className="text-right pr-2 font-medium" style={{ color: 'var(--color-muted)', width: 40 }} />
+                    <th style={{ color: 'var(--color-muted)', width: 40 }} />
                     {MONTHS.map(m => (
                       <th key={m} className="text-center font-medium pb-1" style={{ color: 'var(--color-muted)', width: 44 }}>{m}</th>
                     ))}
+                    <th className="text-right pl-3 font-medium pb-1" style={{ color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>Año</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {years.map(year => (
-                    <tr key={year}>
-                      <td className="text-right pr-2 font-semibold" style={{ color: 'var(--color-muted)' }}>{year}</td>
-                      {Array.from({ length: 12 }, (_, mi) => {
-                        const cell = map[year]?.[mi + 1]
-                        const bg = heatColor(cell?.pct ?? null)
-                        const text = heatText(cell?.pct ?? null)
-                        return (
-                          <td
-                            key={mi}
-                            className="text-center font-mono rounded"
-                            title={cell?.pct != null ? `${cell.pct.toFixed(2)}%` : '—'}
-                            style={{
-                              background: bg,
-                              color: cell?.pct == null ? 'transparent' : Math.abs(cell.pct) > 1 ? '#fff' : '#1e3a5f',
-                              height: 28, width: 44,
-                              fontSize: 9,
-                              fontWeight: 600,
-                            }}
-                          >
-                            {text}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
+                  {years.map(year => {
+                    return (
+                      <tr key={year}>
+                        <td className="text-right pr-2 font-semibold" style={{ color: 'var(--color-muted)' }}>{year}</td>
+                        {Array.from({ length: 12 }, (_, mi) => {
+                          const cell = map[year]?.[mi + 1]
+                          const bg = heatColor(cell?.pct ?? null)
+                          const text = heatText(cell?.pct ?? null)
+                          return (
+                            <td
+                              key={mi}
+                              className="text-center font-mono rounded"
+                              title={cell?.pct != null ? `${cell.pct.toFixed(2)}%` : '—'}
+                              style={{
+                                background: bg,
+                                color: cell?.pct == null ? 'transparent' : '#fff',
+                                height: 28, width: 44,
+                                fontSize: 9,
+                                fontWeight: 600,
+                              }}
+                            >
+                              {text}
+                            </td>
+                          )
+                        })}
+                        {(() => {
+                          const yt = yearTotals[year]
+                          const yearPct = yt && yt.start > 0 ? ((yt.end - yt.start) / yt.start) * 100 : null
+                          return (
+                            <td className="text-right pl-3 font-mono text-xs font-semibold" style={{ whiteSpace: 'nowrap', color: yearPct == null ? 'var(--color-muted)' : yearPct >= 0 ? '#22c55e' : '#ef4444' }}>
+                              {yearPct != null ? `${yearPct >= 0 ? '+' : ''}${yearPct.toFixed(1)}%` : '—'}
+                            </td>
+                          )
+                        })()}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
-            {/* Leyenda */}
             <div className="flex items-center gap-2 mt-3 flex-wrap">
               <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Leyenda:</span>
               {[
@@ -656,7 +796,10 @@ function RendimientosTab() {
   }, [rendimientos])
 
   const filtered = useMemo(
-    () => instrFiltro === 'todos' ? rendimientos : rendimientos.filter(r => r.instrumentoNombre === instrFiltro),
+    () => {
+      const sinTraspaso = rendimientos.filter(r => !r.esTraspaso)
+      return instrFiltro === 'todos' ? sinTraspaso : sinTraspaso.filter(r => r.instrumentoNombre === instrFiltro)
+    },
     [rendimientos, instrFiltro]
   )
 
@@ -683,6 +826,7 @@ function RendimientosTab() {
   const byInstr = useMemo(() => {
     const map: Record<string, { pen: number; usd: number; anios: Set<number>; reinvertido: number }> = {}
     for (const r of rendimientos) {
+      if (r.esTraspaso) continue
       if (!map[r.instrumentoNombre]) map[r.instrumentoNombre] = { pen: 0, usd: 0, anios: new Set(), reinvertido: 0 }
       map[r.instrumentoNombre].pen += r.gananciasPEN ?? 0
       map[r.instrumentoNombre].usd += r.gananciasUSD ?? 0
@@ -932,6 +1076,7 @@ function buildPrompt(
   // Rendimientos por instrumento
   const byInstr: Record<string, { pen: number; usd: number; count: number }> = {}
   for (const r of rendimientos) {
+    if (r.esTraspaso) continue
     if (!byInstr[r.instrumentoNombre]) byInstr[r.instrumentoNombre] = { pen: 0, usd: 0, count: 0 }
     byInstr[r.instrumentoNombre].pen += r.gananciasPEN ?? 0
     byInstr[r.instrumentoNombre].usd += r.gananciasUSD ?? 0
@@ -948,6 +1093,7 @@ function buildPrompt(
   // Rendimientos por año
   const rendByYear: Record<number, number> = {}
   for (const r of rendimientos) {
+    if (r.esTraspaso) continue
     rendByYear[r.anio] = (rendByYear[r.anio] ?? 0) + (r.gananciasPEN ?? 0) + (r.gananciasUSD ?? 0) * tc
   }
   const rendAnualStr = Object.entries(rendByYear)

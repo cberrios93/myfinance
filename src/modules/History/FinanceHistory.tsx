@@ -6,6 +6,7 @@ import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
 import { tcCacheado } from '../../lib/tipoCambio'
 import { useConfig } from '../../config/ConfigContext'
+import { formatMonto } from '../../lib/formatMonto'
 
 function fmt(n: number, dec = 2) {
   return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec })
@@ -136,6 +137,15 @@ function parseCSV(text: string, threshold = 10): Omit<HistorialMensual, 'id' | '
 
 // ────────────────────────────────────────────────────────────────────────────
 
+// Clave localStorage: `periodo-descartado:${id}:${periodoCalculado}`
+function dismissKey(id: string, calculado: string) { return `periodo-descartado:${id}:${calculado}` }
+function isDismissed(id: string, calculado: string) {
+  try { return localStorage.getItem(dismissKey(id, calculado)) === '1' } catch { return false }
+}
+function setDismissed(id: string, calculado: string) {
+  try { localStorage.setItem(dismissKey(id, calculado), '1') } catch { /* noop */ }
+}
+
 export default function FinanceHistory() {
   const { historial, loading, agregarHistorial, actualizarHistorial, borrarHistorial } = usePatrimony()
   const { config } = useConfig()
@@ -146,27 +156,28 @@ export default function FinanceHistory() {
   const [editDraft, setEditDraft] = useState<HistorialMensual | null>(null)
   const [importing, setImporting] = useState(false)
   const [importStatus, setImportStatus] = useState<{ ok?: number; err?: string } | null>(null)
-  const [recalculating, setRecalculating] = useState(false)
+  const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(() => new Set())
   const fileRef = useRef<HTMLInputElement>(null)
 
   const sorted = [...historial].sort((a, b) => a.fecha.localeCompare(b.fecha))
 
   // Registros donde el periodo almacenado NO coincide con la lógica actual
-  const wrongPeriods = historial.filter(h => h.periodo !== fechaToPeriodo(h.fecha, diaCorte))
+  const allWrongPeriods = historial
+    .filter(h => h.periodo !== fechaToPeriodo(h.fecha, diaCorte))
+    .map(h => ({ h, calculado: fechaToPeriodo(h.fecha, diaCorte) }))
 
-  async function handleRecalcularPeriodos() {
-    if (wrongPeriods.length === 0) return
-    setRecalculating(true)
-    try {
-      for (const h of wrongPeriods) {
-        await actualizarHistorial({ ...h, periodo: fechaToPeriodo(h.fecha, diaCorte) })
-      }
-      setImportStatus({ ok: wrongPeriods.length })
-    } catch {
-      setImportStatus({ err: 'Error al recalcular algunos períodos.' })
-    } finally {
-      setRecalculating(false)
-    }
+  // Excluye los que el usuario ya revisó y eligió mantener
+  const wrongPeriods = allWrongPeriods.filter(
+    ({ h, calculado }) => !isDismissed(h.id, calculado) && !dismissedKeys.has(dismissKey(h.id, calculado))
+  )
+
+  async function handleAplicarPeriodo(h: HistorialMensual, calculado: string) {
+    await actualizarHistorial({ ...h, periodo: calculado })
+  }
+
+  function handleMantenerPeriodo(h: HistorialMensual, calculado: string) {
+    setDismissed(h.id, calculado)
+    setDismissedKeys(prev => new Set([...prev, dismissKey(h.id, calculado)]))
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -248,16 +259,14 @@ export default function FinanceHistory() {
           </button>
           <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleImport} />
           {wrongPeriods.length > 0 && (
-            <button
-              onClick={handleRecalcularPeriodos}
-              disabled={recalculating}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium"
-              style={{ color: '#f59e0b', border: '1px solid #f59e0b', background: 'var(--color-card)', opacity: recalculating ? 0.6 : 1 }}
-              title={`${wrongPeriods.length} registros con período incorrecto`}
+            <span
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium"
+              style={{ color: '#f59e0b', border: '1px solid #f59e0b', background: 'var(--color-card)' }}
+              title={`${wrongPeriods.length} período${wrongPeriods.length !== 1 ? 's' : ''} por revisar`}
             >
               <AlertCircle size={15} />
-              {recalculating ? 'Corrigiendo…' : `Corregir períodos (${wrongPeriods.length})`}
-            </button>
+              {wrongPeriods.length} período{wrongPeriods.length !== 1 ? 's' : ''} por revisar
+            </span>
           )}
           <button
             onClick={() => { setAdding(true); setNewDraft(makeEmpty(diaCorte)) }}
@@ -268,6 +277,50 @@ export default function FinanceHistory() {
           </button>
         </div>
       </div>
+
+      {wrongPeriods.length > 0 && (
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #f59e0b40' }}>
+          <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: '#f59e0b15' }}>
+            <AlertCircle size={15} style={{ color: '#f59e0b' }} />
+            <p className="text-sm font-medium" style={{ color: '#f59e0b' }}>
+              {wrongPeriods.length} registro{wrongPeriods.length !== 1 ? 's' : ''} con período distinto al que calcula la regla actual (día de corte: {diaCorte})
+            </p>
+          </div>
+          <div className="divide-y" style={{ borderColor: 'var(--color-borde)' }}>
+            {wrongPeriods.map(({ h, calculado }) => (
+              <div key={h.id} className="flex items-center gap-4 px-4 py-3 flex-wrap" style={{ background: 'var(--color-card)' }}>
+                <div className="text-xs" style={{ color: 'var(--color-muted)' }}>
+                  Fecha <span className="font-mono font-medium" style={{ color: 'var(--color-texto)' }}>{h.fecha}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span style={{ color: 'var(--color-muted)' }}>Almacenado:</span>
+                  <span className="font-mono font-semibold" style={{ color: '#22c55e' }}>{h.periodo}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span style={{ color: 'var(--color-muted)' }}>Regla dice:</span>
+                  <span className="font-mono font-semibold" style={{ color: '#f59e0b' }}>{calculado}</span>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    onClick={() => handleAplicarPeriodo(h, calculado)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium"
+                    style={{ background: '#f59e0b20', color: '#f59e0b', border: '1px solid #f59e0b50' }}
+                  >
+                    <Check size={12} /> Aplicar regla
+                  </button>
+                  <button
+                    onClick={() => handleMantenerPeriodo(h, calculado)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium"
+                    style={{ color: 'var(--color-muted)', border: '1px solid var(--color-borde)' }}
+                  >
+                    <X size={12} /> Mantener como está
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {importStatus && (
         <div
@@ -341,7 +394,7 @@ export default function FinanceHistory() {
                   <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--color-muted)' }}>{h.fecha}</td>
                   <td className="px-3 py-2.5 text-xs font-medium">{h.periodo}</td>
                   <td className="px-3 py-2.5 text-right font-mono text-xs">
-                    {h.nota ? <span style={{ color: 'var(--color-muted)' }}>{h.nota}</span> : `S/ ${fmt(h.totalPEN)}`}
+                    {h.nota ? <span style={{ color: 'var(--color-muted)' }}>{h.nota}</span> : formatMonto(h.totalPEN, config)}
                   </td>
                   <GrowthCell value={h.nota ? null : gPEN} />
                   <td className="px-3 py-2.5 text-right font-mono text-xs">
@@ -349,11 +402,11 @@ export default function FinanceHistory() {
                   </td>
                   <GrowthCell value={h.nota ? null : (h.totalUSD > 0 ? gUSD : null)} />
                   <td className="px-3 py-2.5 text-right font-mono text-xs font-semibold">
-                    {h.nota ? '' : `S/ ${fmt(total)}`}
+                    {h.nota ? '' : formatMonto(total, config)}
                   </td>
                   <GrowthCell value={h.nota ? null : gTotal} />
                   <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: gAmount != null && gAmount >= 0 ? '#22c55e' : gAmount != null ? '#ef4444' : 'var(--color-muted)' }}>
-                    {gAmount != null && !h.nota ? `S/ ${fmt(gAmount)}` : '—'}
+                    {gAmount != null && !h.nota ? formatMonto(gAmount, config) : '—'}
                   </td>
                   <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-muted)' }}>
                     {h.tipoCambio.toFixed(4)}

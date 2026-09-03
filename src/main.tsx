@@ -5,14 +5,17 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { ConfigProvider } from './config/ConfigContext.tsx'
+import { UndoProvider } from './contexts/UndoContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ConfigProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <UndoProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </UndoProvider>
       </ConfigProvider>
     </BrowserRouter>
   </StrictMode>,

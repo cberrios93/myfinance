@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useScenario } from '../../data/ScenarioContext'
 import type { Carrera, SaltoCarrera } from '../../data/types'
+import { useConfig } from '../../config/ConfigContext'
+import { formatAbrev } from '../../lib/formatMonto'
 
 export default function Career() {
   const { escenarioActivo, actualizarEscenario } = useScenario()
+  const { config } = useConfig()
   const [carrera, setCarrera] = useState<Carrera | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -70,7 +73,7 @@ export default function Career() {
         </div>
 
         <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
-          Aporte año {escenarioActivo.general.edadActual + 1}: S/{Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual)).toLocaleString()} · Mensual: S/{Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual) / 12).toLocaleString()}
+          Aporte año {escenarioActivo.general.edadActual + 1}: {formatAbrev(Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual)), config)} · Mensual: {formatAbrev(Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual) / 12), config)}
         </p>
       </div>
 

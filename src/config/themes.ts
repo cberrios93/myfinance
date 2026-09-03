@@ -95,7 +95,10 @@ export interface AppConfig {
   monedaPrincipal: 'PEN' | 'USD'
   decimales: 0 | 1 | 2
   diaCorteHistorial: number
+  diasStalePatrimonio: number
   modulosOcultos: string[]
+  inflacionAnual: number
+  undoTimeoutMs: number
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -108,7 +111,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   monedaPrincipal: 'PEN',
   decimales: 0,
   diaCorteHistorial: 10,
+  diasStalePatrimonio: 30,
   modulosOcultos: [],
+  inflacionAnual: 6,
+  undoTimeoutMs: 8000,
 }
 
 export function loadConfig(): AppConfig {

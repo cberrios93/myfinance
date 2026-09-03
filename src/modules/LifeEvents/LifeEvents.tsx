@@ -7,6 +7,7 @@ import { useTipoCambio } from '../../hooks/useTipoCambio'
 import { LoanSimulator } from './LoanSimulator'
 import { PosgradoWizard } from './PosgradoWizard'
 import { HijoWizard } from './HijoWizard'
+import { MatrimonioWizard } from './MatrimonioWizard'
 import type { EventoVida, GeneralParams } from '../../data/types'
 
 // ── Fórmula de amortización francesa ─────────────────────────────────────────
@@ -49,6 +50,7 @@ interface TipoEventoConfig {
   usaCalculadoraPrestamo?: boolean
   usaWizardPosgrado?: boolean
   usaWizardHijo?: boolean
+  usaWizardMatrimonio?: boolean
   campos?: string[]
   generar?: (params: {
     anioT: number
@@ -84,15 +86,8 @@ const TIPOS_EVENTO: TipoEventoConfig[] = [
     id: 'matrimonio',
     label: 'Matrimonio',
     icono: '💍',
-    descripcion: 'Costo de celebración',
-    campos: ['costoCelebracion'],
-    generar: ({ anioT, montos }) => [
-      {
-        nombre: 'Matrimonio – Celebración',
-        tipoEvento: 'matrimonio',
-        retiroUnico: { anioT, monto: montos.costoCelebracion ?? 15000 },
-      },
-    ],
+    descripcion: 'Wizard de presupuesto con adelantos y pago final',
+    usaWizardMatrimonio: true,
   },
   {
     id: 'posgrado',
@@ -697,7 +692,7 @@ function EventoWizard({
       {step === 'config' && tipo && (
         <>
           {/* Selector de año — solo para tipos sin simulador propio */}
-          {tipo.id !== 'custom' && !tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && (
+          {tipo.id !== 'custom' && !tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && !tipo.usaWizardMatrimonio && (
             <div>
               <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--color-muted)' }}>
                 ¿En qué año ocurrirá?
@@ -717,6 +712,15 @@ function EventoWizard({
                 </span>
               </div>
             </div>
+          )}
+
+          {/* Wizard de matrimonio */}
+          {tipo.usaWizardMatrimonio && (
+            <MatrimonioWizard
+              general={general}
+              onConfirm={onConfirm}
+              onCancel={onCancel}
+            />
           )}
 
           {/* Wizard de hijo */}
@@ -751,7 +755,7 @@ function EventoWizard({
           )}
 
           {/* Campos genéricos */}
-          {!tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && tipo.id !== 'custom' && (
+          {!tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && !tipo.usaWizardMatrimonio && tipo.id !== 'custom' && (
             <>
               <div className="grid grid-cols-2 gap-3">
                 {camposValor.map(campo => (

@@ -6,6 +6,7 @@ import { ScenarioProvider } from './data/ScenarioContext'
 import { PatrimonyProvider } from './data/PatrimonyContext'
 import { FinanceDataProvider } from './data/FinanceDataContext'
 import AppLayout from './components/Layout/AppLayout'
+import UndoToast from './components/UndoToast'
 import LoginPage from './modules/Auth/LoginPage'
 import AcceptInvite from './modules/Auth/AcceptInvite'
 import Dashboard from './modules/Dashboard/Dashboard'
@@ -29,6 +30,8 @@ import FamilyExpenses from './modules/FamilyExpenses/FamilyExpenses'
 import Debts from './modules/Debts/Debts'
 import Notes from './modules/Notes/Notes'
 import Analytics from './modules/Analytics/Analytics'
+import OnboardingWizard from './modules/Onboarding/OnboardingWizard'
+import CapitalFlows from './modules/CapitalFlows/CapitalFlows'
 
 function Loading() {
   return (
@@ -63,6 +66,19 @@ function BlockedScreen({ reason, onSignOut }: { reason: string | null; onSignOut
 function ProtectedRoutes() {
   const { session, loading, userStatus, blockReason, signOut } = useAuth()
 
+  // Onboarding: mostrar wizard una sola vez por usuario
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    const userId = session?.user?.id
+    if (!userId) return false
+    return !localStorage.getItem(`onboarding_v1_${userId}`)
+  })
+
+  function completeOnboarding() {
+    const userId = session?.user?.id
+    if (userId) localStorage.setItem(`onboarding_v1_${userId}`, '1')
+    setShowOnboarding(false)
+  }
+
   // Detecta si el usuario llegó desde un link de invitación (hash type=invite)
   const [isInvitePending] = useState(() => {
     const hash = window.location.hash
@@ -88,6 +104,8 @@ function ProtectedRoutes() {
     <ScenarioProvider>
       <PatrimonyProvider>
         <FinanceDataProvider>
+          {showOnboarding && <OnboardingWizard onComplete={completeOnboarding} />}
+          <UndoToast />
           <AppLayout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
@@ -95,6 +113,7 @@ function ProtectedRoutes() {
               <Route path="/historial" element={<FinanceHistory />} />
               <Route path="/flujo-caja" element={<CashFlow />} />
               <Route path="/rendimientos" element={<Returns />} />
+              <Route path="/flujos-capital" element={<CapitalFlows />} />
               <Route path="/haberes" element={<Paycheck />} />
               <Route path="/suscripciones" element={<Subscriptions />} />
               <Route path="/gastos-familia" element={<FamilyExpenses />} />

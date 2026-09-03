@@ -6,10 +6,12 @@ import { useTipoCambio } from '../../hooks/useTipoCambio'
 import type { FlujoCajaItem } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
+import { useConfig } from '../../config/ConfigContext'
+import { formatMonto } from '../../lib/formatMonto'
 
-const CATEGORIAS = ['', 'Suscripciones/Membresías', 'Inversiones', 'Familia', 'Transporte', 'Salud', 'Vivienda', 'Otro']
+const CATEGORIAS = ['', 'Inversiones', 'Transporte', 'Salud', 'Vivienda', 'Otro']
 
-function fmt(n: number) { return n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+function fmt(n: number, dec = 2) { return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec }) }
 
 const EMPTY: Omit<FlujoCajaItem, 'id' | 'creadoEn' | 'actualizadoEn'> = {
   nombre: '', tipo: 'Income', categoria: undefined, montoPEN: undefined, montoUSD: undefined, activo: true, orden: 0,
@@ -84,6 +86,7 @@ export default function CashFlow() {
   const { tc: tcData } = useTipoCambio()
   const navigate = useNavigate()
   const tc = tcData?.compra ?? 3.7
+  const { config } = useConfig()
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState({ ...EMPTY })
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -124,7 +127,7 @@ export default function CashFlow() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color }}>{title}</h2>
           <span className="text-xs font-mono" style={{ color: 'var(--color-muted)' }}>
-            {totalPEN > 0 && `S/ ${fmt(totalPEN)}`}{totalPEN > 0 && totalUSD > 0 && ' · '}{totalUSD > 0 && `$ ${fmt(totalUSD)}`}
+            {totalPEN > 0 && formatMonto(totalPEN, config)}{totalPEN > 0 && totalUSD > 0 && ' · '}{totalUSD > 0 && `$ ${fmt(totalUSD, config.decimales)}`}
           </span>
         </div>
         <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
@@ -155,6 +158,11 @@ export default function CashFlow() {
                               Suscripción
                             </span>
                           )}
+                          {item.gastoFamiliaId && (
+                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#F59E0B15', color: '#F59E0B' }}>
+                              Familia
+                            </span>
+                          )}
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-xs hidden sm:table-cell" style={{ color: 'var(--color-muted)' }}>{item.categoria || '—'}</td>
@@ -168,6 +176,15 @@ export default function CashFlow() {
                               title="Editar en Suscripciones"
                               className="p-1 rounded hover:opacity-70"
                               style={{ color: 'var(--color-acento)' }}
+                            >
+                              <ExternalLink size={13} />
+                            </button>
+                          ) : item.gastoFamiliaId ? (
+                            <button
+                              onClick={() => navigate('/gastos-familia')}
+                              title="Editar en Gastos Familia"
+                              className="p-1 rounded hover:opacity-70"
+                              style={{ color: '#F59E0B' }}
                             >
                               <ExternalLink size={13} />
                             </button>
@@ -215,10 +232,10 @@ export default function CashFlow() {
         ].map(({ label, pen, usd, color }) => (
           <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
             <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</p>
-            <p className="font-bold text-sm font-mono" style={{ color }}>S/ {fmt(totalEnPEN(pen, usd))}</p>
+            <p className="font-bold text-sm font-mono" style={{ color }}>{formatMonto(totalEnPEN(pen, usd), config)}</p>
             {pen !== 0 && usd !== 0 && (
               <p className="font-mono text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
-                S/ {fmt(pen)} + $ {fmt(usd)}
+                {formatMonto(pen, config)} + $ {fmt(usd, config.decimales)}
               </p>
             )}
             {pen === 0 && usd !== 0 && <p className="font-mono text-xs" style={{ color: 'var(--color-muted)' }}>$ {fmt(usd)}</p>}
@@ -245,8 +262,16 @@ export default function CashFlow() {
           {flujoCaja.filter(i => !i.activo).map(item => (
             <div key={item.id} className="flex items-center gap-3 px-4 py-2 rounded-lg mb-1 opacity-50" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
               <span className="flex-1 text-sm line-through" style={{ color: 'var(--color-muted)' }}>{item.nombre}</span>
-              <button onClick={() => { setEditingId(item.id); setEditDraft({ ...item }) }} className="p-1" style={{ color: 'var(--color-muted)' }}><Edit2 size={12} /></button>
-              <button onClick={() => borrarFlujo(item.id)} className="p-1" style={{ color: 'var(--color-muted)' }}><Trash2 size={12} /></button>
+              {item.suscripcionId ? (
+                <button onClick={() => navigate('/suscripciones')} title="Editar en Suscripciones" className="p-1" style={{ color: 'var(--color-acento)' }}><ExternalLink size={12} /></button>
+              ) : item.gastoFamiliaId ? (
+                <button onClick={() => navigate('/gastos-familia')} title="Editar en Gastos Familia" className="p-1" style={{ color: '#F59E0B' }}><ExternalLink size={12} /></button>
+              ) : (
+                <>
+                  <button onClick={() => { setEditingId(item.id); setEditDraft({ ...item }) }} className="p-1" style={{ color: 'var(--color-muted)' }}><Edit2 size={12} /></button>
+                  <button onClick={() => borrarFlujo(item.id)} className="p-1" style={{ color: 'var(--color-muted)' }}><Trash2 size={12} /></button>
+                </>
+              )}
             </div>
           ))}
         </div>

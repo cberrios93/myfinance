@@ -3,8 +3,11 @@ import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import type { GastoFamilia } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
-
-function fmt(n: number) { return n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+import { useConfig } from '../../config/ConfigContext'
+import { formatMonto } from '../../lib/formatMonto'
+function fmt(n: number, dec = 2) {
+  return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+}
 const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }
 
 const TIPOS = ['Seguro', 'Mensualidad', 'Médico', 'Educación', 'Alimentación', 'Otro']
@@ -84,6 +87,7 @@ function GastoForm({ value, onChange, onSave, onCancel }: {
 
 export default function FamilyExpenses() {
   const { gastosFamilia, loading, agregarGastoFamilia, actualizarGastoFamilia, borrarGastoFamilia } = useFinanceData()
+  const { config } = useConfig()
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState({ ...EMPTY })
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -115,7 +119,7 @@ export default function FamilyExpenses() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Gastos Familia</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>Total mensual: S/ {fmt(totalMensualPEN)}</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>Total mensual: {formatMonto(totalMensualPEN, config)}</p>
         </div>
         <button onClick={() => { setAdding(true); setNewDraft({ ...EMPTY }) }}
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: 'var(--color-acento)' }}>
@@ -128,7 +132,7 @@ export default function FamilyExpenses() {
           {Object.entries(byBenef).map(([benef, total]) => (
             <div key={benef} className="rounded-xl px-4 py-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
               <p className="text-xs" style={{ color: 'var(--color-muted)' }}>{benef}</p>
-              <p className="font-bold font-mono text-sm" style={{ color: 'var(--color-texto)' }}>S/ {fmt(total)}/mes</p>
+              <p className="font-bold font-mono text-sm" style={{ color: 'var(--color-texto)' }}>{formatMonto(total, config)}/mes</p>
             </div>
           ))}
         </div>
@@ -160,9 +164,9 @@ export default function FamilyExpenses() {
                   <span className="text-xs" style={{ color: 'var(--color-muted)' }}>{g.tipo}</span>
                 </div>
                 <div className="flex gap-3 mt-0.5 text-xs font-mono" style={{ color: 'var(--color-muted)' }}>
-                  {g.montoPEN != null && <span>S/ {fmt(g.montoPEN)}{g.periodicidad === 'Anual' ? '/año' : '/mes'}</span>}
+                  {g.montoPEN != null && <span>{formatMonto(g.montoPEN, config)}{g.periodicidad === 'Anual' ? '/año' : '/mes'}</span>}
                   {g.montoUSD != null && <span>$ {fmt(g.montoUSD)}{g.periodicidad === 'Anual' ? '/año' : '/mes'}</span>}
-                  {g.periodicidad === 'Anual' && mensual > 0 && <span style={{ color: 'var(--color-acento)' }}>≈ S/ {fmt(mensual)}/mes</span>}
+                  {g.periodicidad === 'Anual' && mensual > 0 && <span style={{ color: 'var(--color-acento)' }}>≈ {formatMonto(mensual, config)}/mes</span>}
                 </div>
               </div>
               <div className="flex gap-1">

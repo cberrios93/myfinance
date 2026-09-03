@@ -3,8 +3,10 @@ import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import type { Suscripcion, PersonaSuscripcion } from '../../data/types'
+import { useConfig } from '../../config/ConfigContext'
+import { formatMonto, simboloMoneda } from '../../lib/formatMonto'
 
-function fmt(n: number) { return n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+function fmt(n: number, dec = 2) { return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec }) }
 const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }
 
 const EMPTY: Omit<Suscripcion, 'id' | 'creadoEn' | 'actualizadoEn'> = {
@@ -107,6 +109,7 @@ function SusForm({ value, onChange, onSave, onCancel }: {
 
 export default function Subscriptions() {
   const { suscripciones, loading, agregarSuscripcion, actualizarSuscripcion, borrarSuscripcion } = useFinanceData()
+  const { config } = useConfig()
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState({ ...EMPTY })
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -135,7 +138,7 @@ export default function Subscriptions() {
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Suscripciones</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
-            {activas.length} activa{activas.length !== 1 ? 's' : ''} · S/ {fmt(totalMensualPEN)}/mes{totalMensualUSD > 0 ? ` + $ ${fmt(totalMensualUSD)}/mes` : ''}
+            {activas.length} activa{activas.length !== 1 ? 's' : ''} · {formatMonto(totalMensualPEN, config)}/mes{totalMensualUSD > 0 ? ` + $ ${fmt(totalMensualUSD)}/mes` : ''}
           </p>
         </div>
         <button onClick={() => { setAdding(true); setNewDraft({ ...EMPTY }) }}
@@ -172,12 +175,12 @@ export default function Subscriptions() {
                     {s.vencimiento && <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Vence: {s.vencimiento}</span>}
                   </div>
                   <p className="font-mono font-bold text-sm mt-1" style={{ color: 'var(--color-acento)' }}>
-                    {s.moneda === 'PEN' ? 'S/' : '$'} {fmt(s.montoTotal)}{s.periodicidad === 'Anual' ? `/año · S/ ${fmt(mensual)}/mes` : '/mes'}
+                    {s.moneda === 'PEN' ? simboloMoneda(config) : '$'} {fmt(s.montoTotal, config.decimales)}{s.periodicidad === 'Anual' ? `/año · ${formatMonto(mensual, config)}/mes` : '/mes'}
                   </p>
                   {s.personas.length > 0 && (
                     <div className="flex gap-3 mt-2 flex-wrap">
                       {s.personas.map((p, i) => (
-                        <span key={i} className="text-xs" style={{ color: 'var(--color-muted)' }}>{p.nombre}: {s.moneda === 'PEN' ? 'S/' : '$'} {fmt(p.monto)}</span>
+                        <span key={i} className="text-xs" style={{ color: 'var(--color-muted)' }}>{p.nombre}: {s.moneda === 'PEN' ? simboloMoneda(config) : '$'} {fmt(p.monto, config.decimales)}</span>
                       ))}
                     </div>
                   )}

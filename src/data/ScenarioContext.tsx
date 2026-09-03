@@ -5,6 +5,7 @@ import { simular } from '../engine/calculator'
 import type { ResultadoSimulacion } from './types'
 import { listarEscenarios, guardarEscenario, eliminarEscenario } from '../lib/supabase/scenarios'
 import { useAuth } from '../auth/AuthContext'
+import { useUndo } from '../contexts/UndoContext'
 
 interface ScenarioContextValue {
   escenarios: Escenario[]
@@ -32,6 +33,7 @@ const ESCENARIO_VACIO: Omit<Escenario, 'id' | 'nombre' | 'creadoEn' | 'actualiza
 
 export function ScenarioProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const { showUndo } = useUndo()
   const [escenarios, setEscenarios] = useState<Escenario[]>([])
   const [escenarioActivoId, setEscenarioActivoId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -77,6 +79,14 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     await guardarEscenario(nuevo)
     setEscenarios(prev => [nuevo, ...prev])
     setEscenarioActivoId(nuevo.id)
+    showUndo(`Escenario "${nuevo.nombre}" creado`, async () => {
+      await eliminarEscenario(nuevo.id)
+      setEscenarios(prev => {
+        const restantes = prev.filter(e => e.id !== nuevo.id)
+        setEscenarioActivoId(restantes[0]?.id ?? null)
+        return restantes
+      })
+    })
     return nuevo
   }
 
@@ -93,11 +103,20 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
   }
 
   async function borrarEscenario(id: string) {
+    const snapshot = escenarios.find(e => e.id === id)
+    const prevActivoId = escenarioActivoId
     await eliminarEscenario(id)
     const nuevos = escenarios.filter(e => e.id !== id)
     setEscenarios(nuevos)
     if (escenarioActivoId === id) {
       setEscenarioActivoId(nuevos[0]?.id ?? null)
+    }
+    if (snapshot) {
+      showUndo(`Escenario "${snapshot.nombre}" eliminado`, async () => {
+        await guardarEscenario(snapshot)
+        setEscenarios(prev => [snapshot, ...prev])
+        setEscenarioActivoId(prevActivoId)
+      })
     }
   }
 

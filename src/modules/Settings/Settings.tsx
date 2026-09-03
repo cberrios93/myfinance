@@ -239,6 +239,26 @@ export default function Settings() {
         </div>
       </div>
 
+      {/* Tiempo para deshacer */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Tiempo para deshacer</h2>
+          <span className="text-sm font-mono" style={{ color: 'var(--color-acento)' }}>{config.undoTimeoutMs / 1000}s</span>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+          Tiempo disponible para deshacer una acción después de realizarla (crear, editar o eliminar).
+        </p>
+        <input
+          type="range" min={5000} max={30000} step={1000}
+          value={config.undoTimeoutMs}
+          onChange={e => setConfig({ ...config, undoTimeoutMs: parseInt(e.target.value) })}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+          <span>5s</span><span>15s</span><span>30s</span>
+        </div>
+      </div>
+
       {/* Automatización */}
       <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
         <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Automatización</h2>
@@ -263,6 +283,46 @@ export default function Settings() {
             />
           </div>
         </label>
+      </div>
+
+      {/* Inflación anual de referencia */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Inflación anual de referencia</h2>
+          <span className="text-sm font-mono" style={{ color: 'var(--color-acento)' }}>{config.inflacionAnual ?? 6}%</span>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+          Usada en Análisis → Patrimonio para mostrar la línea de inflación acumulada sobre el gráfico de evolución.
+        </p>
+        <input
+          type="range" min={1} max={20} step={0.5}
+          value={config.inflacionAnual ?? 6}
+          onChange={e => setConfig({ ...config, inflacionAnual: parseFloat(e.target.value) })}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+          <span>1%</span><span>6% (Perú ref.)</span><span>20%</span>
+        </div>
+      </div>
+
+      {/* Alerta de cuenta desactualizada */}
+      <div className="rounded-xl p-5 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>Alerta — Patrimonio desactualizado</h2>
+          <span className="text-sm font-mono" style={{ color: 'var(--color-acento)' }}>{config.diasStalePatrimonio} días</span>
+        </div>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+          Si una cuenta lleva más de este tiempo sin actualizarse, se muestra un indicador de alerta sutil.
+        </p>
+        <input
+          type="range" min={7} max={90} step={1}
+          value={config.diasStalePatrimonio}
+          onChange={e => setConfig({ ...config, diasStalePatrimonio: parseInt(e.target.value) })}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+          <span>7 días</span><span>30 días</span><span>90 días</span>
+        </div>
       </div>
 
       {/* Módulos visibles */}

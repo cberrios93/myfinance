@@ -3,10 +3,11 @@ import { Plus, Trash2, Edit2, Check, X, Link2, RefreshCw } from 'lucide-react'
 import { v4 as uuid } from 'uuid'
 import { useScenario } from '../../data/ScenarioContext'
 import { usePatrimony } from '../../data/PatrimonyContext'
+import { useFinanceData } from '../../data/FinanceDataContext'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
-import type { Instrumento } from '../../data/types'
+import type { Instrumento, TipoRenta } from '../../data/types'
 
 const CATEGORIAS_PRESET = ['Alto riesgo', 'Diversificado', 'Efectivo/pool', 'Inmobiliario', 'Renta fija', 'Otro']
 const CAT_COLORES: Record<string, string> = {
@@ -22,17 +23,30 @@ function catColor(cat: string) {
   return CAT_COLORES[cat] ?? '#94A3B8'
 }
 
+const TIPO_RENTA_LABELS: Record<TipoRenta, string> = {
+  pago: 'Renta fija — pago periódico',
+  capitalizacion: 'Renta fija — capitalización',
+  variable: 'Renta variable',
+}
+const TIPO_RENTA_COLORS: Record<TipoRenta, string> = {
+  pago: '#8B5CF6',
+  capitalizacion: '#10B981',
+  variable: '#3B82F6',
+}
+
 const EMPTY_INST: Omit<Instrumento, 'id'> = {
   nombre: '',
   montoInicial: 0,
   tasaReal: 0.05,
   categoria: 'Diversificado',
   esPool: false,
+  tipoRenta: 'pago',
 }
 
 export default function Instruments() {
   const { escenarioActivo, actualizarEscenario } = useScenario()
   const { cuentas } = usePatrimony()
+  const { rendimientos } = useFinanceData()
   const { tc: tcRextie } = useTipoCambio()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Instrumento | null>(null)
@@ -163,6 +177,9 @@ export default function Instruments() {
           const cuentaVinculada = inst.cuentaPatrimonioId
             ? cuentas.find(c => c.id === inst.cuentaPatrimonioId)
             : null
+          const rendInstr = rendimientos.filter(r => r.instrumentoNombre === inst.nombre && !r.esTraspaso)
+          const ganAcumPEN = rendInstr.reduce((s, r) => s + (r.gananciasPEN ?? 0) + (r.gananciasUSD ?? 0) * tc, 0)
+          const rentAcum = montoEfectivo > 0 ? ganAcumPEN / montoEfectivo : null
 
           return (
             <div key={inst.id} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
@@ -198,6 +215,23 @@ export default function Instruments() {
                       </span>
                       <span>{(inst.tasaReal * 100).toFixed(1)}% real anual</span>
                       <span>{inst.categoria}</span>
+                      {rendInstr.length > 0 && (
+                        <>
+                          <span style={{ color: ganAcumPEN >= 0 ? '#22c55e' : '#ef4444' }}>
+                            Gan. acum. S/{ganAcumPEN.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          {rentAcum != null && (
+                            <span style={{ color: rentAcum >= 0 ? '#22c55e' : '#ef4444' }}>
+                              {(rentAcum * 100).toFixed(2)}% acum.
+                            </span>
+                          )}
+                        </>
+                      )}
+                      {inst.tipoRenta && inst.tipoRenta !== 'pago' && (
+                        <span style={{ color: TIPO_RENTA_COLORS[inst.tipoRenta] }}>
+                          {TIPO_RENTA_LABELS[inst.tipoRenta]}
+                        </span>
+                      )}
                       {inst.cambioTasa && (
                         <span>→ {(inst.cambioTasa.nuevaTasa * 100).toFixed(1)}% desde año {inst.cambioTasa.anioT}</span>
                       )}
@@ -337,15 +371,35 @@ function InstrumentoForm({
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>
-          <input
-            type="checkbox"
-            checked={value.esPool}
-            onChange={e => onChange({ ...value, esPool: e.target.checked })}
-          />
-          Es el Pool (recibe aportes y absorbe pagos)
-        </label>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Tipo de rendimiento</label>
+          <select
+            value={value.tipoRenta ?? 'pago'}
+            onChange={e => onChange({ ...value, tipoRenta: e.target.value as TipoRenta })}
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+            style={inputStyle}
+          >
+            <option value="pago">Renta fija — pago periódico</option>
+            <option value="capitalizacion">Renta fija — capitalización</option>
+            <option value="variable">Renta variable</option>
+          </select>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+            {(value.tipoRenta ?? 'pago') === 'pago' && 'La ganancia se cobra. El capital no cambia.'}
+            {value.tipoRenta === 'capitalizacion' && 'La ganancia se reinvierte. Se propone actualizar Patrimonio al guardar.'}
+            {value.tipoRenta === 'variable' && 'Ingresas el valor actual. El sistema calcula el delta vs Patrimonio.'}
+          </p>
+        </div>
+        <div className="flex items-end pb-6">
+          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>
+            <input
+              type="checkbox"
+              checked={value.esPool}
+              onChange={e => onChange({ ...value, esPool: e.target.checked })}
+            />
+            Es el Pool (recibe aportes y absorbe pagos)
+          </label>
+        </div>
       </div>
 
       <details>

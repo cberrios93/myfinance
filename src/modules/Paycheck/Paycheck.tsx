@@ -4,8 +4,11 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import type { ReciboHaberes } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import { parseBoleta } from '../../lib/parseBoleta'
-
-function fmt(n: number) { return n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+import { useConfig } from '../../config/ConfigContext'
+import { formatMonto } from '../../lib/formatMonto'
+function fmt(n: number, dec = 2) {
+  return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec })
+}
 const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }
 
 const ZERO_FIELDS = {
@@ -239,11 +242,12 @@ function Section({ title, color, children }: { title: string; color: string; chi
 }
 
 function Total({ label, value, color }: { label: string; value: number; color: string }) {
+  const { config } = useConfig()
   return (
     <div className="flex items-end pb-1">
       <div>
         <p className="text-xs" style={{ color: 'var(--color-muted)' }}>{label}</p>
-        <p className="font-bold font-mono text-sm" style={{ color }}>S/ {fmt(value)}</p>
+        <p className="font-bold font-mono text-sm" style={{ color }}>{formatMonto(value, config)}</p>
       </div>
     </div>
   )
@@ -253,6 +257,7 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
   value: Draft; onChange: (v: Draft) => void; onSave: () => void; onCancel: () => void
 }) {
   useSubmitOnCmdEnter(onSave)
+  const { config } = useConfig()
   const c = calcTotales(value)
   function upd(field: keyof Draft, val: number | string | undefined) {
     const next = { ...value, [field]: val } as Draft
@@ -331,7 +336,7 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
 
       <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--color-acento)20', border: '1px solid var(--color-acento)' }}>
         <span className="font-semibold text-sm" style={{ color: 'var(--color-acento)' }}>Neto a pagar</span>
-        <span className="font-bold font-mono" style={{ color: 'var(--color-acento)' }}>S/ {fmt(c.netoAPagar)}</span>
+        <span className="font-bold font-mono" style={{ color: 'var(--color-acento)' }}>{formatMonto(c.netoAPagar, config)}</span>
       </div>
 
       <div>
@@ -356,6 +361,7 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
 
 export default function Paycheck() {
   const { recibos, loading, agregarRecibo, actualizarRecibo, borrarRecibo, recargarRecibos } = useFinanceData()
+  const { config } = useConfig()
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState<Draft>({ ...EMPTY })
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -462,9 +468,9 @@ export default function Paycheck() {
 
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Total bruto', val: `S/ ${fmt(totalBruto)}`, color: 'var(--color-texto)' },
-          { label: 'Total neto', val: `S/ ${fmt(totalNeto)}`, color: '#22c55e' },
-          { label: 'IR 5ta cat.', val: `S/ ${fmt(totalIR)}`, color: '#ef4444' },
+          { label: 'Total bruto', val: formatMonto(totalBruto, config), color: 'var(--color-texto)' },
+          { label: 'Total neto', val: formatMonto(totalNeto, config), color: '#22c55e' },
+          { label: 'IR 5ta cat.', val: formatMonto(totalIR, config), color: '#ef4444' },
         ].map(({ label, val, color }) => (
           <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
             <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label} {anioFiltro}</p>
@@ -568,8 +574,8 @@ export default function Paycheck() {
               <div className="flex items-center px-4 py-3 cursor-pointer" onClick={() => setExpandedId(expanded ? null : r.id)}>
                 <span className="font-mono text-sm font-medium flex-shrink-0 w-28" style={{ color: 'var(--color-texto)' }}>{r.fecha}</span>
                 <span className="flex-1" />
-                <span className="font-mono text-xs mr-4" style={{ color: 'var(--color-muted)' }}>Bruto: S/ {fmt(r.totalHaberes + r.totalOtrosHaberes)}</span>
-                <span className="font-mono text-sm font-bold mr-4" style={{ color: '#22c55e' }}>Neto: S/ {fmt(r.netoAPagar)}</span>
+                <span className="font-mono text-xs mr-4" style={{ color: 'var(--color-muted)' }}>Bruto: {formatMonto(r.totalHaberes + r.totalOtrosHaberes, config)}</span>
+                <span className="font-mono text-sm font-bold mr-4" style={{ color: '#22c55e' }}>Neto: {formatMonto(r.netoAPagar, config)}</span>
                 {expanded ? <ChevronUp size={16} style={{ color: 'var(--color-muted)' }} /> : <ChevronDown size={16} style={{ color: 'var(--color-muted)' }} />}
                 <button onClick={e => { e.stopPropagation(); setEditingId(r.id); setEditDraft({ ...r }) }} className="ml-3 p-1 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Edit2 size={14} /></button>
                 <button onClick={e => { e.stopPropagation(); borrarRecibo(r.id) }} className="ml-1 p-1 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Trash2 size={14} /></button>
@@ -617,7 +623,7 @@ export default function Paycheck() {
                           {nonZero.map(([label, val]) => (
                             <div key={String(label)}>
                               <p className="text-xs" style={{ color: 'var(--color-muted)' }}>{label}</p>
-                              <p className="font-mono text-sm" style={{ color: 'var(--color-texto)' }}>S/ {fmt(Number(val))}</p>
+                              <p className="font-mono text-sm" style={{ color: 'var(--color-texto)' }}>{formatMonto(Number(val), config)}</p>
                             </div>
                           ))}
                         </div>

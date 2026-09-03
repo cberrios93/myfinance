@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Settings2, Landmark, ArrowLeftRight,
   CalendarClock, TrendingUp, GitBranch, ArrowUpDown, Settings, LogOut, Menu, X,
   Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard, Calculator,
-  Users, AlertCircle, Lightbulb, ChevronRight, LineChart, ShieldCheck
+  Users, ChevronRight, LineChart, ShieldCheck, Banknote
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { useScenario } from '../../data/ScenarioContext'
@@ -16,7 +16,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     section: '',
     items: [
-      { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/', label: 'Home', icon: LayoutDashboard },
     ],
   },
   {
@@ -26,11 +26,10 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/historial', label: 'Historial', icon: History },
       { to: '/flujo-caja', label: 'Flujo de Caja', icon: ArrowRightLeft },
       { to: '/rendimientos', label: 'Rendimientos', icon: BarChart3 },
+      { to: '/flujos-capital', label: 'Flujos de Capital', icon: Banknote },
       { to: '/haberes', label: 'Haberes', icon: Receipt },
       { to: '/suscripciones', label: 'Suscripciones', icon: CreditCard },
       { to: '/gastos-familia', label: 'Gastos Familia', icon: Users },
-      { to: '/deudas', label: 'Deudas', icon: AlertCircle },
-      { to: '/notas', label: 'Ideas & Notas', icon: Lightbulb },
     ],
   },
   {

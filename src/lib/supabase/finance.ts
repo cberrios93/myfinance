@@ -2,7 +2,7 @@ import { supabase } from './client'
 import type {
   FlujoCajaItem, Rendimiento, ReciboHaberes,
   Suscripcion, GastoFamilia, DeudaPendiente, Nota,
-  EstadoDeuda,
+  EstadoDeuda, FlujoCapital,
 } from '../../data/types'
 
 async function uid(): Promise<string> {
@@ -19,7 +19,10 @@ export async function listarFlujoCaja(): Promise<FlujoCajaItem[]> {
   return (data ?? []).map(r => ({
     id: r.id, nombre: r.nombre, tipo: r.tipo, categoria: r.categoria ?? undefined,
     montoPEN: r.monto_pen ?? undefined, montoUSD: r.monto_usd ?? undefined,
-    activo: r.activo, orden: r.orden, creadoEn: r.creado_en, actualizadoEn: r.actualizado_en,
+    activo: r.activo, orden: r.orden,
+    suscripcionId: r.suscripcion_id ?? undefined,
+    gastoFamiliaId: r.gasto_familia_id ?? undefined,
+    creadoEn: r.creado_en, actualizadoEn: r.actualizado_en,
   }))
 }
 
@@ -42,14 +45,18 @@ export async function eliminarFlujoCajaItem(id: string): Promise<void> {
 // ── Rendimientos ───────────────────────────────────────────────
 
 export async function listarRendimientos(): Promise<Rendimiento[]> {
-  const { data, error } = await supabase.from('rendimientos').select('*').order('anio').order('fecha_pago')
+  const { data, error } = await supabase.from('rendimientos').select('*')
+    .order('anio', { ascending: false }).order('mes', { ascending: false }).order('fecha_pago')
   if (error) throw error
   return (data ?? []).map(r => ({
-    id: r.id, anio: r.anio, instrumentoNombre: r.instrumento_nombre,
+    id: r.id, anio: r.anio, mes: r.mes ?? undefined, instrumentoNombre: r.instrumento_nombre,
     fechaPago: r.fecha_pago ?? undefined, gananciasPEN: r.ganancias_pen ?? undefined,
     gananciasUSD: r.ganancias_usd ?? undefined, inversionPEN: r.inversion_pen ?? undefined,
-    inversionUSD: r.inversion_usd ?? undefined, rentabilidad: r.rentabilidad ?? undefined,
-    reinvertido: r.reinvertido, marcado: r.marcado, comentario: r.comentario ?? undefined,
+    inversionUSD: r.inversion_usd ?? undefined, aporteMesPEN: r.aporte_mes_pen ?? undefined,
+    aporteMesUSD: r.aporte_mes_usd ?? undefined, rentabilidad: r.rentabilidad ?? undefined,
+    tasaImpuesto: r.tasa_impuesto != null ? Number(r.tasa_impuesto) : 0,
+    reinvertido: r.reinvertido, marcado: r.marcado, esTraspaso: r.es_traspaso ?? false,
+    comentario: r.comentario ?? undefined,
     creadoEn: r.creado_en, actualizadoEn: r.actualizado_en,
   }))
 }
@@ -57,11 +64,14 @@ export async function listarRendimientos(): Promise<Rendimiento[]> {
 export async function guardarRendimiento(r: Rendimiento): Promise<void> {
   const user_id = await uid()
   const { error } = await supabase.from('rendimientos').upsert({
-    id: r.id, user_id, anio: r.anio, instrumento_nombre: r.instrumentoNombre,
+    id: r.id, user_id, anio: r.anio, mes: r.mes ?? null, instrumento_nombre: r.instrumentoNombre,
     fecha_pago: r.fechaPago ?? null, ganancias_pen: r.gananciasPEN ?? null,
     ganancias_usd: r.gananciasUSD ?? null, inversion_pen: r.inversionPEN ?? null,
-    inversion_usd: r.inversionUSD ?? null, rentabilidad: r.rentabilidad ?? null,
-    reinvertido: r.reinvertido, marcado: r.marcado, comentario: r.comentario ?? null,
+    inversion_usd: r.inversionUSD ?? null, aporte_mes_pen: r.aporteMesPEN ?? null,
+    aporte_mes_usd: r.aporteMesUSD ?? null, rentabilidad: r.rentabilidad ?? null,
+    tasa_impuesto: r.tasaImpuesto ?? 0,
+    reinvertido: r.reinvertido, marcado: r.marcado, es_traspaso: r.esTraspaso ?? false,
+    comentario: r.comentario ?? null,
     actualizado_en: new Date().toISOString(),
   })
   if (error) throw error
@@ -165,6 +175,7 @@ export async function listarSuscripciones(): Promise<Suscripcion[]> {
     moneda: r.moneda, periodicidad: r.periodicidad,
     personas: r.personas ?? [], activa: r.activa,
     vencimiento: r.vencimiento ?? undefined, notas: r.notas ?? undefined,
+    flujoCajaItemId: r.flujo_caja_item_id ?? undefined,
     creadoEn: r.creado_en, actualizadoEn: r.actualizado_en,
   }))
 }
@@ -175,6 +186,7 @@ export async function guardarSuscripcion(s: Suscripcion): Promise<void> {
     id: s.id, user_id, nombre: s.nombre, monto_total: s.montoTotal,
     moneda: s.moneda, periodicidad: s.periodicidad, personas: s.personas,
     activa: s.activa, vencimiento: s.vencimiento ?? null, notas: s.notas ?? null,
+    flujo_caja_item_id: s.flujoCajaItemId ?? null,
     actualizado_en: new Date().toISOString(),
   })
   if (error) throw error
@@ -194,6 +206,7 @@ export async function listarGastosFamilia(): Promise<GastoFamilia[]> {
     id: r.id, descripcion: r.descripcion, beneficiario: r.beneficiario, tipo: r.tipo,
     montoPEN: r.monto_pen ?? undefined, montoUSD: r.monto_usd ?? undefined,
     periodicidad: r.periodicidad, activo: r.activo, notas: r.notas ?? undefined,
+    flujoCajaItemId: r.flujo_caja_item_id ?? undefined,
     creadoEn: r.creado_en, actualizadoEn: r.actualizado_en,
   }))
 }
@@ -204,6 +217,7 @@ export async function guardarGastoFamilia(g: GastoFamilia): Promise<void> {
     id: g.id, user_id, descripcion: g.descripcion, beneficiario: g.beneficiario,
     tipo: g.tipo, monto_pen: g.montoPEN ?? null, monto_usd: g.montoUSD ?? null,
     periodicidad: g.periodicidad, activo: g.activo, notas: g.notas ?? null,
+    flujo_caja_item_id: g.flujoCajaItemId ?? null,
     actualizado_en: new Date().toISOString(),
   })
   if (error) throw error
@@ -266,5 +280,32 @@ export async function guardarNota(n: Nota): Promise<void> {
 
 export async function eliminarNota(id: string): Promise<void> {
   const { error } = await supabase.from('notas').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── Flujos de Capital ──────────────────────────────────────────
+
+export async function listarFlujosCapital(): Promise<FlujoCapital[]> {
+  const { data, error } = await supabase.from('flujos_capital').select('*').order('fecha', { ascending: false })
+  if (error) throw error
+  return (data ?? []).map(r => ({
+    id: r.id, fecha: r.fecha, tipo: r.tipo as 'aporte' | 'retiro',
+    monto: Number(r.monto), moneda: r.moneda as 'PEN' | 'USD',
+    nota: r.nota ?? undefined, creadoEn: r.creado_en, actualizadoEn: r.actualizado_en,
+  }))
+}
+
+export async function guardarFlujoCapital(f: FlujoCapital): Promise<void> {
+  const user_id = await uid()
+  const { error } = await supabase.from('flujos_capital').upsert({
+    id: f.id, user_id, fecha: f.fecha, tipo: f.tipo,
+    monto: f.monto, moneda: f.moneda, nota: f.nota ?? null,
+    actualizado_en: new Date().toISOString(),
+  })
+  if (error) throw error
+}
+
+export async function eliminarFlujoCapital(id: string): Promise<void> {
+  const { error } = await supabase.from('flujos_capital').delete().eq('id', id)
   if (error) throw error
 }

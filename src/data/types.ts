@@ -17,6 +17,11 @@ export interface CambioTasa {
   nuevaTasa: number
 }
 
+// pago: ganancia se cobra, capital queda igual
+// capitalizacion: ganancia se reinvierte, capital crece
+// variable: se registra el valor actual y el sistema calcula el delta
+export type TipoRenta = 'pago' | 'capitalizacion' | 'variable'
+
 export interface Instrumento {
   id: string
   nombre: string
@@ -24,8 +29,9 @@ export interface Instrumento {
   tasaReal: number
   categoria: string
   esPool: boolean
+  tipoRenta?: TipoRenta     // default 'pago' si no está definido
   cambioTasa?: CambioTasa
-  cuentaPatrimonioId?: string  // vinculado a CuentaPatrimonio — monto se sincroniza desde ahí
+  cuentaPatrimonioId?: string
 }
 
 export interface Movimiento {
@@ -130,9 +136,19 @@ export interface CuentaPatrimonio {
   montoPEN?: number
   montoUSD?: number
   esRiesgo: boolean
+  pinned: boolean
+  isHidden: boolean
   orden: number
   creadoEn: string
   actualizadoEn: string
+}
+
+export interface CuentaLog {
+  id: string
+  cuentaId: string
+  montoPEN?: number
+  montoUSD?: number
+  creadoEn: string
 }
 
 // --- Flujo de caja ---
@@ -146,7 +162,8 @@ export interface FlujoCajaItem {
   montoUSD?: number
   activo: boolean
   orden: number
-  suscripcionId?: string  // si está seteado, este ítem es gestionado por Suscripciones
+  suscripcionId?: string     // gestionado por Suscripciones
+  gastoFamiliaId?: string   // gestionado por Gastos Familia
   creadoEn: string
   actualizadoEn: string
 }
@@ -156,16 +173,34 @@ export interface FlujoCajaItem {
 export interface Rendimiento {
   id: string
   anio: number
+  mes?: number          // 1-12; obligatorio en registros nuevos
   instrumentoNombre: string
   fechaPago?: string
   gananciasPEN?: number
   gananciasUSD?: number
-  inversionPEN?: number
+  inversionPEN?: number  // monto base al momento del registro (pre-llenado desde Patrimonio)
   inversionUSD?: number
-  rentabilidad?: number
+  aporteMesPEN?: number  // capital nuevo aportado en el mes (para separar de ganancia)
+  aporteMesUSD?: number
+  rentabilidad?: number  // calculado automáticamente si hay ganancia e inversión
+  tasaImpuesto: number   // % sobre la ganancia bruta (ej: 5 = 5%). 0 = ya es neto o sin impuesto
   reinvertido: boolean
   marcado: boolean
+  esTraspaso: boolean
   comentario?: string
+  creadoEn: string
+  actualizadoEn: string
+}
+
+// --- Flujo de capital externo ---
+
+export interface FlujoCapital {
+  id: string
+  fecha: string        // ISO date YYYY-MM-DD
+  tipo: 'aporte' | 'retiro'
+  monto: number
+  moneda: 'PEN' | 'USD'
+  nota?: string
   creadoEn: string
   actualizadoEn: string
 }
@@ -272,6 +307,7 @@ export interface GastoFamilia {
   periodicidad: 'Mensual' | 'Anual'
   activo: boolean
   notas?: string
+  flujoCajaItemId?: string  // ID del FlujoCajaItem vinculado (gestionado automáticamente)
   creadoEn: string
   actualizadoEn: string
 }
