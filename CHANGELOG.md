@@ -14,6 +14,10 @@ Criterios de tipo:
 
 > Funcionalidades terminadas en DEV, aún no desplegadas a producción.
 
+---
+
+## [v2.0.0] — 2026-09-03 — PROD
+
 ### Flujos de Capital (módulo nuevo)
 - **Feature** — Nuevo módulo `/flujos-capital` en nav (Tracking). Registro de aportes y retiros reales desde/hacia cuenta bancaria personal. KPIs: total aportes, total retiros, capital propio neto. Nota explicativa sobre qué registrar. Persiste en DB (tabla `flujos_capital`, migración `017`).
 - **Feature** — KPI "Retorno s/ capital propio" en Rendimientos: ganancias netas / capital propio neto (aportes − retiros en PEN eq.). Muestra base usada o mensaje "Registra flujos de capital" si no hay datos.
