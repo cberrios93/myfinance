@@ -208,25 +208,25 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
           </div>
           <div>
             <p className="text-xs mb-0.5" style={{ color: 'var(--color-muted)' }}>Balance actual</p>
-            <p className="text-sm font-mono font-semibold" style={{ color: info.montoActual != null ? '#22c55e' : 'var(--color-muted)' }}>
+            <p className="text-sm font-mono font-semibold" style={{ color: info.montoActual != null ? '#00C9A7' : 'var(--color-muted)' }}>
               {info.montoActual != null ? `${simbolo} ${fmt(info.montoActual)}` : '—'}
             </p>
           </div>
           <div>
             <p className="text-xs mb-0.5" style={{ color: 'var(--color-muted)' }}>Ganancia acumulada</p>
-            <p className="text-sm font-mono font-semibold" style={{ color: ganAcumPEN >= 0 ? '#22c55e' : '#ef4444' }}>
+            <p className="text-sm font-mono font-semibold" style={{ color: ganAcumPEN >= 0 ? '#00C9A7' : '#E24C4C' }}>
               {formatMonto(ganAcumPEN, config)}
             </p>
           </div>
           <div>
             <p className="text-xs mb-0.5" style={{ color: 'var(--color-muted)' }}>Rentab. acumulada</p>
-            <p className="text-sm font-mono font-semibold" style={{ color: rentAcum != null && rentAcum >= 0 ? '#22c55e' : '#ef4444' }}>
+            <p className="text-sm font-mono font-semibold" style={{ color: rentAcum != null && rentAcum >= 0 ? '#00C9A7' : '#E24C4C' }}>
               {rentAcum != null ? `${(rentAcum * 100).toFixed(2)}%` : '—'}
             </p>
           </div>
           <div>
             <p className="text-xs mb-0.5" style={{ color: 'var(--color-muted)' }}>Tipo</p>
-            <p className="text-xs font-medium" style={{ color: tipo === 'pago' ? '#8B5CF6' : tipo === 'capitalizacion' ? '#10B981' : '#3B82F6' }}>
+            <p className="text-xs font-medium" style={{ color: tipo === 'pago' ? '#8B5CF6' : tipo === 'capitalizacion' ? '#00C9A7' : '#00C9A7' }}>
               {tipo === 'pago' && 'Renta fija — pago'}
               {tipo === 'capitalizacion' && 'Capitalización'}
               {tipo === 'variable' && 'Renta variable'}
@@ -237,7 +237,7 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
 
       {/* Alerta: ciclo cerrado — el último registro del instrumento es un traspaso */}
       {ultimoEsTraspaso && (
-        <div className="rounded-lg px-3 py-2.5 flex flex-col gap-1" style={{ background: '#fef3c7', border: '1px solid #f59e0b' }}>
+        <div className="rounded-lg px-3 py-2.5 flex flex-col gap-1" style={{ background: '#fef3c7', border: '1px solid #F5A623' }}>
           <p className="text-sm font-semibold" style={{ color: '#92400e' }}>
             ⚠ Ciclo cerrado — último registro es un Traspaso
           </p>
@@ -254,7 +254,7 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
       )}
 
       {/* Checkbox traspaso — cambia el modo del formulario */}
-      <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: value.esTraspaso ? '#f59e0b' : 'var(--color-texto)' }}>
+      <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: value.esTraspaso ? '#F5A623' : 'var(--color-texto)' }}>
         <input
           type="checkbox"
           checked={value.esTraspaso}
@@ -286,8 +286,8 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
 
       {/* Traspaso: solo valor actual para actualizar Patrimonio */}
       {value.esTraspaso && (
-        <div className="rounded-lg px-3 py-3 space-y-3" style={{ background: '#f59e0b10', border: '1px solid #f59e0b30' }}>
-          <p className="text-xs" style={{ color: '#f59e0b' }}>
+        <div className="rounded-lg px-3 py-3 space-y-3" style={{ background: '#F5A62310', border: '1px solid #F5A62330' }}>
+          <p className="text-xs" style={{ color: '#F5A623' }}>
             Ingresa el saldo final en este instrumento tras el traspaso. Si salió todo, pon <strong>0</strong>. Patrimonio se actualizará a ese valor.
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -315,7 +315,7 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
             </div>
           </div>
           {base != null && valorActual != null && (
-            <p className="text-xs" style={{ color: '#f59e0b' }}>
+            <p className="text-xs" style={{ color: '#F5A623' }}>
               Patrimonio se actualizará de {simbolo} {fmt(base)} → {simbolo} {fmt(valorActual)}
             </p>
           )}
@@ -350,7 +350,7 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
                 value={ganancia != null ? ganancia : ''}
                 onChange={e => handleGanancia(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg text-sm outline-none text-right font-mono"
-                style={{ ...inputStyle, color: ganancia != null ? (ganancia >= 0 ? '#22c55e' : '#ef4444') : 'var(--color-muted)' }}
+                style={{ ...inputStyle, color: ganancia != null ? (ganancia >= 0 ? '#00C9A7' : '#E24C4C') : 'var(--color-muted)' }}
                 placeholder={tipo === 'variable' ? 'calculado' : '0.00'}
                 disabled={disabled}
               />
@@ -412,12 +412,12 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
 
       {/* Avisos de actualización de Patrimonio — solo si no es traspaso */}
       {!value.esTraspaso && tipo === 'capitalizacion' && ganancia != null && base != null && (
-        <p className="text-xs rounded-lg px-3 py-2" style={{ background: '#10B98115', color: '#10B981', border: '1px solid #10B98130' }}>
+        <p className="text-xs rounded-lg px-3 py-2" style={{ background: '#00C9A715', color: '#00C9A7', border: '1px solid #00C9A730' }}>
           Al guardar se propondrá actualizar Patrimonio a {simbolo} {fmt(base + (aporteMes ?? 0) + ganancia)} (base + aporte + ganancia reinvertida).
         </p>
       )}
       {!value.esTraspaso && tipo === 'variable' && ganancia != null && base != null && (
-        <p className="text-xs rounded-lg px-3 py-2" style={{ background: '#3B82F615', color: '#3B82F6', border: '1px solid #3B82F630' }}>
+        <p className="text-xs rounded-lg px-3 py-2" style={{ background: '#00C9A715', color: '#00C9A7', border: '1px solid #00C9A730' }}>
           Al guardar se propondrá actualizar Patrimonio a {simbolo} {fmt(base + (aporteMes ?? 0) + ganancia)} (base + aporte + ganancia).
         </p>
       )}
@@ -661,11 +661,11 @@ export default function Returns() {
           }, 0)
           const retornoCapitalPropio = capitalPropio > 0 ? ganTotal / capitalPropio : null
           return [
-            { label: 'Ganancias totales (PEN eq.)', main: formatMonto(ganTotal, config), color: ganTotal >= 0 ? '#22c55e' : '#ef4444' },
-            { label: 'Ganancias USD', main: `$ ${fmt(totalGanUSD)}`, sub: `≈ ${formatMonto(totalGanUSD * tc, config)}`, color: totalGanUSD >= 0 ? '#22c55e' : '#ef4444' },
+            { label: 'Ganancias totales (PEN eq.)', main: formatMonto(ganTotal, config), color: ganTotal >= 0 ? '#00C9A7' : '#E24C4C' },
+            { label: 'Ganancias USD', main: `$ ${fmt(totalGanUSD)}`, sub: `≈ ${formatMonto(totalGanUSD * tc, config)}`, color: totalGanUSD >= 0 ? '#00C9A7' : '#E24C4C' },
             { label: 'Monto base (PEN eq.)', main: formatMonto(baseTotal, config), color: 'var(--color-texto)' },
-            { label: 'Rentabilidad promedio', main: rentPromedio != null ? fmtPct(rentPromedio) : '—', color: rentPromedio != null && rentPromedio >= 0 ? '#22c55e' : '#ef4444' },
-            { label: 'Retorno s/ capital propio', main: retornoCapitalPropio != null ? fmtPct(retornoCapitalPropio) : '—', sub: capitalPropio > 0 ? `Base: ${formatMonto(capitalPropio, config)}` : 'Registra flujos de capital', color: retornoCapitalPropio != null && retornoCapitalPropio >= 0 ? '#22c55e' : 'var(--color-muted)' },
+            { label: 'Rentabilidad promedio', main: rentPromedio != null ? fmtPct(rentPromedio) : '—', color: rentPromedio != null && rentPromedio >= 0 ? '#00C9A7' : '#E24C4C' },
+            { label: 'Retorno s/ capital propio', main: retornoCapitalPropio != null ? fmtPct(retornoCapitalPropio) : '—', sub: capitalPropio > 0 ? `Base: ${formatMonto(capitalPropio, config)}` : 'Registra flujos de capital', color: retornoCapitalPropio != null && retornoCapitalPropio >= 0 ? '#00C9A7' : 'var(--color-muted)' },
           ].map(({ label, main, sub, color }) => (
             <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
               <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</p>
@@ -701,13 +701,13 @@ export default function Returns() {
         const cuenta = cuentas.find(c => c.id === propuestaPatrimonio.cuentaId)
         const simbolo = propuestaPatrimonio.moneda === 'PEN' ? 'S/' : '$'
         return (
-          <div className="rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap" style={{ background: '#10B98115', border: '1px solid #10B98140' }}>
-            <p className="text-sm flex-1" style={{ color: '#10B981' }}>
+          <div className="rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap" style={{ background: '#00C9A715', border: '1px solid #00C9A740' }}>
+            <p className="text-sm flex-1" style={{ color: '#00C9A7' }}>
               ¿Actualizar <strong>{cuenta?.nombre ?? 'cuenta'}</strong> en Patrimonio a {simbolo} {fmt(propuestaPatrimonio.nuevoMonto)}?
             </p>
             <div className="flex gap-2">
               <button onClick={confirmarActualizarPatrimonio}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#10B981' }}>
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ background: '#00C9A7' }}>
                 Sí, actualizar
               </button>
               <button onClick={() => setPropuestaPatrimonio(null)}
@@ -740,11 +740,11 @@ export default function Returns() {
               const periodo = r.mes ? `${MESES[r.mes - 1]} ${r.anio}` : `${r.anio}`
               const tasa = r.tasaImpuesto ?? 0
               const ganancia = r.esTraspaso
-                ? { label: 'Traspaso', color: '#f59e0b', bruto: null }
+                ? { label: 'Traspaso', color: '#F5A623', bruto: null }
                 : r.gananciasPEN != null
-                  ? { label: formatMonto(aplicarImpuesto(r.gananciasPEN, tasa), config), color: r.gananciasPEN >= 0 ? '#22c55e' : '#ef4444', bruto: tasa > 0 ? formatMonto(r.gananciasPEN, config) : null }
+                  ? { label: formatMonto(aplicarImpuesto(r.gananciasPEN, tasa), config), color: r.gananciasPEN >= 0 ? '#00C9A7' : '#E24C4C', bruto: tasa > 0 ? formatMonto(r.gananciasPEN, config) : null }
                   : r.gananciasUSD != null
-                    ? { label: `$ ${fmt(aplicarImpuesto(r.gananciasUSD, tasa))}`, color: r.gananciasUSD >= 0 ? '#22c55e' : '#ef4444', bruto: tasa > 0 ? `$ ${fmt(r.gananciasUSD)}` : null }
+                    ? { label: `$ ${fmt(aplicarImpuesto(r.gananciasUSD, tasa))}`, color: r.gananciasUSD >= 0 ? '#00C9A7' : '#E24C4C', bruto: tasa > 0 ? `$ ${fmt(r.gananciasUSD)}` : null }
                     : { label: '—', color: 'var(--color-muted)', bruto: null }
               const base = r.inversionPEN != null ? formatMonto(r.inversionPEN, config) : r.inversionUSD != null ? `$ ${fmt(r.inversionUSD)}` : '—'
 
@@ -766,7 +766,7 @@ export default function Returns() {
                 )
               }
               return (
-                <tr key={r.id} style={{ background: 'var(--color-card)', borderTop: '1px solid var(--color-borde)', color: r.marcado ? '#f59e0b' : 'var(--color-texto)' }}>
+                <tr key={r.id} style={{ background: 'var(--color-card)', borderTop: '1px solid var(--color-borde)', color: r.marcado ? '#F5A623' : 'var(--color-texto)' }}>
                   <td className="px-3 py-2.5 font-medium text-sm">
                     {r.marcado && <span className="mr-1 text-yellow-400">*</span>}{r.instrumentoNombre}
                     {r.comentario && <span className="block text-xs font-normal mt-0.5" style={{ color: 'var(--color-muted)' }}>{r.comentario}</span>}
@@ -779,11 +779,11 @@ export default function Returns() {
                       <span className="block text-xs" style={{ color: 'var(--color-muted)', textDecoration: 'line-through' }}>{ganancia.bruto}</span>
                     )}
                     {tasa > 0 && !r.esTraspaso && (
-                      <span className="inline-block mt-0.5 px-1 rounded text-xs font-normal" style={{ background: '#ef444415', color: '#ef4444', fontSize: 10 }}>−{tasa}%</span>
+                      <span className="inline-block mt-0.5 px-1 rounded text-xs font-normal" style={{ background: '#E24C4C15', color: '#E24C4C', fontSize: 10 }}>−{tasa}%</span>
                     )}
                   </td>
                   <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-muted)' }}>{base}</td>
-                  <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: rent != null && rent >= 0 ? '#22c55e' : '#ef4444' }}>
+                  <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: rent != null && rent >= 0 ? '#00C9A7' : '#E24C4C' }}>
                     {rent != null ? fmtPct(rent) : '—'}
                   </td>
                   <td className="px-3 py-2.5 text-center text-xs">{r.reinvertido ? '✓' : ''}</td>

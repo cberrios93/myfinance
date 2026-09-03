@@ -171,7 +171,7 @@ export default function Subscriptions() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-sm" style={{ color: 'var(--color-texto)' }}>{s.nombre}</span>
                     <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--color-fondo)', color: 'var(--color-muted)' }}>{s.periodicidad}</span>
-                    {!s.activa && <span className="text-xs" style={{ color: '#ef4444' }}>Inactiva</span>}
+                    {!s.activa && <span className="text-xs" style={{ color: '#E24C4C' }}>Inactiva</span>}
                     {s.vencimiento && <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Vence: {s.vencimiento}</span>}
                   </div>
                   <p className="font-mono font-bold text-sm mt-1" style={{ color: 'var(--color-acento)' }}>

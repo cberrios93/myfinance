@@ -273,7 +273,7 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
           className="w-48 px-3 py-2 rounded-lg text-sm outline-none" style={inputStyle} />
       </div>
 
-      <Section title="Haberes" color="#22c55e">
+      <Section title="Haberes" color="#00C9A7">
         <NumInput label="Sueldo Básico" value={value.sueldoBasico} onChange={n('sueldoBasico')} />
         <NumInput label="Aporte Empresa" value={value.aporteEmpresa} onChange={n('aporteEmpresa')} />
         <NumInput label="Teletrabajo" value={value.teletrabajo} onChange={n('teletrabajo')} />
@@ -287,10 +287,10 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
         <NumInput label="Vacaciones Devengadas" value={value.vacacionesDevengadas} onChange={n('vacacionesDevengadas')} />
         <NumInput label="Gratificación" value={value.gratificacion} onChange={n('gratificacion')} />
         <NumInput label="Equity Shares Taxable" value={value.equitySharesTaxable} onChange={n('equitySharesTaxable')} />
-        <Total label="Total Haberes" value={c.totalHaberes} color="#22c55e" />
+        <Total label="Total Haberes" value={c.totalHaberes} color="#00C9A7" />
       </Section>
 
-      <Section title="Otros Haberes" color="#10b981">
+      <Section title="Otros Haberes" color="#00C9A7">
         <NumInput label="Seguro de Vida" value={value.seguroVida} onChange={n('seguroVida')} />
         <NumInput label="Premio Reconoc. Gross Up" value={value.premioReconocimientoGrossUp} onChange={n('premioReconocimientoGrossUp')} />
         <NumInput label="Comisiones (Año Anterior)" value={value.comisionesAnioAnterior} onChange={n('comisionesAnioAnterior')} />
@@ -301,15 +301,15 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
         <NumInput label="Equity Cash Payout" value={value.equityCashPayout} onChange={n('equityCashPayout')} />
         <NumInput label="Equity Tax Cover Advance" value={value.equityTaxCoverAdvance} onChange={n('equityTaxCoverAdvance')} />
         <NumInput label="Equity Net Sale Proceeds" value={value.equityNetSaleProceeds} onChange={n('equityNetSaleProceeds')} />
-        <Total label="Total Otros Haberes" value={c.totalOtrosHaberes} color="#10b981" />
+        <Total label="Total Otros Haberes" value={c.totalOtrosHaberes} color="#00C9A7" />
       </Section>
 
-      <Section title="Descuentos" color="#ef4444">
+      <Section title="Descuentos" color="#E24C4C">
         <NumInput label="AFP, Fdo Pensiones (10%)" value={value.afp} onChange={n('afp')} />
         <NumInput label="AFP, Seguro (1.37%)" value={value.seguroAfp} onChange={n('seguroAfp')} />
         <NumInput label="AFP, Comisión (0.28%)" value={value.comisionAfp} onChange={n('comisionAfp')} />
         <NumInput label="Impuesto 5ta Categoría" value={value.impuesto5ta} onChange={n('impuesto5ta')} />
-        <Total label="Total Descuentos" value={c.totalDescuentos} color="#ef4444" />
+        <Total label="Total Descuentos" value={c.totalDescuentos} color="#E24C4C" />
       </Section>
 
       <Section title="Otros Descuentos" color="#f97316">
@@ -469,8 +469,8 @@ export default function Paycheck() {
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Total bruto', val: formatMonto(totalBruto, config), color: 'var(--color-texto)' },
-          { label: 'Total neto', val: formatMonto(totalNeto, config), color: '#22c55e' },
-          { label: 'IR 5ta cat.', val: formatMonto(totalIR, config), color: '#ef4444' },
+          { label: 'Total neto', val: formatMonto(totalNeto, config), color: '#00C9A7' },
+          { label: 'IR 5ta cat.', val: formatMonto(totalIR, config), color: '#E24C4C' },
         ].map(({ label, val, color }) => (
           <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
             <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label} {anioFiltro}</p>
@@ -481,7 +481,7 @@ export default function Paycheck() {
 
       {/* Error boleta */}
       {errorBoleta && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm" style={{ background: '#ef444420', border: '1px solid #ef4444', color: '#ef4444' }}>
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm" style={{ background: '#E24C4C20', border: '1px solid #E24C4C', color: '#E24C4C' }}>
           <AlertCircle size={14} />
           {errorBoleta}
           <button onClick={() => setErrorBoleta(null)} className="ml-auto"><X size={14} /></button>
@@ -497,7 +497,7 @@ export default function Paycheck() {
                 Vista previa — {importPreview.length} registro{importPreview.length !== 1 ? 's' : ''} listos
               </p>
               {importErrores.length > 0 && (
-                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: '#ef4444' }}>
+                <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: '#E24C4C' }}>
                   <AlertCircle size={11} />{importErrores.length} fila{importErrores.length !== 1 ? 's' : ''} con error se omitirán
                 </p>
               )}
@@ -515,8 +515,8 @@ export default function Paycheck() {
             </div>
           </div>
           {importErrores.length > 0 && (
-            <div className="px-4 py-2" style={{ background: '#ef444410', borderBottom: '1px solid var(--color-borde)' }}>
-              {importErrores.map(e => <p key={e.fila} className="text-xs" style={{ color: '#ef4444' }}>Fila {e.fila}: {e.msg}</p>)}
+            <div className="px-4 py-2" style={{ background: '#E24C4C10', borderBottom: '1px solid var(--color-borde)' }}>
+              {importErrores.map(e => <p key={e.fila} className="text-xs" style={{ color: '#E24C4C' }}>Fila {e.fila}: {e.msg}</p>)}
             </div>
           )}
           <div className="overflow-x-auto">
@@ -534,10 +534,10 @@ export default function Paycheck() {
                     <td className="px-3 py-1.5 text-left" style={{ color: 'var(--color-texto)' }}>{r.fecha}</td>
                     <td className="px-3 py-1.5 text-right" style={{ color: 'var(--color-texto)' }}>{fmt(r.totalHaberes)}</td>
                     <td className="px-3 py-1.5 text-right" style={{ color: 'var(--color-muted)' }}>{fmt(r.totalOtrosHaberes)}</td>
-                    <td className="px-3 py-1.5 text-right" style={{ color: '#ef4444' }}>{fmt(r.totalDescuentos)}</td>
+                    <td className="px-3 py-1.5 text-right" style={{ color: '#E24C4C' }}>{fmt(r.totalDescuentos)}</td>
                     <td className="px-3 py-1.5 text-right" style={{ color: '#f97316' }}>{fmt(r.totalOtrosDescuentos)}</td>
                     <td className="px-3 py-1.5 text-right" style={{ color: 'var(--color-muted)' }}>{fmt(r.totalAportes)}</td>
-                    <td className="px-3 py-1.5 text-right font-bold" style={{ color: '#22c55e' }}>{fmt(r.netoAPagar)}</td>
+                    <td className="px-3 py-1.5 text-right font-bold" style={{ color: '#00C9A7' }}>{fmt(r.netoAPagar)}</td>
                   </tr>
                 ))}
                 {importPreview.length > 15 && (
@@ -575,7 +575,7 @@ export default function Paycheck() {
                 <span className="font-mono text-sm font-medium flex-shrink-0 w-28" style={{ color: 'var(--color-texto)' }}>{r.fecha}</span>
                 <span className="flex-1" />
                 <span className="font-mono text-xs mr-4" style={{ color: 'var(--color-muted)' }}>Bruto: {formatMonto(r.totalHaberes + r.totalOtrosHaberes, config)}</span>
-                <span className="font-mono text-sm font-bold mr-4" style={{ color: '#22c55e' }}>Neto: {formatMonto(r.netoAPagar, config)}</span>
+                <span className="font-mono text-sm font-bold mr-4" style={{ color: '#00C9A7' }}>Neto: {formatMonto(r.netoAPagar, config)}</span>
                 {expanded ? <ChevronUp size={16} style={{ color: 'var(--color-muted)' }} /> : <ChevronDown size={16} style={{ color: 'var(--color-muted)' }} />}
                 <button onClick={e => { e.stopPropagation(); setEditingId(r.id); setEditDraft({ ...r }) }} className="ml-3 p-1 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Edit2 size={14} /></button>
                 <button onClick={e => { e.stopPropagation(); borrarRecibo(r.id) }} className="ml-1 p-1 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Trash2 size={14} /></button>
@@ -583,7 +583,7 @@ export default function Paycheck() {
               {expanded && (
                 <div className="px-4 pb-4 border-t space-y-3" style={{ borderColor: 'var(--color-borde)' }}>
                   {([
-                    { title: 'Haberes', color: '#22c55e', items: [
+                    { title: 'Haberes', color: '#00C9A7', items: [
                       ['Sueldo básico', r.sueldoBasico], ['Aporte empresa', r.aporteEmpresa],
                       ['Teletrabajo', r.teletrabajo], ['Premio Reconoc.', r.premioReconocimientoImpto],
                       ['Tickets alim.', r.ticketsAlimentacion], ['Comisiones (actual)', r.comisionesAnioActual],
@@ -592,14 +592,14 @@ export default function Paycheck() {
                       ['Vac. devengadas', r.vacacionesDevengadas], ['Gratificación', r.gratificacion],
                       ['Equity taxable', r.equitySharesTaxable],
                     ]},
-                    { title: 'Otros Haberes', color: '#10b981', items: [
+                    { title: 'Otros Haberes', color: '#00C9A7', items: [
                       ['Seguro vida', r.seguroVida], ['Premio Gross Up', r.premioReconocimientoGrossUp],
                       ['Comisiones (ant.)', r.comisionesAnioAnterior], ['Part. utilidades', r.participacionUtilidades],
                       ['Equity RSU/PSU', r.equityRsuPsuPayout], ['Indem. vacacional', r.indemVacacional],
                       ['Bonif. extraord.', r.bonificacionExtraord], ['Equity cash', r.equityCashPayout],
                       ['Equity tax cover', r.equityTaxCoverAdvance], ['Equity net sale', r.equityNetSaleProceeds],
                     ]},
-                    { title: 'Descuentos', color: '#ef4444', items: [
+                    { title: 'Descuentos', color: '#E24C4C', items: [
                       ['AFP (10%)', r.afp], ['Seguro AFP', r.seguroAfp],
                       ['Comisión AFP', r.comisionAfp], ['Impuesto 5ta', r.impuesto5ta],
                     ]},

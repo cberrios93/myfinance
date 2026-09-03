@@ -116,12 +116,12 @@ export default function Tax5th() {
                     <td className="px-4 py-2.5 text-sm" style={{ color: 'var(--color-texto)' }}>{d.label}</td>
                     <td className="px-4 py-2.5 text-center text-xs font-mono" style={{ color: 'var(--color-muted)' }}>{(d.tasa * 100).toFixed(0)}%</td>
                     <td className="px-4 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-texto)' }}>{formatMonto(d.monto, config)}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs font-semibold" style={{ color: '#ef4444' }}>{formatMonto(d.impuesto, config)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-xs font-semibold" style={{ color: '#E24C4C' }}>{formatMonto(d.impuesto, config)}</td>
                   </tr>
                 ))}
                 <tr style={{ background: 'var(--color-fondo)', borderTop: '2px solid var(--color-borde)' }}>
                   <td colSpan={3} className="px-4 py-2.5 font-semibold text-sm" style={{ color: 'var(--color-texto)' }}>Total IR anual</td>
-                  <td className="px-4 py-2.5 text-right font-bold font-mono" style={{ color: '#ef4444' }}>{formatMonto(impuesto, config)}</td>
+                  <td className="px-4 py-2.5 text-right font-bold font-mono" style={{ color: '#E24C4C' }}>{formatMonto(impuesto, config)}</td>
                 </tr>
               </tbody>
             </table>

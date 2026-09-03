@@ -10,9 +10,9 @@ const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto
 const ESTADOS: EstadoDeuda[] = ['Pendiente', 'Parcial', 'Pagado']
 
 const STATUS_COLOR: Record<EstadoDeuda, string> = {
-  Pendiente: '#ef4444',
-  Parcial: '#f59e0b',
-  Pagado: '#22c55e',
+  Pendiente: '#E24C4C',
+  Parcial: '#F5A623',
+  Pagado: '#00C9A7',
 }
 
 const EMPTY: Omit<DeudaPendiente, 'id' | 'creadoEn' | 'actualizadoEn'> = {

@@ -181,15 +181,15 @@ function PostRetiroPanel({ postRetiro, edadVidaEstimada }: { postRetiro: Resulta
   return (
     <div className="rounded-xl p-5 space-y-4" style={{
       background: 'var(--color-card)',
-      border: `1px solid ${sobrevive ? '#10B981' : '#EF4444'}40`,
+      border: `1px solid ${sobrevive ? '#00C9A7' : '#E24C4C'}40`,
     }}>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--color-muted)' }}>
           Supervivencia del fondo post-retiro
         </h2>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{
-          background: sobrevive ? '#10B98120' : '#EF444420',
-          color: sobrevive ? '#10B981' : '#EF4444',
+          background: sobrevive ? '#00C9A720' : '#E24C4C20',
+          color: sobrevive ? '#00C9A7' : '#E24C4C',
         }}>
           {sobrevive ? `✓ Sobrevive hasta los ${edadVidaEstimada} años` : `⚠ Se agota a los ${agotadoEnEdad} años`}
         </span>
@@ -223,7 +223,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <div className="rounded-lg p-3" style={{ background: 'var(--color-fondo)', border: '1px solid var(--color-borde)' }}>
       <div className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</div>
-      <div className="font-semibold font-mono text-sm" style={{ color: accent ? '#EF4444' : 'var(--color-texto)' }}>{value}</div>
+      <div className="font-semibold font-mono text-sm" style={{ color: accent ? '#E24C4C' : 'var(--color-texto)' }}>{value}</div>
     </div>
   )
 }

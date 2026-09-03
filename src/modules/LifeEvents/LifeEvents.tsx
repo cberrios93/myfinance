@@ -301,7 +301,7 @@ export function LoanCalculator({
               {tcLoading
                 ? <span style={{ color: 'var(--color-muted)' }}>cargando…</span>
                 : tcError
-                  ? <span style={{ color: '#ef4444' }}>sin conexión — usando S/ {tcVenta.toFixed(3)}</span>
+                  ? <span style={{ color: '#E24C4C' }}>sin conexión — usando S/ {tcVenta.toFixed(3)}</span>
                   : <strong style={{ color: 'var(--color-acento)' }}>S/ {tcVenta.toFixed(3)}</strong>
               }
             </span>
@@ -401,7 +401,7 @@ export function LoanCalculator({
             </div>
             <div>
               <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Total intereses</p>
-              <p className="font-semibold font-mono" style={{ color: '#ef4444' }}>S/ {fmt(totalIntereses)}</p>
+              <p className="font-semibold font-mono" style={{ color: '#E24C4C' }}>S/ {fmt(totalIntereses)}</p>
             </div>
           </div>
 

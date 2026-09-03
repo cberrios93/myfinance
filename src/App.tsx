@@ -45,7 +45,7 @@ function BlockedScreen({ reason, onSignOut }: { reason: string | null; onSignOut
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--color-fondo)' }}>
       <div className="text-center space-y-4 max-w-sm">
-        <ShieldAlert size={48} style={{ color: '#ef4444', margin: '0 auto' }} />
+        <ShieldAlert size={48} style={{ color: '#E24C4C', margin: '0 auto' }} />
         <h1 className="text-xl font-bold" style={{ color: 'var(--color-texto)' }}>Cuenta bloqueada</h1>
         <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
           {reason ?? 'Tu cuenta ha sido suspendida. Contacta al administrador para más información.'}
@@ -53,7 +53,7 @@ function BlockedScreen({ reason, onSignOut }: { reason: string | null; onSignOut
         <button
           onClick={onSignOut}
           className="flex items-center gap-2 mx-auto px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ background: '#ef4444' }}
+          style={{ background: '#E24C4C' }}
         >
           <LogOut size={15} />
           Cerrar sesión

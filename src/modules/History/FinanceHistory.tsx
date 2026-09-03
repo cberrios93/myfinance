@@ -19,7 +19,7 @@ function fmtPct(n: number) {
 
 function GrowthCell({ value }: { value: number | null }) {
   if (value === null) return <td className="px-3 py-2.5 text-center text-xs" style={{ color: 'var(--color-muted)' }}>—</td>
-  const color = value > 0 ? '#22c55e' : value < 0 ? '#ef4444' : 'var(--color-muted)'
+  const color = value > 0 ? '#00C9A7' : value < 0 ? '#E24C4C' : 'var(--color-muted)'
   return (
     <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color }}>
       {fmtPct(value)}
@@ -261,7 +261,7 @@ export default function FinanceHistory() {
           {wrongPeriods.length > 0 && (
             <span
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium"
-              style={{ color: '#f59e0b', border: '1px solid #f59e0b', background: 'var(--color-card)' }}
+              style={{ color: '#F5A623', border: '1px solid #F5A623', background: 'var(--color-card)' }}
               title={`${wrongPeriods.length} período${wrongPeriods.length !== 1 ? 's' : ''} por revisar`}
             >
               <AlertCircle size={15} />
@@ -279,10 +279,10 @@ export default function FinanceHistory() {
       </div>
 
       {wrongPeriods.length > 0 && (
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #f59e0b40' }}>
-          <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: '#f59e0b15' }}>
-            <AlertCircle size={15} style={{ color: '#f59e0b' }} />
-            <p className="text-sm font-medium" style={{ color: '#f59e0b' }}>
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #F5A62340' }}>
+          <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: '#F5A62315' }}>
+            <AlertCircle size={15} style={{ color: '#F5A623' }} />
+            <p className="text-sm font-medium" style={{ color: '#F5A623' }}>
               {wrongPeriods.length} registro{wrongPeriods.length !== 1 ? 's' : ''} con período distinto al que calcula la regla actual (día de corte: {diaCorte})
             </p>
           </div>
@@ -294,17 +294,17 @@ export default function FinanceHistory() {
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span style={{ color: 'var(--color-muted)' }}>Almacenado:</span>
-                  <span className="font-mono font-semibold" style={{ color: '#22c55e' }}>{h.periodo}</span>
+                  <span className="font-mono font-semibold" style={{ color: '#00C9A7' }}>{h.periodo}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <span style={{ color: 'var(--color-muted)' }}>Regla dice:</span>
-                  <span className="font-mono font-semibold" style={{ color: '#f59e0b' }}>{calculado}</span>
+                  <span className="font-mono font-semibold" style={{ color: '#F5A623' }}>{calculado}</span>
                 </div>
                 <div className="flex items-center gap-2 ml-auto">
                   <button
                     onClick={() => handleAplicarPeriodo(h, calculado)}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium"
-                    style={{ background: '#f59e0b20', color: '#f59e0b', border: '1px solid #f59e0b50' }}
+                    style={{ background: '#F5A62320', color: '#F5A623', border: '1px solid #F5A62350' }}
                   >
                     <Check size={12} /> Aplicar regla
                   </button>
@@ -326,9 +326,9 @@ export default function FinanceHistory() {
         <div
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
           style={{
-            background: importStatus.err ? '#ef444420' : '#22c55e20',
-            border: `1px solid ${importStatus.err ? '#ef4444' : '#22c55e'}`,
-            color: importStatus.err ? '#ef4444' : '#22c55e',
+            background: importStatus.err ? '#E24C4C20' : '#00C9A720',
+            border: `1px solid ${importStatus.err ? '#E24C4C' : '#00C9A7'}`,
+            color: importStatus.err ? '#E24C4C' : '#00C9A7',
           }}
         >
           <AlertCircle size={16} />
@@ -405,7 +405,7 @@ export default function FinanceHistory() {
                     {h.nota ? '' : formatMonto(total, config)}
                   </td>
                   <GrowthCell value={h.nota ? null : gTotal} />
-                  <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: gAmount != null && gAmount >= 0 ? '#22c55e' : gAmount != null ? '#ef4444' : 'var(--color-muted)' }}>
+                  <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: gAmount != null && gAmount >= 0 ? '#00C9A7' : gAmount != null ? '#E24C4C' : 'var(--color-muted)' }}>
                     {gAmount != null && !h.nota ? formatMonto(gAmount, config) : '—'}
                   </td>
                   <td className="px-3 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-muted)' }}>

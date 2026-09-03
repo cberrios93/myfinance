@@ -36,7 +36,7 @@ type Granularity = 'mensual' | 'anual'
 // ─── Shared stat card ────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, positive }: { label: string; value: string; sub?: string; positive?: boolean }) {
-  const subColor = positive === undefined ? 'var(--color-muted)' : positive ? '#22c55e' : '#ef4444'
+  const subColor = positive === undefined ? 'var(--color-muted)' : positive ? '#00C9A7' : '#E24C4C'
   return (
     <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
       <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</p>
@@ -305,10 +305,10 @@ function PatrimonioTab() {
 
   // Interpretación CAGR
   function cagrLabel(c: number): { text: string; color: string } {
-    if (c >= 10) return { text: 'Por encima del objetivo', color: '#22c55e' }
+    if (c >= 10) return { text: 'Por encima del objetivo', color: '#00C9A7' }
     if (c >= 6)  return { text: 'Por encima de inflación', color: '#86efac' }
-    if (c >= 0)  return { text: 'Bajo inflación estimada', color: '#f59e0b' }
-    return { text: 'Patrimonio en retroceso', color: '#ef4444' }
+    if (c >= 0)  return { text: 'Bajo inflación estimada', color: '#F5A623' }
+    return { text: 'Patrimonio en retroceso', color: '#E24C4C' }
   }
 
   function toggleLine(name: LineName) {
@@ -374,7 +374,7 @@ function PatrimonioTab() {
           {racha && (
             <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
               <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Racha actual</p>
-              <p className="text-2xl font-bold font-mono" style={{ color: racha.positive ? '#22c55e' : '#ef4444' }}>
+              <p className="text-2xl font-bold font-mono" style={{ color: racha.positive ? '#00C9A7' : '#E24C4C' }}>
                 {racha.positive ? '▲' : '▼'} {racha.count} {racha.count === 1 ? 'mes' : 'meses'}
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
@@ -385,7 +385,7 @@ function PatrimonioTab() {
           {aceleracion && (
             <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
               <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Aceleración patrimonial</p>
-              <p className="text-2xl font-bold font-mono" style={{ color: aceleracion.delta >= 0 ? '#22c55e' : '#ef4444' }}>
+              <p className="text-2xl font-bold font-mono" style={{ color: aceleracion.delta >= 0 ? '#00C9A7' : '#E24C4C' }}>
                 {aceleracion.delta >= 0 ? '+' : ''}{aceleracion.delta.toFixed(1)}%
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
@@ -398,7 +398,7 @@ function PatrimonioTab() {
             <>
               <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
                 <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Variación del período</p>
-                <p className="text-2xl font-bold font-mono" style={{ color: stats.diff >= 0 ? '#22c55e' : '#ef4444' }}>
+                <p className="text-2xl font-bold font-mono" style={{ color: stats.diff >= 0 ? '#00C9A7' : '#E24C4C' }}>
                   {stats.diff >= 0 ? '+' : ''}S/ {fmt(stats.diff)}
                 </p>
                 <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
@@ -407,7 +407,7 @@ function PatrimonioTab() {
                   <span className="mx-1.5" style={{ color: 'var(--color-borde)' }}>·</span>
                   <span>Fin </span>
                   <span className="font-mono" style={{ color: 'var(--color-texto)' }}>S/ {fmt(stats.endVal)}</span>
-                  <span className="font-mono font-semibold ml-1.5" style={{ color: stats.pct >= 0 ? '#22c55e' : '#ef4444' }}>
+                  <span className="font-mono font-semibold ml-1.5" style={{ color: stats.pct >= 0 ? '#00C9A7' : '#E24C4C' }}>
                     ({stats.pct >= 0 ? '+' : ''}{stats.pct.toFixed(1)}%)
                   </span>
                 </p>
@@ -452,9 +452,9 @@ function PatrimonioTab() {
         {/* Checkboxes de líneas */}
         <div className="flex gap-4 mb-3 flex-wrap">
           {([
-            { key: 'Total (S/)' as LineName, color: '#3b82f6', label: 'Total' },
-            { key: 'PEN (S/)' as LineName, color: '#22c55e', label: 'PEN' },
-            { key: 'USD→PEN' as LineName, color: '#f59e0b', label: 'USD→PEN' },
+            { key: 'Total (S/)' as LineName, color: '#00C9A7', label: 'Total' },
+            { key: 'PEN (S/)' as LineName, color: '#00C9A7', label: 'PEN' },
+            { key: 'USD→PEN' as LineName, color: '#F5A623', label: 'USD→PEN' },
           ]).map(({ key, color, label }) => (
             <button
               key={key}
@@ -471,16 +471,16 @@ function PatrimonioTab() {
           <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <defs>
               <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#00C9A7" stopOpacity={0.02} />
               </linearGradient>
               <linearGradient id="gradPEN" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#22c55e" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#00C9A7" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#00C9A7" stopOpacity={0.02} />
               </linearGradient>
               <linearGradient id="gradUSD" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#F5A623" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#F5A623" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
@@ -496,9 +496,9 @@ function PatrimonioTab() {
                 return [`S/ ${fmt(v)}${delta}`, n]
               }}
             />
-            {activeLines.has('Total (S/)') && <Area type="monotone" dataKey="Total (S/)" stroke="#3b82f6" strokeWidth={2} fill="url(#gradTotal)" dot={false} />}
-            {activeLines.has('PEN (S/)') && <Area type="monotone" dataKey="PEN (S/)" stroke="#22c55e" strokeWidth={1.5} fill="url(#gradPEN)" dot={false} strokeDasharray="4 2" />}
-            {activeLines.has('USD→PEN') && <Area type="monotone" dataKey="USD→PEN" stroke="#f59e0b" strokeWidth={1.5} fill="url(#gradUSD)" dot={false} strokeDasharray="4 2" />}
+            {activeLines.has('Total (S/)') && <Area type="monotone" dataKey="Total (S/)" stroke="#00C9A7" strokeWidth={2} fill="url(#gradTotal)" dot={false} />}
+            {activeLines.has('PEN (S/)') && <Area type="monotone" dataKey="PEN (S/)" stroke="#00C9A7" strokeWidth={1.5} fill="url(#gradPEN)" dot={false} strokeDasharray="4 2" />}
+            {activeLines.has('USD→PEN') && <Area type="monotone" dataKey="USD→PEN" stroke="#F5A623" strokeWidth={1.5} fill="url(#gradUSD)" dot={false} strokeDasharray="4 2" />}
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -523,7 +523,7 @@ function PatrimonioTab() {
               <ReferenceLine y={0} stroke="var(--color-borde)" />
               <Bar dataKey="% cambio" radius={[3, 3, 0, 0]}>
                 {growthData.map((entry, i) => (
-                  <Cell key={i} fill={entry['% cambio'] >= 0 ? '#22c55e' : '#ef4444'} />
+                  <Cell key={i} fill={entry['% cambio'] >= 0 ? '#00C9A7' : '#E24C4C'} />
                 ))}
               </Bar>
             </BarChart>
@@ -569,10 +569,10 @@ function PatrimonioTab() {
         function heatColor(pct: number | null) {
           if (pct === null) return 'var(--color-borde)'
           if (pct > 5)  return '#16a34a'
-          if (pct > 2)  return '#22c55e'
+          if (pct > 2)  return '#00C9A7'
           if (pct > 0)  return '#86efac'
           if (pct > -2) return '#fca5a5'
-          if (pct > -5) return '#ef4444'
+          if (pct > -5) return '#E24C4C'
           return '#b91c1c'
         }
         function heatText(pct: number | null) {
@@ -626,7 +626,7 @@ function PatrimonioTab() {
                           const yt = yearTotals[year]
                           const yearPct = yt && yt.start > 0 ? ((yt.end - yt.start) / yt.start) * 100 : null
                           return (
-                            <td className="text-right pl-3 font-mono text-xs font-semibold" style={{ whiteSpace: 'nowrap', color: yearPct == null ? 'var(--color-muted)' : yearPct >= 0 ? '#22c55e' : '#ef4444' }}>
+                            <td className="text-right pl-3 font-mono text-xs font-semibold" style={{ whiteSpace: 'nowrap', color: yearPct == null ? 'var(--color-muted)' : yearPct >= 0 ? '#00C9A7' : '#E24C4C' }}>
                               {yearPct != null ? `${yearPct >= 0 ? '+' : ''}${yearPct.toFixed(1)}%` : '—'}
                             </td>
                           )
@@ -641,10 +641,10 @@ function PatrimonioTab() {
               <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Leyenda:</span>
               {[
                 { bg: '#16a34a', label: '>+5%' },
-                { bg: '#22c55e', label: '+2% a +5%' },
+                { bg: '#00C9A7', label: '+2% a +5%' },
                 { bg: '#86efac', label: '0% a +2%' },
                 { bg: '#fca5a5', label: '0% a −2%' },
-                { bg: '#ef4444', label: '−2% a −5%' },
+                { bg: '#E24C4C', label: '−2% a −5%' },
                 { bg: '#b91c1c', label: '<−5%' },
               ].map(({ bg, label }) => (
                 <span key={label} className="flex items-center gap-1 text-xs" style={{ color: 'var(--color-muted)' }}>
@@ -749,9 +749,9 @@ function FlujoRealTab() {
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <ReferenceLine y={0} stroke="var(--color-borde)" />
-            <Bar dataKey="Δ real patrimonio" fill="#3b82f6" radius={[3,3,0,0]} />
-            <ReferenceLine y={flujoDeclarado} stroke="#f59e0b" strokeDasharray="5 3" strokeWidth={2}
-              label={{ value: `Declarado S/${fmt(flujoDeclarado)}`, position: 'right', fontSize: 10, fill: '#f59e0b' }} />
+            <Bar dataKey="Δ real patrimonio" fill="#00C9A7" radius={[3,3,0,0]} />
+            <ReferenceLine y={flujoDeclarado} stroke="#F5A623" strokeDasharray="5 3" strokeWidth={2}
+              label={{ value: `Declarado S/${fmt(flujoDeclarado)}`, position: 'right', fontSize: 10, fill: '#F5A623' }} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -772,7 +772,7 @@ function FlujoRealTab() {
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke="var(--color-borde)" />
             <Bar dataKey="Diferencia" radius={[3,3,0,0]}
-              fill="#22c55e"
+              fill="#00C9A7"
               label={false}
             />
           </BarChart>
@@ -894,8 +894,8 @@ function RendimientosTab() {
               <YAxis tickFormatter={v => `S/${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={60} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="Ganancias PEN" fill="#22c55e" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Ganancias USD (×TC3.7)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Ganancias PEN" fill="#00C9A7" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Ganancias USD (×TC3.7)" fill="#F5A623" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -920,7 +920,7 @@ function RendimientosTab() {
                 <td className="px-3 py-2.5 text-xs font-medium">{r.nombre}</td>
                 <td className="px-3 py-2.5 text-right font-mono text-xs">{r.pen > 0 ? `S/ ${fmt(r.pen)}` : '—'}</td>
                 <td className="px-3 py-2.5 text-right font-mono text-xs">{r.usd > 0 ? `$ ${fmt(r.usd)}` : '—'}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-xs font-semibold" style={{ color: r.total >= 0 ? '#22c55e' : '#ef4444' }}>
+                <td className="px-3 py-2.5 text-right font-mono text-xs font-semibold" style={{ color: r.total >= 0 ? '#00C9A7' : '#E24C4C' }}>
                   S/ {fmt(r.total)}
                 </td>
                 <td className="px-3 py-2.5 text-right text-xs" style={{ color: 'var(--color-muted)' }}>{r.anios}</td>
@@ -933,7 +933,7 @@ function RendimientosTab() {
               <td className="px-3 py-2.5 text-xs font-bold">Total</td>
               <td className="px-3 py-2.5 text-right font-mono text-xs font-bold">S/ {fmt(byInstr.reduce((s, r) => s + r.pen, 0))}</td>
               <td className="px-3 py-2.5 text-right font-mono text-xs font-bold">$ {fmt(byInstr.reduce((s, r) => s + r.usd, 0))}</td>
-              <td className="px-3 py-2.5 text-right font-mono text-xs font-bold" style={{ color: '#22c55e' }}>S/ {fmt(byInstr.reduce((s, r) => s + r.total, 0))}</td>
+              <td className="px-3 py-2.5 text-right font-mono text-xs font-bold" style={{ color: '#00C9A7' }}>S/ {fmt(byInstr.reduce((s, r) => s + r.total, 0))}</td>
               <td colSpan={2} />
             </tr>
           </tfoot>
@@ -944,7 +944,7 @@ function RendimientosTab() {
       {byInstr.length > 0 && instrFiltro === 'todos' && (() => {
         const totalPos = byInstr.filter(r => r.total > 0).reduce((s, r) => s + r.total, 0)
         if (totalPos <= 0) return null
-        const PIE_COLORS = ['#3b82f6','#22c55e','#f59e0b','#a78bfa','#f87171','#34d399','#fb923c','#60a5fa']
+        const PIE_COLORS = ['#00C9A7','#00C9A7','#F5A623','#a78bfa','#f87171','#34d399','#fb923c','#60a5fa']
         const pieData = byInstr
           .filter(r => r.total > 0)
           .map((r, i) => ({ name: r.nombre, value: r.total, color: PIE_COLORS[i % PIE_COLORS.length] }))
@@ -1004,7 +1004,7 @@ function RendimientosTab() {
                 <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={45} />
                 <Tooltip formatter={(v: unknown) => [`${(v as number).toFixed(2)}%`, 'Rentabilidad']} contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }} />
                 <ReferenceLine y={0} stroke="var(--color-borde)" />
-                <Line type="monotone" dataKey="Rentabilidad" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
+                <Line type="monotone" dataKey="Rentabilidad" stroke="#00C9A7" strokeWidth={2} dot={{ fill: '#00C9A7', r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1283,7 +1283,7 @@ function PromptModal({
           <button
             onClick={handleCopy}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: copied ? '#22c55e' : 'var(--color-acento)' }}
+            style={{ background: copied ? '#00C9A7' : 'var(--color-acento)' }}
           >
             {copied ? <Check size={15} /> : <Copy size={15} />}
             {copied ? 'Copiado' : 'Copiar prompt'}

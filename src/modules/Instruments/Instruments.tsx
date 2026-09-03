@@ -11,10 +11,10 @@ import type { Instrumento, TipoRenta } from '../../data/types'
 
 const CATEGORIAS_PRESET = ['Alto riesgo', 'Diversificado', 'Efectivo/pool', 'Inmobiliario', 'Renta fija', 'Otro']
 const CAT_COLORES: Record<string, string> = {
-  'Alto riesgo': '#EF4444',
-  'Diversificado': '#3B82F6',
-  'Efectivo/pool': '#10B981',
-  'Inmobiliario': '#F59E0B',
+  'Alto riesgo': '#E24C4C',
+  'Diversificado': '#00C9A7',
+  'Efectivo/pool': '#00C9A7',
+  'Inmobiliario': '#F5A623',
   'Renta fija': '#8B5CF6',
   'Otro': '#94A3B8',
 }
@@ -30,8 +30,8 @@ const TIPO_RENTA_LABELS: Record<TipoRenta, string> = {
 }
 const TIPO_RENTA_COLORS: Record<TipoRenta, string> = {
   pago: '#8B5CF6',
-  capitalizacion: '#10B981',
-  variable: '#3B82F6',
+  capitalizacion: '#00C9A7',
+  variable: '#00C9A7',
 }
 
 const EMPTY_INST: Omit<Instrumento, 'id'> = {
@@ -136,9 +136,9 @@ export default function Instruments() {
               title="Actualiza los montos de instrumentos vinculados con los valores actuales de Patrimonio"
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold"
               style={{
-                border: `1px solid ${hayDesync ? '#F59E0B' : 'var(--color-borde)'}`,
-                color: hayDesync ? '#F59E0B' : 'var(--color-muted)',
-                background: hayDesync ? '#F59E0B10' : 'transparent',
+                border: `1px solid ${hayDesync ? '#F5A623' : 'var(--color-borde)'}`,
+                color: hayDesync ? '#F5A623' : 'var(--color-muted)',
+                background: hayDesync ? '#F5A62310' : 'transparent',
               }}
             >
               <RefreshCw size={14} /> Sincronizar{hayDesync ? ' ⚠' : ''}
@@ -203,13 +203,13 @@ export default function Instruments() {
                         <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--color-acento)20', color: 'var(--color-acento)' }}>Pool</span>
                       )}
                       {cuentaVinculada && (
-                        <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded" style={{ background: '#10B98115', color: '#10B981' }}>
+                        <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded" style={{ background: '#00C9A715', color: '#00C9A7' }}>
                           <Link2 size={10} /> {cuentaVinculada.nombre}
                         </span>
                       )}
                     </div>
                     <div className="flex gap-4 mt-0.5 text-xs flex-wrap" style={{ color: 'var(--color-muted)' }}>
-                      <span className={cuentaVinculada ? 'font-semibold' : ''} style={cuentaVinculada ? { color: '#10B981' } : {}}>
+                      <span className={cuentaVinculada ? 'font-semibold' : ''} style={cuentaVinculada ? { color: '#00C9A7' } : {}}>
                         S/{Math.round(montoEfectivo).toLocaleString()}
                         {cuentaVinculada ? ' (desde Patrimonio)' : ''}
                       </span>
@@ -217,11 +217,11 @@ export default function Instruments() {
                       <span>{inst.categoria}</span>
                       {rendInstr.length > 0 && (
                         <>
-                          <span style={{ color: ganAcumPEN >= 0 ? '#22c55e' : '#ef4444' }}>
+                          <span style={{ color: ganAcumPEN >= 0 ? '#00C9A7' : '#E24C4C' }}>
                             Gan. acum. S/{ganAcumPEN.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                           {rentAcum != null && (
-                            <span style={{ color: rentAcum >= 0 ? '#22c55e' : '#ef4444' }}>
+                            <span style={{ color: rentAcum >= 0 ? '#00C9A7' : '#E24C4C' }}>
                               {(rentAcum * 100).toFixed(2)}% acum.
                             </span>
                           )}
@@ -316,7 +316,7 @@ function InstrumentoForm({
           })}
         </select>
         {isVinculado && montoVinculado != null && (
-          <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#10B981' }}>
+          <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#00C9A7' }}>
             <Link2 size={11} /> Monto tomado de Patrimonio: S/{Math.round(montoVinculado).toLocaleString()}
             {' '}(TC: {tc.toFixed(2)})
           </p>
@@ -337,7 +337,7 @@ function InstrumentoForm({
         <div>
           <label className="text-xs mb-1 flex items-center gap-1" style={{ color: 'var(--color-muted)' }}>
             Monto inicial (S/)
-            {isVinculado && <span className="px-1 rounded text-xs" style={{ background: '#10B98120', color: '#10B981' }}>sincronizado</span>}
+            {isVinculado && <span className="px-1 rounded text-xs" style={{ background: '#00C9A720', color: '#00C9A7' }}>sincronizado</span>}
           </label>
           <input
             type="number" min={0}

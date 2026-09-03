@@ -332,7 +332,7 @@ export function MatrimonioWizard({
                 {tcLoading
                   ? '…'
                   : tcError
-                    ? <span style={{ color: '#ef4444' }}>sin TC</span>
+                    ? <span style={{ color: '#E24C4C' }}>sin TC</span>
                     : <strong style={{ color: 'var(--color-acento)' }}>S/ {tcCompra.toFixed(3)}</strong>
                 }
               </span>
@@ -568,13 +568,13 @@ export function MatrimonioWizard({
               </div>
               <div>
                 <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Ya cubierto</p>
-                <p className="font-semibold font-mono" style={{ color: s.ahorroActual + s.aportesExternos > 0 ? '#22c55e' : 'var(--color-muted)' }}>
+                <p className="font-semibold font-mono" style={{ color: s.ahorroActual + s.aportesExternos > 0 ? '#00C9A7' : 'var(--color-muted)' }}>
                   S/ {fmt(s.ahorroActual + s.aportesExternos)}
                 </p>
               </div>
               <div>
                 <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Falta ahorrar</p>
-                <p className="font-semibold font-mono" style={{ color: resultado.falta > 0 ? '#ef4444' : '#22c55e' }}>
+                <p className="font-semibold font-mono" style={{ color: resultado.falta > 0 ? '#E24C4C' : '#00C9A7' }}>
                   S/ {fmt(resultado.falta)}
                 </p>
               </div>

@@ -377,7 +377,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
                 <div className="rounded-2xl p-4 space-y-2" style={{ background: 'var(--color-fondo)', border: '1px solid var(--color-borde)' }}>
                   <p className="text-sm font-semibold" style={{ color: 'var(--color-muted)' }}>Estimado de gastos de cierre</p>
                   {[
-                    { l: vc.esPrimeraVivienda ? 'Alcabala (exonerada)' : 'Alcabala (3%)', v: gc.alcabala, color: vc.esPrimeraVivienda ? '#22c55e' : undefined },
+                    { l: vc.esPrimeraVivienda ? 'Alcabala (exonerada)' : 'Alcabala (3%)', v: gc.alcabala, color: vc.esPrimeraVivienda ? '#00C9A7' : undefined },
                     { l: 'Notaría + escritura (~0.7%)', v: gc.notaria },
                     { l: 'Registros Públicos', v: gc.rrpp },
                   ].map(row => (
@@ -481,7 +481,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
               className="flex-1 flex flex-col items-center gap-0.5 px-2 py-2.5 rounded-xl text-xs font-medium transition-all"
               style={{ background: tabActivo === r.scenario.id ? 'var(--color-card)' : 'transparent', color: tabActivo === r.scenario.id ? 'var(--color-texto)' : 'var(--color-muted)', boxShadow: tabActivo === r.scenario.id ? '0 1px 4px rgba(0,0,0,.12)' : 'none' }}>
               <span className="flex items-center gap-1">
-                {r.scenario.id === badgeId && <Star size={9} style={{ color: '#22c55e' }} />}
+                {r.scenario.id === badgeId && <Star size={9} style={{ color: '#00C9A7' }} />}
                 Escenario {r.scenario.id.toUpperCase()}
               </span>
               <span className="font-mono text-xs" style={{ color: tabActivo === r.scenario.id ? 'var(--color-acento)' : 'var(--color-muted)' }}>
@@ -499,8 +499,8 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
               <p className="text-base font-semibold" style={{ color: 'var(--color-texto)' }}>{activeScenario.label}</p>
               {activeScenario.id === badgeId && (
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <Star size={12} style={{ color: '#22c55e' }} />
-                  <span className="text-xs font-medium" style={{ color: '#22c55e' }}>Recomendado para tu perfil</span>
+                  <Star size={12} style={{ color: '#00C9A7' }} />
+                  <span className="text-xs font-medium" style={{ color: '#00C9A7' }}>Recomendado para tu perfil</span>
                 </div>
               )}
             </div>
@@ -510,10 +510,10 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
               <MetCard label={esV && vc.incluirSeguros ? 'Cuota real/mes' : 'Cuota base/mes'}
                 value={`S/ ${M(esV && vc.incluirSeguros ? activeR.cuotaRealMensual : activeR.cuotaMensual)}`} accent />
               {esV && vc.esCompartida && (
-                <MetCard label={`Mi cuota (${vc.miPorcentaje}%)`} value={`S/ ${M(activeR.miCuotaMedia)}`} color="#22c55e" />
+                <MetCard label={`Mi cuota (${vc.miPorcentaje}%)`} value={`S/ ${M(activeR.miCuotaMedia)}`} color="#00C9A7" />
               )}
               <MetCard label="Cuota inicial" value={`S/ ${M(activeR.inicialPEN)}`} />
-              <MetCard label="Total intereses" value={`S/ ${M(activeR.totalIntereses)}`} color="#ef4444" />
+              <MetCard label="Total intereses" value={`S/ ${M(activeR.totalIntereses)}`} color="#E24C4C" />
               <MetCard label="Meses reales" value={`${activeR.mesesReales}`} hint={`${Math.round(activeR.mesesReales / 12)} años`} />
               <MetCard label="Total a pagar" value={`S/ ${M(activeR.totalPagar)}`} />
             </div>
@@ -551,7 +551,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
                           <p className="text-xs font-mono" style={{ color: 'var(--color-muted)' }}>Mes {pp.mes} · S/ {M(pp.monto)}</p>
                         </div>
                         <button onClick={() => updateEscenario(activeScenario.id, { prepagos: activeScenario.prepagos.filter(p => p.mes !== pp.mes) })}
-                          className="p-2 rounded-lg shrink-0" style={{ color: '#ef4444', background: '#ef444415' }}>
+                          className="p-2 rounded-lg shrink-0" style={{ color: '#E24C4C', background: '#E24C4C15' }}>
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -612,8 +612,8 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
         <div className="grid grid-cols-2 gap-2.5">
           <MetCard label="Cuota base/mes" value={`S/ ${M(detalleResult.cuotaMensual)}`} />
           {conSeguros && <MetCard label="Cuota real inicial" value={`S/ ${M(detalleResult.rows[0]?.cuotaTotal ?? 0)}`} hint="incl. seguros" accent />}
-          {esV && vc.esCompartida && <MetCard label={`Mi cuota (${vc.miPorcentaje}%)`} value={`S/ ${M(detalleResult.miCuotaMedia)}`} color="#22c55e" />}
-          <MetCard label="Total intereses" value={`S/ ${M(detalleResult.totalIntereses)}`} color="#ef4444" />
+          {esV && vc.esCompartida && <MetCard label={`Mi cuota (${vc.miPorcentaje}%)`} value={`S/ ${M(detalleResult.miCuotaMedia)}`} color="#00C9A7" />}
+          <MetCard label="Total intereses" value={`S/ ${M(detalleResult.totalIntereses)}`} color="#E24C4C" />
           <MetCard label="Meses reales" value={`${detalleResult.mesesReales}`} hint={`${Math.round(detalleResult.mesesReales / 12)} años`} />
         </div>
         <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
@@ -631,7 +631,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
                   <tr key={row.mes} style={{ background: row.esGratificacion ? 'color-mix(in srgb, var(--color-acento) 8%, transparent)' : idx % 2 === 0 ? 'var(--color-card)' : 'transparent' }}>
                     <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-muted)' }}>{row.mes}{row.esGratificacion && ' ★'}</td>
                     <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-texto)' }}>{M(row.cuotaBase)}</td>
-                    <td className="px-3 py-2.5 font-mono" style={{ color: '#ef4444' }}>{M(row.interes)}</td>
+                    <td className="px-3 py-2.5 font-mono" style={{ color: '#E24C4C' }}>{M(row.interes)}</td>
                     <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-texto)' }}>{M(row.capitalAmort)}</td>
                     <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-acento)' }}>{row.prepago > 0 ? M(row.prepago) : '—'}</td>
                     {conSeguros && <td className="px-3 py-2.5 font-mono font-semibold" style={{ color: 'var(--color-texto)' }}>{M(row.cuotaTotal)}</td>}
@@ -681,12 +681,12 @@ function WizardProgress({ steps, current }: { steps: string[]; current: number }
           <div key={s} className="flex items-center gap-1 flex-1">
             <div className="flex items-center gap-1.5 shrink-0">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                style={{ background: i < current ? '#22c55e' : i === current ? 'var(--color-acento)' : 'var(--color-fondo)', color: i <= current ? '#fff' : 'var(--color-muted)', border: i > current ? '1px solid var(--color-borde)' : 'none' }}>
+                style={{ background: i < current ? '#00C9A7' : i === current ? 'var(--color-acento)' : 'var(--color-fondo)', color: i <= current ? '#fff' : 'var(--color-muted)', border: i > current ? '1px solid var(--color-borde)' : 'none' }}>
                 {i < current ? '✓' : i + 1}
               </div>
             </div>
             {i < steps.length - 1 && (
-              <div className="flex-1 h-0.5 mx-1" style={{ background: i < current ? '#22c55e' : 'var(--color-borde)' }} />
+              <div className="flex-1 h-0.5 mx-1" style={{ background: i < current ? '#00C9A7' : 'var(--color-borde)' }} />
             )}
           </div>
         ))}
@@ -727,7 +727,7 @@ function OptionCard({ value, current, onSelect, title, desc, badge }: {
       style={{ background: sel ? 'color-mix(in srgb, var(--color-acento) 10%, var(--color-card))' : 'var(--color-card)', border: `2px solid ${sel ? 'var(--color-acento)' : 'var(--color-borde)'}` }}>
       <div className="flex items-center justify-between w-full gap-1">
         <span className="text-sm font-semibold" style={{ color: sel ? 'var(--color-acento)' : 'var(--color-texto)' }}>{title}</span>
-        {badge && <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#22c55e20', color: '#22c55e' }}>{badge}</span>}
+        {badge && <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#00C9A720', color: '#00C9A7' }}>{badge}</span>}
       </div>
       <span className="text-xs leading-tight" style={{ color: 'var(--color-muted)' }}>{desc}</span>
       {sel && <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: 'var(--color-acento)' }}><Check size={10} color="#fff" /></div>}
@@ -775,7 +775,7 @@ function DiffRow({ current, base, esV, vc }: { current: ScenarioResult; base: Sc
   const cB    = esV && vc?.incluirSeguros ? current.cuotaRealMensual : current.cuotaMensual
   const diffC = cB - cA
   const Ab    = (n: number) => Math.round(Math.abs(n)).toLocaleString('es-PE')
-  const Cl    = (v: number) => v < 0 ? '#22c55e' : '#ef4444'
+  const Cl    = (v: number) => v < 0 ? '#00C9A7' : '#E24C4C'
   return (
     <div className="flex flex-wrap gap-2 px-3 py-2.5 rounded-xl text-xs" style={{ background: 'var(--color-fondo)', border: '1px solid var(--color-borde)' }}>
       <span style={{ color: 'var(--color-muted)' }}>vs A:</span>
@@ -804,7 +804,7 @@ function AmortPreview({ rows, esV, vc }: { rows: AmortRow[]; esV: boolean; vc?: 
               <tr key={r.mes} style={{ background: i % 2 === 0 ? 'var(--color-card)' : 'transparent' }}>
                 <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-muted)' }}>{r.mes}</td>
                 <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-texto)' }}>{M(r.cuotaBase)}</td>
-                <td className="px-3 py-2.5 font-mono" style={{ color: '#ef4444' }}>{M(r.interes)}</td>
+                <td className="px-3 py-2.5 font-mono" style={{ color: '#E24C4C' }}>{M(r.interes)}</td>
                 <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-texto)' }}>{M(r.capitalAmort)}</td>
                 {conSeg && <td className="px-3 py-2.5 font-mono font-semibold" style={{ color: 'var(--color-texto)' }}>{M(r.cuotaTotal)}</td>}
                 <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-muted)' }}>{M(r.saldo)}</td>
@@ -830,7 +830,7 @@ function OppCostBanner({ result, tasaInversion, teaPct }: { result: ScenarioResu
         Con {tasaInversion}% de retorno vs. {teaPct}% del préstamo, <strong>conviene invertir el excedente en vez de prepagar masivamente.</strong>
       </p>
       <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
-        Invertir S/ {M(mensual)}/mes al {tasaInversion}% = <strong style={{ color: '#22c55e' }}>S/ {M(valor)} adicional</strong> al terminar el plazo.
+        Invertir S/ {M(mensual)}/mes al {tasaInversion}% = <strong style={{ color: '#00C9A7' }}>S/ {M(valor)} adicional</strong> al terminar el plazo.
       </p>
     </div>
   )
@@ -887,14 +887,14 @@ function PrepagosWizard({ valorPEN, plazoMeses, existingMeses, onAdd }: {
             <div key={s} className="flex items-center gap-2 flex-1">
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: done ? '#22c55e' : act ? 'var(--color-acento)' : 'var(--color-fondo)', color: done || act ? '#fff' : 'var(--color-muted)', border: !done && !act ? '1px solid var(--color-borde)' : 'none' }}>
+                  style={{ background: done ? '#00C9A7' : act ? 'var(--color-acento)' : 'var(--color-fondo)', color: done || act ? '#fff' : 'var(--color-muted)', border: !done && !act ? '1px solid var(--color-borde)' : 'none' }}>
                   {done ? '✓' : i + 1}
                 </div>
                 <span className="text-xs hidden sm:inline" style={{ color: act ? 'var(--color-acento)' : 'var(--color-muted)' }}>
                   {s === 'cuando' ? '¿Cuándo?' : s === 'cuanto' ? '¿Cuánto?' : 'Confirmar'}
                 </span>
               </div>
-              {i < 2 && <div className="flex-1 h-px" style={{ background: done ? '#22c55e' : 'var(--color-borde)' }} />}
+              {i < 2 && <div className="flex-1 h-px" style={{ background: done ? '#00C9A7' : 'var(--color-borde)' }} />}
             </div>
           )
         })}
@@ -976,11 +976,11 @@ function PrepagosWizard({ valorPEN, plazoMeses, existingMeses, onAdd }: {
             </div>
             <div className="flex justify-between">
               <span className="text-sm" style={{ color: 'var(--color-muted)' }}>Estrategia</span>
-              <span className="text-sm font-semibold" style={{ color: '#22c55e' }}>Reduce el plazo</span>
+              <span className="text-sm font-semibold" style={{ color: '#00C9A7' }}>Reduce el plazo</span>
             </div>
           </div>
-          <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{ background: 'color-mix(in srgb, #22c55e 8%, var(--color-fondo))', border: '1px solid #22c55e33' }}>
-            <Info size={13} className="shrink-0 mt-0.5" style={{ color: '#22c55e' }} />
+          <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{ background: 'color-mix(in srgb, #00C9A7 8%, var(--color-fondo))', border: '1px solid #00C9A733' }}>
+            <Info size={13} className="shrink-0 mt-0.5" style={{ color: '#00C9A7' }} />
             <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Al aplicarse en el mes {mesReal} la cuota se mantiene igual pero terminas el préstamo antes, pagando menos intereses en total.</p>
           </div>
           <div className="flex gap-2">

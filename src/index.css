@@ -1,16 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --color-fondo: #0F172A;
-  --color-card: #1E293B;
-  --color-texto: #F1F5F9;
-  --color-muted: #94A3B8;
-  --color-borde: #334155;
-  --color-acento: #3B82F6;
-  --color-acento-hover: #2563EB;
-  --font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  /* ── Superficies ── */
+  --color-fondo:        #060E1B;
+  --color-card:         #0C1A2E;
+  --color-card2:        #162B4A;
+
+  /* ── Texto ── */
+  --color-texto:        #EDF2F8;
+  --color-muted:        #8A9BB0;
+
+  /* ── Bordes ── */
+  --color-borde:        #1E3A5A;
+
+  /* ── Acento principal ── */
+  --color-acento:       #00C9A7;
+  --color-acento-hover: #009E83;
+
+  /* ── Semánticos ── */
+  --color-positivo:     #00C9A7;
+  --color-negativo:     #E24C4C;
+  --color-alerta:       #F5A623;
+  --color-neutro:       #8A9BB0;
+
+  /* ── Paleta de gráficas (Recharts) ── */
+  --chart-1: #00C9A7;
+  --chart-2: #5B8CF7;
+  --chart-3: #F5A623;
+  --chart-4: #C47FD5;
+  --chart-5: #E8836B;
+
+  /* ── Tipografía ── */
+  --font-family:    'DM Sans', 'Helvetica Neue', sans-serif;
+  --font-mono:      'DM Mono', 'Courier New', monospace;
   --font-size-base: 100%;
-  --spacing-base: 1rem;
+  --spacing-base:   1rem;
 }
 
 html {
@@ -25,8 +49,8 @@ body {
 }
 
 .high-contrast {
-  --color-borde: #94A3B8;
-  --color-muted: #CBD5E1;
+  --color-borde: #3A5A7A;
+  --color-muted: #B0C4D8;
 }
 
 * {

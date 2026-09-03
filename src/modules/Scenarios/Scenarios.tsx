@@ -8,7 +8,7 @@ import rawSemilla from '../../../seed/cesar-2026.json'
 import { normalizeSeed } from '../../data/seedUtils'
 const cesarSemilla = normalizeSeed(rawSemilla)
 
-const COMPARE_COLORS = ['#3B82F6', '#10B981', '#F59E0B']
+const COMPARE_COLORS = ['#00C9A7', '#5B8CF7', '#F5A623']
 
 function fmt(n: number) {
   if (n >= 1_000_000) return `S/${(n / 1_000_000).toFixed(2)}M`

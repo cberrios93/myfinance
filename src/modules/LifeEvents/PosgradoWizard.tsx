@@ -292,7 +292,7 @@ export function PosgradoWizard({
                 className="w-full h-2" style={{ accentColor: 'var(--color-acento)' }} />
               <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
                 <span>Costo bruto: {s.moneda} {FM(s.costoTotal)}</span>
-                <span style={{ color: '#22c55e' }}>Costo neto: S/ {FM(costoNetoPEN)}</span>
+                <span style={{ color: '#00C9A7' }}>Costo neto: S/ {FM(costoNetoPEN)}</span>
               </div>
             </div>
           </OptToggle>
@@ -306,7 +306,7 @@ export function PosgradoWizard({
                 onChange={e => set({ ingresoTAMensual: parseFloat(e.target.value) || 0 })}
                 className="flex-1 px-4 py-3 rounded-xl text-base outline-none font-mono" style={iStyle} />
             </div>
-            <p className="text-xs mt-1" style={{ color: '#22c55e' }}>
+            <p className="text-xs mt-1" style={{ color: '#00C9A7' }}>
               Reduce el costo mensual en S/ {FM(ingresoTAPEN)}/mes
             </p>
           </OptToggle>
@@ -336,7 +336,7 @@ export function PosgradoWizard({
             <SummaryBox>
               <div className="flex justify-between text-sm" style={{ color: 'var(--color-muted)' }}>
                 <span>S/ {FM(costoNetoPEN)} en {s.duracionMeses} meses</span>
-                {s.tieneIngresoTA && <span style={{ color: '#22c55e' }}>−S/ {FM(ingresoTAPEN)}/mes TA/RA</span>}
+                {s.tieneIngresoTA && <span style={{ color: '#00C9A7' }}>−S/ {FM(ingresoTAPEN)}/mes TA/RA</span>}
               </div>
               <SummaryDivider />
               <CostRow label="Cuota mensual neta" value={fin.mensual} bold accent />
@@ -392,12 +392,12 @@ export function PosgradoWizard({
                 <SummaryBox>
                   {fin.inicialPEN > 0 && <CostRow label={`Cuota inicial (${s.inicialPct}%)`} value={fin.inicialPEN} />}
                   <CostRow label="Principal a financiar" value={fin.principal} />
-                  {s.tieneIngresoTA && <CostRow label="−Ingreso TA/RA mensual" value={-ingresoTAPEN} color="#22c55e" />}
+                  {s.tieneIngresoTA && <CostRow label="−Ingreso TA/RA mensual" value={-ingresoTAPEN} color="#00C9A7" />}
                   <SummaryDivider />
                   <CostRow label="Cuota mensual neta" value={fin.mensual} bold accent />
-                  <CostRow label="Total intereses" value={fin.totalIntereses} color="#ef4444" />
+                  <CostRow label="Total intereses" value={fin.totalIntereses} color="#E24C4C" />
                   {fin.plazoAnios > Math.ceil(s.duracionMeses / 12) && (
-                    <p className="text-xs pt-1" style={{ color: '#f59e0b' }}>
+                    <p className="text-xs pt-1" style={{ color: '#F5A623' }}>
                       ⚠ El crédito ({fin.plazoAnios} años) excede la duración del programa ({Math.ceil(s.duracionMeses / 12)} años)
                     </p>
                   )}
@@ -503,7 +503,7 @@ export function PosgradoWizard({
               ? <MetC label="Retiro único" value={`S/ ${FM(costoNetoPEN)}`} accent />
               : <MetC label="Costo mensual total" value={`S/ ${FM(totalMensualPEN)}`} accent />}
             <MetC label="Duración" value={`${s.duracionMeses} meses`} hint={`${s.anioCalendario}–${anioFin}`} />
-            <MetC label="Inversión total" value={`S/ ${FM(s.estrategia === 'unico' ? costoNetoPEN : totalMensualPEN * s.duracionMeses)}`} color="#ef4444" />
+            <MetC label="Inversión total" value={`S/ ${FM(s.estrategia === 'unico' ? costoNetoPEN : totalMensualPEN * s.duracionMeses)}`} color="#E24C4C" />
             <MetC label="Entradas" value={`${eventosPreview.length}`} hint="en el escenario" />
           </div>
 
@@ -623,11 +623,11 @@ function PWProgress({ steps, current }: { steps: string[]; current: number }) {
         {steps.map((s, i) => (
           <div key={s} className="flex items-center gap-1 flex-1">
             <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-              style={{ background: i < current ? '#22c55e' : i === current ? 'var(--color-acento)' : 'var(--color-fondo)', color: i <= current ? '#fff' : 'var(--color-muted)', border: i > current ? '1px solid var(--color-borde)' : 'none' }}>
+              style={{ background: i < current ? '#00C9A7' : i === current ? 'var(--color-acento)' : 'var(--color-fondo)', color: i <= current ? '#fff' : 'var(--color-muted)', border: i > current ? '1px solid var(--color-borde)' : 'none' }}>
               {i < current ? '✓' : i + 1}
             </div>
             {i < steps.length - 1 && (
-              <div className="flex-1 h-0.5 mx-1" style={{ background: i < current ? '#22c55e' : 'var(--color-borde)' }} />
+              <div className="flex-1 h-0.5 mx-1" style={{ background: i < current ? '#00C9A7' : 'var(--color-borde)' }} />
             )}
           </div>
         ))}

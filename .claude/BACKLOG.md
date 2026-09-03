@@ -108,7 +108,7 @@
 | Feature | Idea | **Deudas** — módulo de seguimiento de deudas (existe código en `src/modules/Debts/Debts.tsx`). Oculto del nav por ahora. Retomar cuando sea relevante. |
 | Feature | Idea | **Multi-moneda** — EUR, BRL, etc. |
 | Feature | Idea | **Compartir escenarios** — link read-only |
-| Feature | Idea | **App móvil** — PWA o React Native |
+| Feature | Idea | **App móvil (Capacitor)** — publicar MyFinance en App Store y Google Play usando Capacitor: envuelve el React existente en un shell nativo sin reescribir la UI. Alternativa más simple: PWA (manifest.json + service worker, 1-2h) si solo se quiere ícono en pantalla de inicio sin pasar por stores. Retomar cuando el uso diario de la app web lo justifique. |
 | Técnico | Idea | **Code splitting** — bundle 1.6MB, dynamic imports por módulo |
 | Técnico | Idea | **Tests** — cobertura mínima para `calculator.ts` |
 | Técnico | Idea | **Auditoría de acciones** — tabla `audit_log` |

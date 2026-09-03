@@ -47,7 +47,7 @@ export default function AcceptInvite({ onComplete }: Props) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-fondo)' }}>
         <div className="text-center space-y-3">
-          <CheckCircle size={48} style={{ color: '#10b981', margin: '0 auto' }} />
+          <CheckCircle size={48} style={{ color: '#00C9A7', margin: '0 auto' }} />
           <p className="text-xl font-bold" style={{ color: 'var(--color-texto)' }}>¡Cuenta activada!</p>
           <p className="text-sm" style={{ color: 'var(--color-muted)' }}>Redirigiendo al sistema…</p>
         </div>
@@ -117,17 +117,17 @@ export default function AcceptInvite({ onComplete }: Props) {
             <ul className="space-y-1.5 py-1">
               {rules.map(r => (
                 <li key={r.label} className="flex items-center gap-2 text-xs">
-                  <span style={{ color: r.ok ? '#10b981' : 'var(--color-muted)', fontWeight: 600 }}>
+                  <span style={{ color: r.ok ? '#00C9A7' : 'var(--color-muted)', fontWeight: 600 }}>
                     {r.ok ? '✓' : '○'}
                   </span>
-                  <span style={{ color: r.ok ? '#10b981' : 'var(--color-muted)' }}>{r.label}</span>
+                  <span style={{ color: r.ok ? '#00C9A7' : 'var(--color-muted)' }}>{r.label}</span>
                 </li>
               ))}
               <li className="flex items-center gap-2 text-xs">
-                <span style={{ color: passwordsMatch ? '#10b981' : 'var(--color-muted)', fontWeight: 600 }}>
+                <span style={{ color: passwordsMatch ? '#00C9A7' : 'var(--color-muted)', fontWeight: 600 }}>
                   {passwordsMatch ? '✓' : '○'}
                 </span>
-                <span style={{ color: passwordsMatch ? '#10b981' : 'var(--color-muted)' }}>
+                <span style={{ color: passwordsMatch ? '#00C9A7' : 'var(--color-muted)' }}>
                   Las contraseñas coinciden
                 </span>
               </li>
@@ -137,7 +137,7 @@ export default function AcceptInvite({ onComplete }: Props) {
           {error && (
             <div
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
-              style={{ background: '#ef444415', color: '#ef4444' }}
+              style={{ background: '#E24C4C15', color: '#E24C4C' }}
             >
               <AlertTriangle size={14} />
               {error}

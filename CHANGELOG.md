@@ -12,6 +12,16 @@ Criterios de tipo:
 
 ## [Unreleased] — DEV
 
+---
+
+## [v2.1.0] — 2026-09-03 — PROD
+
+### Brand System & UI
+- **Mejora** — Sistema de marca completo: logo SVG (escalera ascendente teal sobre cuadrado navy) en sidebar y login; wordmark "my**Finance**" (DM Sans 200i + 700); tokens CSS `--color-*` y `--chart-*` alineados a paleta oficial (teal `#00C9A7`); tipografía DM Sans + DM Mono vía Google Fonts; reemplazo global de colores hardcodeados en `.tsx` por tokens de marca.
+- **Mejora** — Modo Day/Night en Configuración: Day con fondo claro (`#F2F6FA`, cards blancas, texto navy) y Night con fondo oscuro (`#060E1B`); eliminadas las 6 paletas anteriores y el picker de acento custom. El teal `#00C9A7` es fijo en ambos modos.
+- **Mejora** — Tipografía de marca fija (DM Sans): eliminado selector de fuentes en Configuración.
+
+### Responsive
 - **Mejora** — Responsive móvil completo: Dashboard con grids adaptativos (5→2 col KPIs, 3→1 col contenido); tablas con scroll horizontal en Patrimonio, Debts, CashFlow, Tax5th, Analytics; hook `useIsMobile` para breakpoints dinámicos; charts con altura explícita en mobile.
 
 ---

@@ -39,7 +39,7 @@ export default function TipoCambioWidget({ onUsar, usarRate = 'compra', autoFetc
       )}
 
       {!loading && error && (
-        <span style={{ color: '#EF4444' }}>{error}</span>
+        <span style={{ color: '#E24C4C' }}>{error}</span>
       )}
 
       {!loading && tc && (

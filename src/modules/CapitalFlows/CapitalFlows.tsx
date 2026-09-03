@@ -155,9 +155,9 @@ export default function CapitalFlows() {
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Total aportes (PEN eq.)', value: `S/ ${fmt(totalAportesPEN)}`, color: '#22c55e', icon: TrendingUp },
-          { label: 'Total retiros (PEN eq.)', value: `S/ ${fmt(totalRetirosPEN)}`, color: '#ef4444', icon: TrendingDown },
-          { label: 'Capital propio neto', value: `S/ ${fmt(capitalPropioNeto)}`, color: capitalPropioNeto >= 0 ? '#22c55e' : '#ef4444', icon: null },
+          { label: 'Total aportes (PEN eq.)', value: `S/ ${fmt(totalAportesPEN)}`, color: '#00C9A7', icon: TrendingUp },
+          { label: 'Total retiros (PEN eq.)', value: `S/ ${fmt(totalRetirosPEN)}`, color: '#E24C4C', icon: TrendingDown },
+          { label: 'Capital propio neto', value: `S/ ${fmt(capitalPropioNeto)}`, color: capitalPropioNeto >= 0 ? '#00C9A7' : '#E24C4C', icon: null },
           { label: 'Registros', value: `${aportes.length} aportes · ${retiros.length} retiros`, color: 'var(--color-texto)', icon: null },
         ].map(({ label, value, color, icon: Icon }) => (
           <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
@@ -218,14 +218,14 @@ export default function CapitalFlows() {
                   <td className="px-4 py-2.5">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold"
                       style={{
-                        background: esAporte ? '#22c55e18' : '#ef444418',
-                        color: esAporte ? '#22c55e' : '#ef4444',
+                        background: esAporte ? '#00C9A718' : '#E24C4C18',
+                        color: esAporte ? '#00C9A7' : '#E24C4C',
                       }}>
                       {esAporte ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                       {esAporte ? 'Aporte' : 'Retiro'}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-sm" style={{ color: esAporte ? '#22c55e' : '#ef4444' }}>
+                  <td className="px-4 py-2.5 text-right font-mono text-sm" style={{ color: esAporte ? '#00C9A7' : '#E24C4C' }}>
                     {esAporte ? '+' : '−'}{simbolo} {fmt(f.monto)}
                   </td>
                   <td className="px-4 py-2.5 text-right font-mono text-xs" style={{ color: 'var(--color-muted)' }}>

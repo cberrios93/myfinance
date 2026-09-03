@@ -158,9 +158,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         className={`fixed inset-y-0 left-0 z-40 w-56 flex flex-col transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         style={{ background: 'var(--color-card)', borderRight: '1px solid var(--color-borde)' }}
       >
-        <div className="flex items-center gap-2 px-4 py-4 border-b" style={{ borderColor: 'var(--color-borde)' }}>
-          <span className="text-xl">📈</span>
-          <span className="font-bold text-sm" style={{ color: 'var(--color-texto)' }}>MyFinance</span>
+        <div className="flex items-center gap-2.5 px-4 py-4 border-b" style={{ borderColor: 'var(--color-borde)' }}>
+          <svg width="26" height="26" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+            <rect width="40" height="40" rx="8" fill="#162B4A"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+          <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
+            <span style={{ fontWeight: 200, fontStyle: 'italic', color: 'rgba(237,242,248,0.45)', fontSize: '15px', letterSpacing: '0.01em' }}>my</span>
+            <span style={{ fontWeight: 700, color: 'var(--color-texto)', fontSize: '15px', letterSpacing: '-0.02em' }}>Finance</span>
+          </div>
           <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)} style={{ color: 'var(--color-muted)' }}>
             <X size={18} />
           </button>
@@ -246,7 +253,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <button onClick={() => setSidebarOpen(true)} style={{ color: 'var(--color-muted)' }}>
             <Menu size={20} />
           </button>
-          <span className="font-semibold text-sm" style={{ color: 'var(--color-texto)' }}>MyFinance</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
+            <span style={{ fontWeight: 200, fontStyle: 'italic', color: 'rgba(237,242,248,0.45)', fontSize: '14px', letterSpacing: '0.01em' }}>my</span>
+            <span style={{ fontWeight: 700, color: 'var(--color-texto)', fontSize: '14px', letterSpacing: '-0.02em' }}>Finance</span>
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-6" style={{ color: 'var(--color-texto)' }}>
           {children}

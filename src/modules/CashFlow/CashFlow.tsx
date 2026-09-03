@@ -159,7 +159,7 @@ export default function CashFlow() {
                             </span>
                           )}
                           {item.gastoFamiliaId && (
-                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#F59E0B15', color: '#F59E0B' }}>
+                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#F5A62315', color: '#F5A623' }}>
                               Familia
                             </span>
                           )}
@@ -184,7 +184,7 @@ export default function CashFlow() {
                               onClick={() => navigate('/gastos-familia')}
                               title="Editar en Gastos Familia"
                               className="p-1 rounded hover:opacity-70"
-                              style={{ color: '#F59E0B' }}
+                              style={{ color: '#F5A623' }}
                             >
                               <ExternalLink size={13} />
                             </button>
@@ -226,9 +226,9 @@ export default function CashFlow() {
       {/* Resumen */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Ingresos', pen: totalIngresosPEN, usd: totalIngresosUSD, color: '#22c55e' },
-          { label: 'Gastos', pen: totalGastosPEN, usd: totalGastosUSD, color: '#ef4444' },
-          { label: 'Flujo Neto', pen: flujoPEN, usd: flujoUSD, color: flujoPEN >= 0 ? '#22c55e' : '#ef4444' },
+          { label: 'Ingresos', pen: totalIngresosPEN, usd: totalIngresosUSD, color: '#00C9A7' },
+          { label: 'Gastos', pen: totalGastosPEN, usd: totalGastosUSD, color: '#E24C4C' },
+          { label: 'Flujo Neto', pen: flujoPEN, usd: flujoUSD, color: flujoPEN >= 0 ? '#00C9A7' : '#E24C4C' },
         ].map(({ label, pen, usd, color }) => (
           <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
             <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</p>
@@ -253,8 +253,8 @@ export default function CashFlow() {
         </div>
       )}
 
-      {renderSection('Ingresos', ingresos, '#22c55e')}
-      {renderSection('Gastos', gastos, '#ef4444')}
+      {renderSection('Ingresos', ingresos, '#00C9A7')}
+      {renderSection('Gastos', gastos, '#E24C4C')}
 
       {flujoCaja.filter(i => !i.activo).length > 0 && (
         <div>
@@ -265,7 +265,7 @@ export default function CashFlow() {
               {item.suscripcionId ? (
                 <button onClick={() => navigate('/suscripciones')} title="Editar en Suscripciones" className="p-1" style={{ color: 'var(--color-acento)' }}><ExternalLink size={12} /></button>
               ) : item.gastoFamiliaId ? (
-                <button onClick={() => navigate('/gastos-familia')} title="Editar en Gastos Familia" className="p-1" style={{ color: '#F59E0B' }}><ExternalLink size={12} /></button>
+                <button onClick={() => navigate('/gastos-familia')} title="Editar en Gastos Familia" className="p-1" style={{ color: '#F5A623' }}><ExternalLink size={12} /></button>
               ) : (
                 <>
                   <button onClick={() => { setEditingId(item.id); setEditDraft({ ...item }) }} className="p-1" style={{ color: 'var(--color-muted)' }}><Edit2 size={12} /></button>

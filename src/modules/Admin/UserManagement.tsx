@@ -40,9 +40,9 @@ const fmt = (iso: string) =>
 
 function StatusBadge({ status }: { status: UserProfile['status'] }) {
   const map = {
-    active: { label: 'Activo', color: '#10b981', bg: '#10b98115', icon: <CheckCircle size={11} /> },
-    blocked: { label: 'Bloqueado', color: '#ef4444', bg: '#ef444415', icon: <ShieldOff size={11} /> },
-    pending: { label: 'Pendiente', color: '#f59e0b', bg: '#f59e0b15', icon: <Clock size={11} /> },
+    active: { label: 'Activo', color: '#00C9A7', bg: '#00C9A715', icon: <CheckCircle size={11} /> },
+    blocked: { label: 'Bloqueado', color: '#E24C4C', bg: '#E24C4C15', icon: <ShieldOff size={11} /> },
+    pending: { label: 'Pendiente', color: '#F5A623', bg: '#F5A62315', icon: <Clock size={11} /> },
   }
   const s = map[status]
   return (
@@ -91,7 +91,7 @@ function BlockModal({ user, onConfirm, onCancel }: {
           <button
             onClick={() => onConfirm(reason.trim())}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#ef4444' }}
+            style={{ background: '#E24C4C' }}
           >
             Bloquear
           </button>
@@ -126,7 +126,7 @@ function DeleteModal({ user, onConfirm, onCancel }: {
           <button
             onClick={onConfirm}
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#ef4444' }}
+            style={{ background: '#E24C4C' }}
           >
             Eliminar permanentemente
           </button>
@@ -267,9 +267,9 @@ export default function UserManagement() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Activos', value: active, color: '#10b981' },
-          { label: 'Pendientes', value: pending, color: '#f59e0b' },
-          { label: 'Bloqueados', value: blocked, color: '#ef4444' },
+          { label: 'Activos', value: active, color: '#00C9A7' },
+          { label: 'Pendientes', value: pending, color: '#F5A623' },
+          { label: 'Bloqueados', value: blocked, color: '#E24C4C' },
         ].map(s => (
           <div key={s.label} className="rounded-xl p-4 text-center" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
             <div className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</div>
@@ -283,9 +283,9 @@ export default function UserManagement() {
         <div
           className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
           style={{
-            background: actionStatus.ok ? '#10b98115' : '#ef444415',
-            color: actionStatus.ok ? '#10b981' : '#ef4444',
-            border: `1px solid ${actionStatus.ok ? '#10b98130' : '#ef444430'}`,
+            background: actionStatus.ok ? '#00C9A715' : '#E24C4C15',
+            color: actionStatus.ok ? '#00C9A7' : '#E24C4C',
+            border: `1px solid ${actionStatus.ok ? '#00C9A730' : '#E24C4C30'}`,
           }}
         >
           {actionStatus.ok ? <CheckCircle size={15} /> : <AlertTriangle size={15} />}
@@ -362,15 +362,15 @@ export default function UserManagement() {
                           <span className="ml-2 text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: 'var(--color-acento)', color: '#fff' }}>tú</span>
                         )}
                         {u.block_reason && (
-                          <p className="text-xs mt-0.5" style={{ color: '#ef4444' }}>{u.block_reason}</p>
+                          <p className="text-xs mt-0.5" style={{ color: '#E24C4C' }}>{u.block_reason}</p>
                         )}
                       </td>
                       <td className="px-3 py-3">
                         <span
                           className="text-xs px-2 py-0.5 rounded-full font-medium"
                           style={{
-                            background: u.role === 'admin' ? '#f59e0b20' : 'var(--color-fondo)',
-                            color: u.role === 'admin' ? '#f59e0b' : 'var(--color-muted)',
+                            background: u.role === 'admin' ? '#F5A62320' : 'var(--color-fondo)',
+                            color: u.role === 'admin' ? '#F5A623' : 'var(--color-muted)',
                           }}
                         >
                           {u.role === 'admin' ? 'Admin' : 'Invitado'}
@@ -391,7 +391,7 @@ export default function UserManagement() {
                                 disabled={busy}
                                 title="Desbloquear"
                                 className="p-1.5 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
-                                style={{ background: '#10b98115', color: '#10b981' }}
+                                style={{ background: '#00C9A715', color: '#00C9A7' }}
                               >
                                 <ShieldCheck size={14} />
                               </button>
@@ -401,7 +401,7 @@ export default function UserManagement() {
                                 disabled={busy}
                                 title="Bloquear"
                                 className="p-1.5 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
-                                style={{ background: '#f59e0b15', color: '#f59e0b' }}
+                                style={{ background: '#F5A62315', color: '#F5A623' }}
                               >
                                 <ShieldOff size={14} />
                               </button>
@@ -411,7 +411,7 @@ export default function UserManagement() {
                               disabled={busy}
                               title="Eliminar"
                               className="p-1.5 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
-                              style={{ background: '#ef444415', color: '#ef4444' }}
+                              style={{ background: '#E24C4C15', color: '#E24C4C' }}
                             >
                               <Trash2 size={14} />
                             </button>

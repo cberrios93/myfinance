@@ -170,11 +170,11 @@ export default function ImportExcel() {
 
       {result && (
         <div className={`rounded-xl p-4 flex items-start gap-3`}
-          style={{ background: result.ok ? '#10b98115' : '#ef444415', border: `1px solid ${result.ok ? '#10b981' : '#ef4444'}` }}>
+          style={{ background: result.ok ? '#00C9A715' : '#E24C4C15', border: `1px solid ${result.ok ? '#00C9A7' : '#E24C4C'}` }}>
           {result.ok
-            ? <CheckCircle size={18} color="#10b981" className="mt-0.5 flex-shrink-0" />
-            : <AlertTriangle size={18} color="#ef4444" className="mt-0.5 flex-shrink-0" />}
-          <p className="text-sm" style={{ color: result.ok ? '#10b981' : '#ef4444' }}>
+            ? <CheckCircle size={18} color="#00C9A7" className="mt-0.5 flex-shrink-0" />
+            : <AlertTriangle size={18} color="#E24C4C" className="mt-0.5 flex-shrink-0" />}
+          <p className="text-sm" style={{ color: result.ok ? '#00C9A7' : '#E24C4C' }}>
             {result.ok ? result.mensaje : result.error}
           </p>
         </div>

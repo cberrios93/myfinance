@@ -30,12 +30,12 @@ function formatDateTime(iso: string): string {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  'Savings': '#3B82F6',
+  'Savings': '#00C9A7',
   'Investment (Stock Exchange)': '#8B5CF6',
-  'Investment (Fintech)': '#F59E0B',
-  'Investment (Business)': '#10B981',
+  'Investment (Fintech)': '#F5A623',
+  'Investment (Business)': '#00C9A7',
   'Asset': '#6B7280',
-  'Liability': '#EF4444',
+  'Liability': '#E24C4C',
 }
 
 
@@ -177,10 +177,10 @@ export default function Patrimony() {
       {/* Alerta pin */}
       {pinError && (
         <div style={{
-          background: '#F59E0B18', border: '1px solid #F59E0B55', borderRadius: 8,
-          padding: '8px 14px', fontSize: 13, color: '#F59E0B', display: 'flex', alignItems: 'center', gap: 8,
+          background: '#F5A62318', border: '1px solid #F5A62355', borderRadius: 8,
+          padding: '8px 14px', fontSize: 13, color: '#F5A623', display: 'flex', alignItems: 'center', gap: 8,
         }}>
-          <Pin size={13} style={{ fill: '#F59E0B', flexShrink: 0 }} />
+          <Pin size={13} style={{ fill: '#F5A623', flexShrink: 0 }} />
           Límite de 5 cuentas destacadas. Quita una antes de agregar otra.
         </div>
       )}
@@ -262,7 +262,7 @@ export default function Patrimony() {
                         style={{
                           background: 'var(--color-card)',
                           borderBottom: logOpenId === cuenta.id ? 'none' : '1px solid var(--color-borde)',
-                          color: cuenta.esRiesgo ? '#ef4444' : 'var(--color-texto)',
+                          color: cuenta.esRiesgo ? '#E24C4C' : 'var(--color-texto)',
                         }}
                       >
                         {editingId === cuenta.id && editDraft ? (
@@ -278,10 +278,10 @@ export default function Patrimony() {
                           <>
                             <td className="px-4 py-2 pl-10">
                               <div className="flex items-center gap-2 flex-wrap">
-                                {cuenta.esRiesgo && <AlertTriangle size={13} className="flex-shrink-0" style={{ color: '#ef4444' }} />}
+                                {cuenta.esRiesgo && <AlertTriangle size={13} className="flex-shrink-0" style={{ color: '#E24C4C' }} />}
                                 <span>{cuenta.nombre}</span>
                                 {cuentasVinculadas.has(cuenta.id) && (
-                                  <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded" style={{ background: '#10B98115', color: '#10B981' }}>
+                                  <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded" style={{ background: '#00C9A715', color: '#00C9A7' }}>
                                     <Link2 size={10} /> Simulación
                                   </span>
                                 )}
@@ -290,7 +290,7 @@ export default function Patrimony() {
                                 {isStale(cuenta.actualizadoEn, config.diasStalePatrimonio) && (
                                   <span
                                     className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                    style={{ background: '#F59E0B' }}
+                                    style={{ background: '#F5A623' }}
                                     title={`Sin actualizar hace más de ${config.diasStalePatrimonio} días`}
                                   />
                                 )}
@@ -328,8 +328,8 @@ export default function Patrimony() {
                                   }}
                                   className="p-1.5 rounded hover:opacity-70"
                                   title={cuenta.pinned ? 'Quitar del Dashboard' : 'Mostrar en Dashboard'}
-                                  style={{ color: cuenta.pinned ? '#F59E0B' : 'var(--color-muted)' }}
-                                ><Pin size={13} style={{ fill: cuenta.pinned ? '#F59E0B' : 'none' }} /></button>
+                                  style={{ color: cuenta.pinned ? '#F5A623' : 'var(--color-muted)' }}
+                                ><Pin size={13} style={{ fill: cuenta.pinned ? '#F5A623' : 'none' }} /></button>
                                 <button
                                   onClick={e => { e.stopPropagation(); toggleLog(cuenta.id) }}
                                   className="p-1.5 rounded hover:opacity-70"

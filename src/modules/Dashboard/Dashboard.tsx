@@ -12,12 +12,12 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import { formatAbrev } from '../../lib/formatMonto'
 
 const CAT_COLORES: Record<string, string> = {
-  'Savings': '#3B82F6',
+  'Savings': '#00C9A7',
   'Investment (Stock Exchange)': '#8B5CF6',
-  'Investment (Fintech)': '#F59E0B',
-  'Investment (Business)': '#10B981',
+  'Investment (Fintech)': '#F5A623',
+  'Investment (Business)': '#00C9A7',
   'Asset': '#6B7280',
-  'Liability': '#EF4444',
+  'Liability': '#E24C4C',
 }
 const CAT_LABELS: Record<string, string> = {
   'Savings': 'Ahorros',
@@ -141,7 +141,7 @@ export default function Dashboard() {
         hitosData.push({ label: nombre, edad, capital: anio?.total ?? 0, color: acento })
       }
     }
-    if (anioRetiro) hitosData.push({ label: 'Retiro', edad: edadRetiro, capital: anioRetiro.total, color: '#EF4444' })
+    if (anioRetiro) hitosData.push({ label: 'Retiro', edad: edadRetiro, capital: anioRetiro.total, color: '#E24C4C' })
     hitosData.sort((a, b) => a.edad - b.edad)
 
     return {
@@ -223,8 +223,8 @@ export default function Dashboard() {
     )
   }
 
-  const fondoColor = fondoEmergencia.meses >= 6 ? '#22C55E' : fondoEmergencia.meses >= 3 ? '#F59E0B' : '#EF4444'
-  const ahorroColor = tasaAhorro >= 20 ? '#22C55E' : tasaAhorro >= 10 ? '#F59E0B' : '#EF4444'
+  const fondoColor = fondoEmergencia.meses >= 6 ? '#00C9A7' : fondoEmergencia.meses >= 3 ? '#F5A623' : '#E24C4C'
+  const ahorroColor = tasaAhorro >= 20 ? '#00C9A7' : tasaAhorro >= 10 ? '#F5A623' : '#E24C4C'
   const baseDonut = composicionDonut.filter(x => x.cat !== 'Liability').reduce((s, x) => s + x.valor, 0)
 
 
@@ -236,14 +236,14 @@ export default function Dashboard() {
         <Kpi label="Patrimonio neto" value={formatAbrev(patrimonioNeto, config)}
           sub={cambioMes !== null ? (
             <>
-              <span style={{ color: cambioMes >= 0 ? '#22C55E' : '#EF4444' }}>{cambioMes >= 0 ? '▲' : '▼'} {fmtPct(Math.abs(cambioMes))} mes</span>
+              <span style={{ color: cambioMes >= 0 ? '#00C9A7' : '#E24C4C' }}>{cambioMes >= 0 ? '▲' : '▼'} {fmtPct(Math.abs(cambioMes))} mes</span>
               {cambioAnio !== null && (
-                <> · <span style={{ color: cambioAnio >= 0 ? '#22C55E' : '#EF4444' }}>{cambioAnio >= 0 ? '▲' : '▼'} {fmtPct(Math.abs(cambioAnio))} año</span></>
+                <> · <span style={{ color: cambioAnio >= 0 ? '#00C9A7' : '#E24C4C' }}>{cambioAnio >= 0 ? '▲' : '▼'} {fmtPct(Math.abs(cambioAnio))} año</span></>
               )}
             </>
           ) : `TC S/${tcCompra.toFixed(2)}`}
         />
-        <Kpi label="Flujo neto / mes" value={formatAbrev(flujoNeto, config)} valueColor={flujoNeto >= 0 ? '#22C55E' : '#EF4444'}
+        <Kpi label="Flujo neto / mes" value={formatAbrev(flujoNeto, config)} valueColor={flujoNeto >= 0 ? '#00C9A7' : '#E24C4C'}
           sub={`Ing. ${formatAbrev(ingresosMensuales, config)} · Egr. ${formatAbrev(egresosMensuales, config)}`} />
         <Kpi label="Tasa de ahorro" value={fmtPct(tasaAhorro)} valueColor={ahorroColor}
           sub={<span style={{ color: ahorroColor }}>{tasaAhorro >= 20 ? 'Sobre objetivo' : tasaAhorro >= 10 ? 'Bajo objetivo' : 'Crítico'}</span>} />
@@ -275,9 +275,9 @@ export default function Dashboard() {
                 />
                 <Legend wrapperStyle={{ fontSize: 10, color: 'var(--color-muted)', paddingTop: 2 }}
                   formatter={(v: string) => v === 'total' ? 'Total' : v === 'pen' ? 'S/ directo' : 'USD en S/'} />
-                <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3, fill: '#3B82F6', strokeWidth: 0 }} activeDot={{ r: 4 }} />
-                <Line type="monotone" dataKey="pen" stroke="#F59E0B" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
-                <Line type="monotone" dataKey="usd" stroke="#22C55E" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
+                <Line type="monotone" dataKey="total" stroke="#00C9A7" strokeWidth={2} dot={{ r: 3, fill: '#00C9A7', strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                <Line type="monotone" dataKey="pen" stroke="#F5A623" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
+                <Line type="monotone" dataKey="usd" stroke="#00C9A7" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -303,8 +303,8 @@ export default function Dashboard() {
                 <AreaChart data={proyeccionChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradProj" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#22C55E" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="#22C55E" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="#00C9A7" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#00C9A7" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
@@ -323,10 +323,10 @@ export default function Dashboard() {
                       label={{ value: `${h.label.slice(0, 8)} (${h.edad}a)`, fill: acento, fontSize: 9, position: 'insideTopLeft' }} />
                   ))}
                   {/* Retiro */}
-                  <ReferenceLine x={proyeccion.edadRetiro} stroke="#EF4444" strokeDasharray="5 3" strokeWidth={1.5}
-                    label={{ value: `Retiro (${proyeccion.edadRetiro}a)`, fill: '#EF4444', fontSize: 9, position: 'top' }} />
-                  <Area type="monotone" dataKey="total" stroke="#22C55E" strokeWidth={2} fill="url(#gradProj)"
-                    dot={false} activeDot={{ r: 4, fill: '#22C55E' }} />
+                  <ReferenceLine x={proyeccion.edadRetiro} stroke="#E24C4C" strokeDasharray="5 3" strokeWidth={1.5}
+                    label={{ value: `Retiro (${proyeccion.edadRetiro}a)`, fill: '#E24C4C', fontSize: 9, position: 'top' }} />
+                  <Area type="monotone" dataKey="total" stroke="#00C9A7" strokeWidth={2} fill="url(#gradProj)"
+                    dot={false} activeDot={{ r: 4, fill: '#00C9A7' }} />
                 </AreaChart>
               </ResponsiveContainer>
               {/* Hitos compactos */}
@@ -364,16 +364,16 @@ export default function Dashboard() {
                 return (
                   <div key={s.id} style={{ ...INNER, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 4, background: urgente ? '#F59E0B22' : 'var(--color-borde)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: urgente ? '#F59E0B' : 'var(--color-muted)', flexShrink: 0 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 4, background: urgente ? '#F5A62322' : 'var(--color-borde)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: urgente ? '#F5A623' : 'var(--color-muted)', flexShrink: 0 }}>
                         {s.nombre[0].toUpperCase()}
                       </div>
                       <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-texto)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{s.nombre}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 10, color: urgente ? '#F59E0B' : 'var(--color-muted)' }}>
+                      <span style={{ fontSize: 10, color: urgente ? '#F5A623' : 'var(--color-muted)' }}>
                         {dias !== null ? fmtVenc(s.vencimiento) : s.periodicidad}
                       </span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#F59E0B', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#F5A623', fontVariantNumeric: 'tabular-nums' }}>
                         {s.moneda === 'PEN' ? 'S/' : '$'}{mensual.toFixed(0)}
                       </span>
                     </div>
@@ -424,7 +424,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <p style={{ ...LABEL, marginBottom: 0 }}>Rendimientos {new Date().getFullYear()}</p>
             {rendimientosYTD.length > 0 && (
-              <span style={{ fontSize: 12, fontWeight: 700, color: gananciaTotalPEN >= 0 ? '#22C55E' : '#EF4444', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: gananciaTotalPEN >= 0 ? '#00C9A7' : '#E24C4C', fontVariantNumeric: 'tabular-nums' }}>
                 {gananciaTotalPEN >= 0 ? '+' : ''}{formatAbrev(gananciaTotalPEN, config)}
               </span>
             )}
@@ -434,7 +434,7 @@ export default function Dashboard() {
               {rentabilidadProm !== 0 && (
                 <p style={{ fontSize: 11, color: 'var(--color-muted)', marginBottom: 8 }}>
                   Rentabilidad prom.{' '}
-                  <span style={{ color: rentabilidadProm >= 0 ? '#22C55E' : '#EF4444', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ color: rentabilidadProm >= 0 ? '#00C9A7' : '#E24C4C', fontVariantNumeric: 'tabular-nums' }}>
                     {rentabilidadProm >= 0 ? '+' : ''}{fmtPct(rentabilidadProm)}
                   </span>
                 </p>
@@ -443,7 +443,7 @@ export default function Dashboard() {
                 {rendPorInstrumento.map(r => (
                   <div key={r.nombre} style={{ ...INNER, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px' }}>
                     <span style={{ fontSize: 12, color: 'var(--color-texto)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{r.nombre}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: r.ganancia >= 0 ? '#22C55E' : '#EF4444', fontVariantNumeric: 'tabular-nums', marginLeft: 8, flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: r.ganancia >= 0 ? '#00C9A7' : '#E24C4C', fontVariantNumeric: 'tabular-nums', marginLeft: 8, flexShrink: 0 }}>
                       {r.ganancia >= 0 ? '+' : ''}{formatAbrev(r.ganancia, config)}
                     </span>
                   </div>
@@ -466,10 +466,10 @@ export default function Dashboard() {
         <div style={{ ...CARD, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
           <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-muted)' }}>TC Rextie</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-texto)', fontVariantNumeric: 'tabular-nums' }}>
-            <span style={{ color: '#22C55E' }}>C </span>S/{(tc?.compra ?? 3.70).toFixed(3)}
+            <span style={{ color: '#00C9A7' }}>C </span>S/{(tc?.compra ?? 3.70).toFixed(3)}
           </span>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-texto)', fontVariantNumeric: 'tabular-nums' }}>
-            <span style={{ color: '#EF4444' }}>V </span>S/{(tc?.venta ?? 3.75).toFixed(3)}
+            <span style={{ color: '#E24C4C' }}>V </span>S/{(tc?.venta ?? 3.75).toFixed(3)}
           </span>
         </div>
 
@@ -477,7 +477,7 @@ export default function Dashboard() {
         {(() => {
           const prox = suscripciones.filter(s => s.activa && s.vencimiento).sort((a, b) => vencOrden(a.vencimiento) - vencOrden(b.vencimiento))[0]
           const dias = prox ? Math.ceil((new Date(prox.vencimiento!).getTime() - Date.now()) / 86_400_000) : null
-          const color = dias !== null ? (dias <= 3 ? '#EF4444' : dias <= 7 ? '#F59E0B' : '#22C55E') : 'var(--color-muted)'
+          const color = dias !== null ? (dias <= 3 ? '#E24C4C' : dias <= 7 ? '#F5A623' : '#00C9A7') : 'var(--color-muted)'
           return (
             <div style={{ ...CARD, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-muted)' }}>Próx. vencimiento</span>
@@ -496,24 +496,24 @@ export default function Dashboard() {
         })()}
 
         {/* Alerta historial */}
-        <div style={{ ...CARD, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flex: 1, borderColor: faltaHistorial ? '#F59E0B55' : undefined }}>
+        <div style={{ ...CARD, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flex: 1, borderColor: faltaHistorial ? '#F5A62355' : undefined }}>
           <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-muted)' }}>Historial</span>
           {faltaHistorial ? (
             <>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: '#F59E0B', flex: 1 }}>Falta registrar este período</span>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5A623', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: '#F5A623', flex: 1 }}>Falta registrar este período</span>
             </>
           ) : (
             <>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: '#22C55E' }}>Al día</span>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00C9A7', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: '#00C9A7' }}>Al día</span>
             </>
           )}
         </div>
 
         {/* Score de salud financiera */}
         {(() => {
-          const color = scoreSalud >= 80 ? '#22C55E' : scoreSalud >= 60 ? '#F59E0B' : '#EF4444'
+          const color = scoreSalud >= 80 ? '#00C9A7' : scoreSalud >= 60 ? '#F5A623' : '#E24C4C'
           const label = scoreSalud >= 80 ? 'Excelente' : scoreSalud >= 60 ? 'Aceptable' : 'Mejorable'
           return (
             <div style={{ ...CARD, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
