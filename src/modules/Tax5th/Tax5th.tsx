@@ -100,8 +100,8 @@ export default function Tax5th() {
           </div>
 
           {/* Tabla de tramos */}
-          <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
-            <table className="w-full text-sm">
+          <div className="rounded-xl overflow-x-auto" style={{ border: '1px solid var(--color-borde)' }}>
+            <table className="w-full text-sm min-w-[360px]">
               <thead>
                 <tr style={{ background: '#1e3a5f', color: '#fff' }}>
                   <th className="text-left px-4 py-3 font-semibold">Tramo</th>

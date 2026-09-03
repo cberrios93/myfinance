@@ -12,8 +12,7 @@ Criterios de tipo:
 
 ## [Unreleased] — DEV
 
-> Funcionalidades terminadas en DEV, aún no desplegadas a producción.
-> *(vacío — v2.0.0 desplegado el 2026-09-03)*
+- **Mejora** — Responsive móvil completo: Dashboard con grids adaptativos (5→2 col KPIs, 3→1 col contenido); tablas con scroll horizontal en Patrimonio, Debts, CashFlow, Tax5th, Analytics; hook `useIsMobile` para breakpoints dinámicos; charts con altura explícita en mobile.
 
 ---
 

@@ -96,10 +96,6 @@
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
-| Feature | Listo DEV | **Detección de nuevo ciclo en instrumento** — al seleccionar en Rendimientos un instrumento cuyo último registro es un Traspaso, se muestra un banner ámbar con nombre sugerido para el nuevo ciclo (ej. "Flip - Buho Consciente · 08/2026"). El nombre es seleccionable (select-all). |
-
-| Tipo | Estado | Ítem |
-|------|--------|------|
 | Mejora | Idea | **Umbral configurable de fondo de emergencia** — actualmente hardcodeado en 6 meses (verde) / 3 meses (ámbar) / <3 (rojo). Agregar campo `mesesEmergenciaObjetivo` en Configuración (AppConfig) para que el usuario defina su propio objetivo. El semáforo del KPI en Dashboard se calcularía contra ese valor. |
 
 
@@ -107,7 +103,6 @@
 | Tipo | Estado | Ítem |
 |------|--------|------|
 | Feature | Idea | **Gráfico distribución patrimonial en Análisis** — donut/pie con % por categoría (Savings, Investment Stock Exchange, etc.) usando datos de Patrimonio en tiempo real. Pendiente de diseño y ubicación dentro del módulo de Análisis |
-| Feature | Listo DEV | **Dashboard mejorado** — 5 KPIs (patrimonio neto con MoM+YoY coloreados, flujo, ahorro, fondo emergencia en meses reales, retiro con "Faltan N años"), 3 charts (evolución historial, proyección escenario activo, donut composición horizontal), 3 paneles fila 3 (suscripciones, cuentas, rendimientos YTD). Sin scroll. Listo para deploy. |
 | Feature | Idea | **Notificaciones por email** — alerta bajo umbral, recordatorio historial mensual |
 | Feature | Idea | **Historial automático configurable (multi-usuario)** — toggle en Settings para activar/desactivar creación automática el 1° de cada mes. Implementación: tabla `user_preferences` con campo `historial_auto boolean default false`; script GitHub Actions elimina el secret `SUPABASE_USER_ID` y en su lugar consulta todos los usuarios con `historial_auto = true`, procesándolos en loop. UI: toggle en Settings que escribe en `user_preferences`. Ya existe el cron (`.github/workflows/historial-mensual.yml`) — requiere refactor del script + migración DB + UI. |
 | Feature | Idea | **Deudas** — módulo de seguimiento de deudas (existe código en `src/modules/Debts/Debts.tsx`). Oculto del nav por ahora. Retomar cuando sea relevante. |

@@ -130,8 +130,8 @@ export default function CashFlow() {
             {totalPEN > 0 && formatMonto(totalPEN, config)}{totalPEN > 0 && totalUSD > 0 && ' · '}{totalUSD > 0 && `$ ${fmt(totalUSD, config.decimales)}`}
           </span>
         </div>
-        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
-          <table className="w-full text-sm">
+        <div className="rounded-xl overflow-x-auto" style={{ border: '1px solid var(--color-borde)' }}>
+          <table className="w-full text-sm min-w-[420px]">
             <thead>
               <tr style={{ background: 'var(--color-card)' }}>
                 <th className="text-left px-4 py-2 text-xs font-medium" style={{ color: 'var(--color-muted)' }}>Descripción</th>

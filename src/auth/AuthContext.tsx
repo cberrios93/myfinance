@@ -37,21 +37,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // onAuthStateChange dispara INITIAL_SESSION al montar — es la fuente de verdad.
+    // No usar getSession() en paralelo para evitar la race condition con token refresh.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session?.user) {
         fetchRole(session.user.id).finally(() => setLoading(false))
       } else {
-        setLoading(false)
-      }
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (session?.user) {
-        fetchRole(session.user.id)
-      } else {
         setUserRole(null)
+        setUserStatus(null)
+        setBlockReason(null)
+        setLoading(false)
       }
     })
 

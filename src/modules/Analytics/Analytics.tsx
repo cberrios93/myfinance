@@ -902,8 +902,8 @@ function RendimientosTab() {
       )}
 
       {/* Acumulado por instrumento */}
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
-        <table className="w-full text-sm">
+      <div className="rounded-xl overflow-x-auto" style={{ border: '1px solid var(--color-borde)' }}>
+        <table className="w-full text-sm min-w-[560px]">
           <thead>
             <tr style={{ background: '#1e3a5f', color: '#fff' }}>
               <th className="text-left px-3 py-2.5 font-semibold text-xs">Instrumento</th>

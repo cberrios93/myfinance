@@ -8,6 +8,7 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import { useScenario } from '../../data/ScenarioContext'
 import { useConfig } from '../../config/ConfigContext'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { formatAbrev } from '../../lib/formatMonto'
 
 const CAT_COLORES: Record<string, string> = {
@@ -49,6 +50,7 @@ export default function Dashboard() {
   const { escenarioActivo, resultadoActivo } = useScenario()
   const { acento, config } = useConfig()
   const { tc } = useTipoCambio()
+  const isMobile = useIsMobile()
   const tcCompra = tc?.compra ?? 3.7
 
   // ── Patrimonio ──
@@ -227,10 +229,10 @@ export default function Dashboard() {
 
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, height: '100%', minHeight: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, ...(isMobile ? {} : { height: '100%', minHeight: 0 }) }}>
 
-      {/* ── Fila 1: 5 KPIs ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, flexShrink: 0 }}>
+      {/* ── Fila 1: KPIs ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 10, flexShrink: 0 }}>
         <Kpi label="Patrimonio neto" value={formatAbrev(patrimonioNeto, config)}
           sub={cambioMes !== null ? (
             <>
@@ -255,14 +257,14 @@ export default function Dashboard() {
           : <Kpi label="Proyección retiro" value="—" sub="Sin escenario activo" />}
       </div>
 
-      {/* ── Filas 2 y 3: grid 3×2 compartido — crece para llenar el espacio disponible ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: '1.1fr 1fr', gap: 10, flex: 1, minHeight: 0 }}>
+      {/* ── Filas 2 y 3: grid de contenido ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gridTemplateRows: isMobile ? undefined : '1.1fr 1fr', gap: 10, ...(isMobile ? {} : { flex: 1, minHeight: 0 }) }}>
 
         {/* Evolución real */}
-        <div style={{ ...CARD, padding: '12px 14px 8px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ ...CARD, padding: '12px 14px 8px', display: 'flex', flexDirection: 'column', minHeight: isMobile ? 240 : undefined }}>
           <p style={LABEL}>Evolución del patrimonio</p>
           {historialChart.length >= 2 ? (
-            <ResponsiveContainer width="100%" style={{ flex: 1, minHeight: 0 }}>
+            <ResponsiveContainer width="100%" height={isMobile ? 180 : undefined} style={isMobile ? undefined : { flex: 1, minHeight: 0 }}>
               <LineChart data={historialChart} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
                 <XAxis dataKey="periodo" tick={{ fill: 'var(--color-muted)', fontSize: 10 }} />
@@ -286,7 +288,7 @@ export default function Dashboard() {
         </div>
 
         {/* Proyección escenario */}
-        <div style={{ ...CARD, padding: '12px 14px 8px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ ...CARD, padding: '12px 14px 8px', display: 'flex', flexDirection: 'column', minHeight: isMobile ? 260 : undefined }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <p style={{ ...LABEL, marginBottom: 0 }}>Proyección · escenario activo</p>
             {proyeccion && (
@@ -297,7 +299,7 @@ export default function Dashboard() {
           </div>
           {proyeccionChart.length > 0 && proyeccion ? (
             <>
-              <ResponsiveContainer width="100%" style={{ flex: 1, minHeight: 0 }}>
+              <ResponsiveContainer width="100%" height={isMobile ? 180 : undefined} style={isMobile ? undefined : { flex: 1, minHeight: 0 }}>
                 <AreaChart data={proyeccionChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradProj" x1="0" y1="0" x2="0" y2="1">
@@ -458,7 +460,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Barra de estado: 4 chips ── */}
-      <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'stretch', flexWrap: isMobile ? 'wrap' : undefined }}>
 
         {/* TC live */}
         <div style={{ ...CARD, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>

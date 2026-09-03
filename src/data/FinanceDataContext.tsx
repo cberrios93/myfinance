@@ -115,7 +115,7 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [user?.id])
 
   useEffect(() => {
     if (user) recargar()
@@ -124,7 +124,8 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
       setSuscripciones([]); setGastosFamilia([]); setDeudas([]); setNotas([]); setFlujosCapital([])
       setLoading(false)
     }
-  }, [user])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   // Fábrica CRUD genérica con soporte de undo
   function makeCRUD<T extends { id: string; creadoEn: string; actualizadoEn: string }>(

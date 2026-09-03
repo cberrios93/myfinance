@@ -141,8 +141,8 @@ export default function Debts() {
         </div>
       )}
 
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
-        <table className="w-full text-sm">
+      <div className="rounded-xl overflow-x-auto" style={{ border: '1px solid var(--color-borde)' }}>
+        <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr style={{ background: 'var(--color-card)', borderBottom: '2px solid var(--color-borde)' }}>
               <th className="text-left px-4 py-3 font-semibold text-xs" style={{ color: 'var(--color-muted)' }}>Deudor</th>

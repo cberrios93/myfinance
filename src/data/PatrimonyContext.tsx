@@ -45,7 +45,8 @@ export function PatrimonyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) recargar()
     else { setCuentas([]); setHistorial([]); setLoading(false) }
-  }, [user])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   async function agregarCuenta(data: Omit<CuentaPatrimonio, 'id' | 'creadoEn' | 'actualizadoEn'>) {
     const ahora = new Date().toISOString()
