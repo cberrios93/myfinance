@@ -13,9 +13,9 @@ import { formatAbrev } from '../../lib/formatMonto'
 
 const CAT_COLORES: Record<string, string> = {
   'Savings': '#00C9A7',
-  'Investment (Stock Exchange)': '#8B5CF6',
+  'Investment (Stock Exchange)': '#C47FD5',
   'Investment (Fintech)': '#F5A623',
-  'Investment (Business)': '#00C9A7',
+  'Investment (Business)': '#5B8CF7',
   'Asset': '#6B7280',
   'Liability': '#E24C4C',
 }
@@ -277,7 +277,7 @@ export default function Dashboard() {
                   formatter={(v: string) => v === 'total' ? 'Total' : v === 'pen' ? 'S/ directo' : 'USD en S/'} />
                 <Line type="monotone" dataKey="total" stroke="#00C9A7" strokeWidth={2} dot={{ r: 3, fill: '#00C9A7', strokeWidth: 0 }} activeDot={{ r: 4 }} />
                 <Line type="monotone" dataKey="pen" stroke="#F5A623" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
-                <Line type="monotone" dataKey="usd" stroke="#00C9A7" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
+                <Line type="monotone" dataKey="usd" stroke="#5B8CF7" strokeWidth={1.5} strokeDasharray="4 2" dot={false} activeDot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
