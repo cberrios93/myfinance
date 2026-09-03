@@ -13,6 +13,7 @@ Criterios de tipo:
 ## [Unreleased] — DEV
 
 > Funcionalidades terminadas en DEV, aún no desplegadas a producción.
+> *(vacío — v2.0.0 desplegado el 2026-09-03)*
 
 ---
 
@@ -83,7 +84,7 @@ Criterios de tipo:
 - **Feature** — Alerta sutil (puntito naranja) en cuentas no actualizadas según umbral configurable (default 30 días, ajustable en Configuración → "Alerta — Patrimonio desactualizado")
 
 ### Gastos Familia
-- **Feature** — Sync automático con Flujo de Caja al crear/editar/borrar (igual que Suscripciones): badge "Familia" naranja, ítems no editables directamente desde Flujo de Caja sino redirigen al módulo fuente (`010_gastos_familia_links.sql` ✓ DEV — pendiente PROD)
+- **Feature** — Sync automático con Flujo de Caja al crear/editar/borrar (igual que Suscripciones): badge "Familia" naranja, ítems no editables directamente desde Flujo de Caja sino redirigen al módulo fuente (`010_gastos_familia_links.sql` ✓ DEV + PROD)
 
 ### Flujo de Caja
 - **Mejora** — Suscripciones y Gastos Familia en modo lectura: solo muestran ↗ que redirige al módulo fuente, sin Edit/Delete directo

@@ -23,12 +23,6 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 ### Gastos Familia → Flujo de Caja (sync automático)
 - Mismo patrón que Suscripciones — badge "Familia" naranja en Flujo de Caja
 - `flujoCajaItemId` se persiste en `gastos_familia.flujo_caja_item_id`
-- Al deploy a PROD: correr `010_gastos_familia_links.sql` + UPDATE SQL para enlazar suscripciones existentes:
-  ```sql
-  UPDATE suscripciones s SET flujo_caja_item_id = fc.id
-  FROM flujo_caja fc WHERE fc.nombre = s.nombre
-  AND fc.categoria = 'Suscripciones/Membresías' AND s.flujo_caja_item_id IS NULL;
-  ```
 
 ### Patrimonio ↔ Instrumentos de Simulación
 - `Instrumento.cuentaPatrimonioId` vincula al activo real
@@ -80,7 +74,6 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 | `014_rendimientos_traspaso.sql` | ✓ DEV + PROD |
 | `015_cuenta_hidden.sql` | ✓ DEV + PROD |
 | `016_rendimientos_impuesto.sql` | ✓ DEV + PROD |
-| `017_flujos_capital.sql` | ✓ DEV + PROD |
 | `017_flujos_capital.sql` | ✓ DEV + PROD |
 
 ---
