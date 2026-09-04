@@ -353,3 +353,21 @@ export interface HistorialMensual {
   creadoEn: string
   actualizadoEn: string
 }
+
+// --- Dashboard personalizable (canvas de mosaicos) ---
+
+export interface DashboardTile {
+  id: string   // debe existir en TileCatalog
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+// version 2 = grilla de 60 columnas. Un layout guardado con otra versión se descarta.
+export const DASHBOARD_LAYOUT_VERSION = 2
+
+export interface DashboardLayout {
+  version: typeof DASHBOARD_LAYOUT_VERSION
+  tiles: DashboardTile[]
+}

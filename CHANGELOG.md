@@ -14,6 +14,22 @@ Criterios de tipo:
 
 ---
 
+## [v2.2.0] — 2026-09-04 — PROD
+
+### Dashboard personalizable (canvas de mosaicos)
+- **Feature** — El Dashboard ahora se puede reordenar. Botón "Personalizar" (ícono, esquina superior derecha) → modo Edición con arrastrar/redimensionar cada mosaico, "Agregar mosaico" (paleta con los tiles que sacaste), quitar (×), "Restablecer", "Cancelar" / "Guardar". Mientras no personalizas, se ve el dashboard clásico idéntico. Ya personalizado: canvas estático + "Quitar personalización" para volver al clásico. En móvil no hay canvas (dashboard apilado de siempre). El layout persiste por usuario en `user_profiles.dashboard_layout` (migración `018`) con fallback a `localStorage`.
+- **Técnico** — `react-grid-layout` 2.2.4 (import `/legacy`; +75 kB al bundle). Grilla de 60 columnas (mcm 5·3·4 → KPIs/charts/listas/chips dividen parejo), rowHeight 36, margin 8. `DASHBOARD_LAYOUT_VERSION = 2`: un layout guardado con otra versión de grilla se descarta y vuelve al default.
+- **Técnico** — Refactor de `Dashboard.tsx` (623 líneas) → `useDashboardData` (todo el cómputo) + 15 tiles independientes (`src/modules/Dashboard/tiles/`) + `DashboardView` (layout clásico) + `DashboardCanvas` (canvas) + `TileCatalog` + `DEFAULT_LAYOUT` + `useDashboardLayout`. Verificado en navegador con datos mock: view→edit→drag→resize→quitar→paleta→re-agregar→guardar→reload persiste; "Quitar personalización" limpia; empty-guard; fallback móvil; layout v1 obsoleto se descarta.
+
+### Ícono al agregar a inicio (iOS/Android)
+- **Fix** — El ícono de "Agregar a inicio" en iOS mostraba un placeholder (cuadrado negro con "M") porque `index.html` no tenía `apple-touch-icon`. Agregado `apple-touch-icon.png` (180×180), `favicon-96.png`, `icon-192.png`/`icon-512.png` y `manifest.webmanifest`, generados desde el mark real de la marca (cuadrado navy `#0C1A2E` + escalera teal `#00C9A7`, tomado de `.claude/myfinance-logo.html`). De paso se reemplazó `public/favicon.svg`, que no era el logo de MyFinance sino un ícono morado de un template.
+- **Técnico** — `theme-color` `#0C1A2E` y `apple-mobile-web-app-title`. Manifest con `display: "browser"` (sin forzar modo standalone) — queda listo para cuando se aborde el ítem de PWA del backlog.
+
+### Migraciones
+- `018_dashboard_layout.sql` — `user_profiles.dashboard_layout jsonb` (DEV + PROD).
+
+---
+
 ## [v2.1.0] — 2026-09-03 — PROD
 
 ### Brand System & UI

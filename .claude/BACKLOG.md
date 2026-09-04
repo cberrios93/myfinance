@@ -17,61 +17,9 @@
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
-| Feature | Definido | **Dashboard personalizable — canvas de mosaicos** — ver especificación completa abajo |
 | Feature | Definido | **Sistema de roles granulares** — roles custom (viewer, editor, premium), checkboxes de features por rol, modelo free/paid para SaaS. Requiere rediseño DB: tablas `roles` y `role_permissions`, refactor `user_profiles` |
 | Feature | Idea | **Mensajes configurables del sistema** — para cuentas bloqueadas y usuarios pending. Tabla `system_config` (key-value) |
 | Mejora | Idea | **Revisar Impuesto 5ta Categoría** — implementado pero requiere validación de flujo y UX |
-
----
-
-### Especificación: Dashboard personalizable — canvas de mosaicos
-
-**Objetivo:** Convertir el Dashboard en un canvas libre donde el usuario elige qué tiles mostrar, su tamaño y posición, con persistencia en Supabase.
-
-**Librería:** `react-grid-layout` (drag-and-drop + resize + grilla nativa en React).
-
-**Modos:**
-- **Vista** (default): canvas estático. Botón "Personalizar" en esquina superior derecha.
-- **Edición**: borde punteado en tiles, handles de drag y resize, barra superior con "Agregar mosaico" (panel lateral) + "Guardar" / "Cancelar".
-
-**Inventario de tiles disponibles:**
-
-| ID | Nombre | Tamaño mínimo |
-|----|--------|--------------|
-| `kpi-patrimonio` | Patrimonio neto | 1×1 |
-| `kpi-flujo` | Flujo neto / mes | 1×1 |
-| `kpi-ahorro` | Tasa de ahorro | 1×1 |
-| `kpi-emergencia` | Fondo emergencia | 1×1 |
-| `kpi-retiro` | Proyección retiro | 1×1 |
-| `kpi-tc` | TC Rextie live | 1×1 |
-| `kpi-salud` | Salud financiera | 1×1 |
-| `kpi-vencimiento` | Próximo vencimiento | 1×1 |
-| `kpi-historial` | Alerta historial | 1×1 |
-| `chart-evolucion` | Evolución patrimonio | 2×2 |
-| `chart-proyeccion` | Proyección escenario | 2×2 |
-| `chart-composicion` | Composición patrimonial | 2×2 |
-| `list-suscripciones` | Suscripciones activas | 1×2 |
-| `list-cuentas` | Cuentas principales | 1×2 |
-| `list-rendimientos` | Rendimientos YTD | 1×2 |
-
-**Canvas:** Grilla 12 columnas, filas de ~120px. Compactación vertical automática. Sin superposición.
-
-**Layout por defecto:** Replica exactamente el dashboard actual (5 KPIs fila 1, 3 charts fila 2, 3 listas fila 3, 4 chips de estado fila 4).
-
-**Persistencia:** Columna `dashboard_layout jsonb` en `user_preferences` (migración `014_dashboard_layout.sql`). Fallback: `localStorage`. Estructura: `{ tiles: [{ id, x, y, w, h }], version: 1 }`.
-
-**Archivos a crear/modificar:**
-- `src/modules/Dashboard/Dashboard.tsx` — refactor: extraer tiles como componentes independientes
-- `src/modules/Dashboard/DashboardCanvas.tsx` — lógica canvas + modos vista/edición
-- `src/modules/Dashboard/TileCatalog.ts` — definición de tiles disponibles con tamaños
-- `src/modules/Dashboard/tiles/*.tsx` — ~15 componentes de tile individuales
-- `src/modules/Dashboard/useDashboardLayout.ts` — hook carga/guardado Supabase + localStorage
-- `supabase/migrations/014_dashboard_layout.sql` — ALTER TABLE user_preferences ADD COLUMN
-- `src/lib/supabase/finance.ts` — agregar `getDashboardLayout` / `saveDashboardLayout`
-
-**Fuera de scope:** Tiles de módulos nuevos, layouts múltiples, export/import de layouts.
-
----
 
 ---
 

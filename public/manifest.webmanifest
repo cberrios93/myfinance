@@ -1,0 +1,16 @@
+{
+  "name": "MyFinance",
+  "short_name": "MyFinance",
+  "description": "Finanzas personales — patrimonio, flujo de caja e inversiones.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#0C1A2E",
+  "theme_color": "#0C1A2E",
+  "icons": [
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

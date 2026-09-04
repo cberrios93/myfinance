@@ -75,6 +75,7 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 | `015_cuenta_hidden.sql` | ✓ DEV + PROD |
 | `016_rendimientos_impuesto.sql` | ✓ DEV + PROD |
 | `017_flujos_capital.sql` | ✓ DEV + PROD |
+| `018_dashboard_layout.sql` | ✓ DEV + PROD |
 
 ---
 
