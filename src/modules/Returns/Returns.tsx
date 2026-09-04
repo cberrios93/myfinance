@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, BarChart3 } from 'lucide-react'
+import { EmptyState } from '../../components/common/EmptyState'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import { useScenario } from '../../data/ScenarioContext'
 import { usePatrimony } from '../../data/PatrimonyContext'
@@ -798,8 +799,20 @@ export default function Returns() {
             })}
             {filtered.length === 0 && !adding && (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-sm" style={{ color: 'var(--color-muted)' }}>
-                  Sin registros{anioFiltro !== 'todos' ? ` para ${anioFiltro}` : ''}{instrFiltro !== 'todos' ? ` · ${instrFiltro}` : ''}. Presiona "Registrar" para agregar.
+                <td colSpan={8}>
+                  {rendimientos.length === 0 ? (
+                    <EmptyState
+                      icon={BarChart3}
+                      title="Sin registros de rendimientos"
+                      description="Registra el historial de tus portafolios e inversiones para ver cómo han crecido en el tiempo."
+                      actionLabel="+ Registrar primero"
+                      onAction={() => setAdding(true)}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-sm" style={{ color: 'var(--color-muted)' }}>
+                      Sin registros{anioFiltro !== 'todos' ? ` para ${anioFiltro}` : ''}{instrFiltro !== 'todos' ? ` · ${instrFiltro}` : ''}.
+                    </div>
+                  )}
                 </td>
               </tr>
             )}

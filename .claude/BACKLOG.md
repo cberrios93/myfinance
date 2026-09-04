@@ -13,6 +13,35 @@
 
 ---
 
+## 🟠 UI/UX — Multi-usuario (sep 2026)
+
+> Contexto: MyFinance pasó de ser personal a compartirse con Mili (34, tech-friendly) y mamá (65, no-tech).
+> Los ítems implementados en esta sesión están en CHANGELOG [Unreleased]. Aquí van los pendientes y las ideas adicionales del brainstorm.
+> Implementados en DEV (sep 2026): Empty states instructivos · Subtextos en formularios · KPIs con frase interpretativa.
+
+### Pendientes de revisión (requieren evaluar impacto en diseño actual)
+
+| Tipo | Estado | Ítem |
+|------|--------|------|
+| Mejora | Definido | **Bottom nav bar en móvil** — reemplazar la navegación lateral/hamburguesa por una barra fija en la parte inferior con 5 íconos (Home, Dinero, Flujo, Análisis, Más). El ícono activo se resalta en teal. Mockup disponible en sesión de sep 2026. **Revisar antes de implementar:** impacto en el layout actual del sidebar en desktop y en el menú móvil existente. |
+| Mejora | Definido | **Vista simple del Dashboard** — toggle "Simple / Completa" en el header del Dashboard. Vista simple muestra solo 3 cards grandes: "Lo que tienes" (Patrimonio total), "Lo que gastas al mes" (Egreso mensual), "Lo que ahorras" (Flujo neto), con lenguaje llano y sin números secundarios. Mockup disponible en sesión de sep 2026. **Revisar antes de implementar:** cómo coexiste con el canvas personalizable de v2.2.0. |
+
+### Ideas del brainstorm (no priorizadas aún)
+
+| Tipo | Estado | Ítem |
+|------|--------|------|
+| Feature | Idea | **Onboarding guiado para usuarios nuevos** — checklist de primeros pasos al hacer login por primera vez: "Agrega tu primera cuenta", "Configura tu flujo de caja", "Activa el fondo de emergencia". Persiste en `user_preferences` y se marca completado. Crítico para mamá y Mili. |
+| Mejora | Idea | **Saludo personalizado por usuario** — "Hola Mili" o "Hola Gladys" en el header del Dashboard. Ya existe el nombre en `user_profiles`. Cambio de 5 min de alto impacto perceptual. |
+| Mejora | Idea | **Tooltips en términos financieros** — ícono de ayuda (?) al lado de labels técnicos: "Tasa de ahorro", "Fondo de emergencia", "Rendimiento bruto", "Traspaso". Al hover/tap: definición en 1 línea. Especialmente útil para mamá. |
+| Mejora | Idea | **Labels más simples en la navegación** — evaluar renombrar módulos para usuarios no-financieros: "Patrimonio" → "Mis cuentas", "Flujo de Caja" → "Ingresos y gastos", "Rendimientos" → "Mis inversiones". Podría ser configurable por perfil de usuario. |
+| Mejora | Idea | **Progressive disclosure en formularios** — ocultar campos avanzados (ej. "Marcar como riesgo", "Notas", "Vencimiento") detrás de un link "Opciones avanzadas ▼". El formulario se ve más simple por defecto para usuarios nuevos. |
+| Mejora | Idea | **Confirmaciones de borrado más amigables** — en lugar del borrado inmediato o confirm() del browser, usar un modal con ícono de advertencia, nombre del ítem a borrar y botones "Cancelar / Sí, borrar". Reduce el miedo a cometer errores. |
+| Feature | Idea | **Modo de solo lectura (viewer)** — que mamá pueda ver todos sus datos sin poder editar nada accidentalmente. Toggle en Admin o en su perfil. Relacionado con el sistema de roles granulares. |
+| Mejora | Idea | **Mensajes de ayuda en módulos vacíos complejos** — en Rendimientos y Simulación, agregar un panel de "¿Cómo funciona esto?" cuando no hay datos, con 3 bullets explicando el módulo antes del CTA. Actualmente el Empty State solo dice "agrega", no explica para qué sirve. |
+| Feature | Idea | **PWA / app instalable en celular** — `manifest.json` + service worker para que Mili y mamá puedan instalar MyFinance como ícono en su pantalla de inicio (sin pasar por App Store). Estimado: 1-2h. Alternativa a Capacitor del backlog general. |
+
+---
+
 ## 🟡 Media prioridad
 
 | Tipo | Estado | Ítem |

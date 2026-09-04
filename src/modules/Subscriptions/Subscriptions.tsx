@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, CreditCard } from 'lucide-react'
 import { useFinanceData } from '../../data/FinanceDataContext'
+import { EmptyState } from '../../components/common/EmptyState'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import type { Suscripcion, PersonaSuscripcion } from '../../data/types'
 import { useConfig } from '../../config/ConfigContext'
@@ -41,6 +42,7 @@ function SusForm({ value, onChange, onSave, onCancel }: {
           <input type="number" min={0} step={0.01} value={value.montoTotal || ''}
             onChange={e => onChange({ ...value, montoTotal: parseFloat(e.target.value) || 0 })}
             className="w-full px-3 py-2 rounded-lg text-sm outline-none text-right font-mono" style={inputStyle} />
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Lo que pagas por periodo, sin importar el número de personas.</p>
         </div>
         <div>
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Moneda</label>
@@ -55,12 +57,14 @@ function SusForm({ value, onChange, onSave, onCancel }: {
             className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={inputStyle}>
             <option>Mensual</option><option>Anual</option>
           </select>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Se normaliza a mensual automáticamente para el flujo de caja.</p>
         </div>
         <div>
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Vencimiento</label>
           <input type="date" value={value.vencimiento ?? ''}
             onChange={e => onChange({ ...value, vencimiento: e.target.value || undefined })}
             className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={inputStyle} />
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Fecha de renovación del servicio. Opcional.</p>
         </div>
         <div className="sm:col-span-2 flex items-end gap-3 pb-1">
           <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>
@@ -195,7 +199,13 @@ export default function Subscriptions() {
           )
         })}
         {suscripciones.length === 0 && !adding && (
-          <div className="text-center py-12 text-sm" style={{ color: 'var(--color-muted)' }}>Sin suscripciones registradas.</div>
+          <EmptyState
+            icon={CreditCard}
+            title="Sin suscripciones registradas"
+            description="Registra tus suscripciones mensuales y anuales para llevar un control de lo que pagas cada mes."
+            actionLabel="+ Agregar suscripción"
+            onAction={() => setAdding(true)}
+          />
         )}
       </div>
     </div>

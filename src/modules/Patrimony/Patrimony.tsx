@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useAuth } from '../../auth/AuthContext'
-import { Plus, Trash2, Edit2, Check, X, AlertTriangle, Link2, ChevronDown, History, RotateCcw, Pin, EyeOff, Eye } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, AlertTriangle, Link2, ChevronDown, History, RotateCcw, Pin, EyeOff, Eye, Wallet } from 'lucide-react'
+import { EmptyState } from '../../components/common/EmptyState'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import { useScenario } from '../../data/ScenarioContext'
 import { useConfig } from '../../config/ConfigContext'
@@ -395,8 +396,14 @@ export default function Patrimony() {
 
             {cuentas.length === 0 && !adding && (
               <tr>
-                <td colSpan={4} className="text-center py-12 text-sm" style={{ color: 'var(--color-muted)' }}>
-                  Agrega tus cuentas e inversiones para ver tu balance aquí.
+                <td colSpan={4}>
+                  <EmptyState
+                    icon={Wallet}
+                    title="Aún no tienes cuentas registradas"
+                    description="Agrega tus cuentas, ahorros e inversiones para ver tu balance total en tiempo real."
+                    actionLabel="+ Agregar primera cuenta"
+                    onAction={() => { setAdding(true); setNewDraft({ ...EMPTY }) }}
+                  />
                 </td>
               </tr>
             )}
@@ -449,6 +456,7 @@ function CuentaForm({
             style={inputStyle}
             placeholder="—"
           />
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Saldo actual en soles. Déjalo vacío si no aplica.</p>
         </div>
         <div>
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Monto USD ($)</label>
@@ -460,6 +468,7 @@ function CuentaForm({
             style={inputStyle}
             placeholder="—"
           />
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Se convierte automáticamente al TC del día.</p>
         </div>
         <div className="sm:col-span-2">
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Categoría</label>
@@ -471,6 +480,7 @@ function CuentaForm({
           >
             {CATEGORIAS_PATRIMONIO.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Clasifica el tipo de activo para agrupar tu patrimonio.</p>
         </div>
         <div className="sm:col-span-2 flex items-end gap-4 pb-1">
           <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>

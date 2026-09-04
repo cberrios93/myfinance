@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Plus, Trash2, Edit2, Check, X } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, Users } from 'lucide-react'
 import { useFinanceData } from '../../data/FinanceDataContext'
+import { EmptyState } from '../../components/common/EmptyState'
 import type { GastoFamilia } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import { useConfig } from '../../config/ConfigContext'
@@ -47,6 +48,7 @@ function GastoForm({ value, onChange, onSave, onCancel }: {
           <input type="number" min={0} step={0.01} value={value.montoPEN ?? ''}
             onChange={e => onChange({ ...value, montoPEN: e.target.value !== '' ? parseFloat(e.target.value) : undefined })}
             className="w-full px-3 py-2 rounded-lg text-sm outline-none text-right font-mono" style={inputStyle} placeholder="—" />
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Solo uno de los dos campos (el que aplique).</p>
         </div>
         <div>
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Monto USD ($)</label>
@@ -60,6 +62,7 @@ function GastoForm({ value, onChange, onSave, onCancel }: {
             className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={inputStyle}>
             <option>Mensual</option><option>Anual</option>
           </select>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-acento)', lineHeight: 1.4 }}>Anual se divide entre 12 para el flujo mensual.</p>
         </div>
         <div className="flex items-end gap-3 pb-1">
           <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>
@@ -177,7 +180,13 @@ export default function FamilyExpenses() {
           )
         })}
         {gastosFamilia.length === 0 && !adding && (
-          <div className="text-center py-12 text-sm" style={{ color: 'var(--color-muted)' }}>Sin gastos familiares registrados.</div>
+          <EmptyState
+            icon={Users}
+            title="Sin gastos familiares registrados"
+            description="Registra los gastos que cubres para tu familia — seguros, mensualidades, médicos — para tenerlos separados de tus gastos personales."
+            actionLabel="+ Agregar gasto"
+            onAction={() => setAdding(true)}
+          />
         )}
       </div>
     </div>

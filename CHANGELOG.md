@@ -14,6 +14,16 @@ Criterios de tipo:
 
 ---
 
+## [v2.2.1] — 2026-09-04 — PROD
+
+### UI/UX — Mejoras de usabilidad (multi-usuario)
+
+- **Mejora** — KPIs del Dashboard con frase interpretativa: cada KPI muestra un punto de color semáforo y una banda de texto explicando qué significa el número (ej. "Gastas más de lo que ingresas este mes"). Aplica a los 5 KPIs: Patrimonio, Flujo, Ahorro, Fondo emergencia, Retiro.
+- **Mejora** — Empty states instructivos: Patrimonio, Suscripciones, Gastos Familia y Rendimientos reemplazan el texto gris vacío por un panel con ícono, título, descripción y botón CTA que abre el formulario directamente. Rendimientos distingue entre "sin datos" (panel completo) y "sin resultados de filtro" (texto simple).
+- **Mejora** — Subtextos explicativos en formularios: CuentaForm (Monto PEN, Monto USD, Categoría), SusForm (Monto total, Periodicidad, Vencimiento) y GastoForm (Monto PEN, Periodicidad) muestran una línea de ayuda en color teal debajo de cada campo para explicar qué va ahí. Componente compartido `EmptyState` en `src/components/common/`.
+
+---
+
 ## [v2.2.0] — 2026-09-04 — PROD
 
 ### Dashboard personalizable (canvas de mosaicos)
