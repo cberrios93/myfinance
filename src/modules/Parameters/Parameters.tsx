@@ -126,6 +126,24 @@ export default function Parameters() {
         </div>
       </Card>
 
+      <Card title="Gastos compartidos con pareja">
+        <Field label="Mi proporción (%)">
+          <NumberInput
+            value={params.proporcionPropia ?? 100}
+            onChange={v => setParams({ ...params, proporcionPropia: Math.min(100, Math.max(0, v)) })}
+            min={0} max={100} step={5}
+          />
+        </Field>
+        <div className="text-xs mt-3 space-y-1.5" style={{ color: 'var(--color-muted)' }}>
+          <p>
+            <strong style={{ color: 'var(--color-texto)' }}>¿Para qué sirve?</strong> Define qué porcentaje de los gastos compartidos cubres tú. Se usa como valor por defecto en todos los eventos de vida que tengan distribución (ej. hijo/a). Puedes ajustarlo por evento.
+          </p>
+          <p>
+            Por ejemplo: 60% significa que de cada S/ 100 de gasto, S/ 60 sale de tu flujo y S/ 40 lo cubre tu pareja.
+          </p>
+        </div>
+      </Card>
+
       <Card title="Metas de ingreso mensual">
         <div className="space-y-3">
           {params.metas.map((meta, i) => (

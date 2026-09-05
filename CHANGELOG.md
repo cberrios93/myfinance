@@ -28,18 +28,37 @@ Criterios de tipo:
 #### MatrimonioWizard
 - **Fix** — Pantalla en blanco al pasar del paso 2 al 3 cuando se activaba la categoría `weddingPlanner`. Dos causas: (1) `redistribuirDesdeTotal()` no incluía `weddingPlanner` en el setS, (2) referencia a campo inexistente `resultado.montoAdelantos` (correcto: `resultado.montoAdelantosTu`).
 
----
-
-## [Unreleased] — DEV
-
-### Cierre v1 — Ajustes finales (sep 2026)
-
+#### Responsive y UI — Ajustes finales
 - **Fix** — Patrimonio: header responsive en móvil. Los botones (TC widget, "Ocultas", "Agregar cuenta") ya no se salen de pantalla. Usan `flex-wrap` y apilan verticalmente en pantallas pequeñas.
 - **Fix** — CuentaForm (Patrimonio): grid pasa de `grid-cols-2 sm:grid-cols-4` a `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`. Los campos se apilan en móvil y se distribuyen correctamente a partir de tablet.
 - **Fix** — Returns header: mismo patrón responsive que Patrimonio. Filtros y botón "Registrar" se apilan en móvil.
 - **Feature** — Rendimientos: gráfica histórica de rentabilidad por año. ComposedChart (Recharts) con barras de monto base (K PEN eq., eje derecho) y línea de rentabilidad neta % (eje izquierdo). Visible cuando hay ≥ 2 años de datos. Incluye insights: promedio histórico, mejor año y peor año.
-- **Mejora** — Configuración: layout reescrito con 2 columnas en desktop (`max-w-5xl`, grid responsive). Agrupa las opciones en 5 secciones: Apariencia / Datos y moneda / Alertas y tiempos / Automatización / Módulos. Módulos visibles ahora en grid de 3 columnas. Componente `Toggle` reutilizable interno.
-- **Mejora** — Impuesto 5ta ocultado del sidebar. Se movió fuera de `NAV_SECTIONS`. La ruta sigue existiendo; se puede re-activar desde Configuración > Módulos cuando esté listo.
+- **Mejora** — Configuración: layout reescrito con 2 columnas en desktop. Agrupa las opciones en 5 secciones: Apariencia / Datos y moneda / Alertas y tiempos / Automatización / Módulos.
+- **Mejora** — Impuesto 5ta ocultado del sidebar. La ruta sigue existiendo; re-activable desde Configuración > Módulos.
+
+---
+
+## [Unreleased] — DEV
+
+---
+
+## [v2.4.0] — 2026-09-05 — PROD
+
+### Tablas ordenables + Evento Nacimiento de hijo con etapas y distribución
+
+#### Tablas ordenables — Rendimientos, Historial, Patrimonio
+- **Mejora** — Rendimientos: todas las columnas de la tabla son ahora ordenables (click en header). Columnas: Instrumento, Período, Fecha pago, Ganancia, Base, Rentabilidad. Cicla entre ascendente ↑ / descendente ↓ / sin orden (cronológico por defecto). Indicador ⇅ en columnas inactivas.
+- **Mejora** — Historial Mensual: columnas ordenables: Fecha, PEN, Δ% PEN, USD, Δ% USD, Total S/, Δ% Total, Δ Monto, TC. Los deltas se calculan siempre sobre el orden cronológico (invariante al orden de display), así el "mejor mes" por crecimiento % es correcto independientemente de cómo esté ordenada la tabla.
+- **Mejora** — Patrimonio: sub-header clicable para ordenar cuentas dentro de cada categoría por Cuenta (nombre), PEN o USD. El agrupamiento por categoría se mantiene; el sort opera dentro de cada grupo.
+
+#### Evento Nacimiento de hijo — Wizard completo por etapas + distribución
+- **Mejora** — El wizard "Nacimiento de hijo" fue reemplazado por un wizard dedicado (`HijoWizard`) con 5 etapas configurables: Bebé (0-2), Nido (3-5), Colegio (6-17), Universidad (18-22) y Apoyo post-uni (23+, opcional). Cada etapa tiene costo mensual editable, duración auto-calculada, años calendario y total por etapa.
+- **Feature** — Campo "Nombre / identificador" en el wizard de hijo: permite distinguir "Primer hijo", "Segundo hijo" o un nombre propio. Aparece en cada entrada generada.
+- **Feature** — Distribución de gastos con pareja en el wizard de hijo: slider 0-100% + input numérico. Los montos guardados en el escenario reflejan solo la proporción del usuario. El resumen final muestra costo bruto (pareja), mi parte y parte de la pareja.
+- **Feature** — `GeneralParams` → nuevo campo `proporcionPropia?: number` (0-100). Define la proporción por defecto de gastos compartidos. Se pre-rellena en el wizard de hijo; puede ajustarse por evento.
+- **Feature** — Parámetros > nueva sección "Gastos compartidos con pareja": campo para configurar `proporcionPropia` con explicación de su uso.
+- **Fix** — `actualizarEscenario` en `ScenarioContext` ahora actualiza el estado local antes del `await guardarEscenario` (optimistic update). Elimina race condition donde el wizard montaba con datos viejos si el usuario navegaba antes de que terminara el save a Supabase.
+- **Fix** — `HijoWizard`: `useEffect` + `useRef` que sincroniza `miPorcentaje` si `general.proporcionPropia` llega después del mount, sin pisar cambios manuales del usuario.
 
 ---
 

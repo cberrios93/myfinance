@@ -12,6 +12,7 @@ export interface GeneralParams {
   tasaPatrimonioNoInvertido?: number  // tasa real anual estimada del patrimonio no enlazado a instrumentos (ej. 0.03 = 3%)
   incrementoSalarialAnual?: number    // crecimiento real anual del sueldo (ej. 0.03 = 3%)
   mesAjusteSalarial?: number          // mes (1-12) en que la empresa ajusta la compensación (ej. 4 = abril)
+  proporcionPropia?: number           // % de gastos compartidos que cubro yo (0-100, default 100)
   metas: Meta[]
 }
 

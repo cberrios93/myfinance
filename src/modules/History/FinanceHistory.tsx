@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { Plus, Trash2, Edit2, Check, X, Download, Upload, AlertCircle } from 'lucide-react'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import type { HistorialMensual } from '../../data/types'
@@ -146,6 +146,17 @@ function setDismissed(id: string, calculado: string) {
   try { localStorage.setItem(dismissKey(id, calculado), '1') } catch { /* noop */ }
 }
 
+function SortTh({ label, col, dir, onToggle, align = 'left' }: { label: string; col: string; dir: 'asc' | 'desc' | null; onToggle: (col: string) => void; align?: 'left' | 'right' }) {
+  return (
+    <th
+      onClick={() => onToggle(col)}
+      className={`px-3 py-3 font-semibold text-xs cursor-pointer select-none whitespace-nowrap ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
+      {label}<span style={{ opacity: dir ? 1 : 0.35, marginLeft: 3 }}>{dir === 'asc' ? '↑' : dir === 'desc' ? '↓' : '⇅'}</span>
+    </th>
+  )
+}
+
 export default function FinanceHistory() {
   const { historial, loading, agregarHistorial, actualizarHistorial, borrarHistorial } = usePatrimony()
   const { config } = useConfig()
@@ -157,9 +168,47 @@ export default function FinanceHistory() {
   const [importing, setImporting] = useState(false)
   const [importStatus, setImportStatus] = useState<{ ok?: number; err?: string } | null>(null)
   const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(() => new Set())
+  const [sortState, setSortState] = useState<{ col: string; dir: 'asc' | 'desc' } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const sorted = [...historial].sort((a, b) => a.fecha.localeCompare(b.fecha))
+
+  function toggleSort(col: string) {
+    setSortState(s => !s || s.col !== col ? { col, dir: 'asc' } : s.dir === 'asc' ? { col, dir: 'desc' } : null)
+  }
+  function colDir(col: string): 'asc' | 'desc' | null { return sortState?.col === col ? sortState.dir : null }
+
+  // Precompute deltas using chronological order, then allow re-sorting
+  const rowData = useMemo(() => sorted.map((h, idx) => {
+    const total = totalEnPEN(h)
+    const prev = idx > 0 ? sorted[idx - 1] : null
+    const prevTotal = prev ? totalEnPEN(prev) : null
+    return {
+      h, total,
+      gPEN: prev ? calcGrowth(h.totalPEN, prev.totalPEN) : null,
+      gUSD: prev ? calcGrowth(h.totalUSD, prev.totalUSD) : null,
+      gTotal: prevTotal != null ? calcGrowth(total, prevTotal) : null,
+      gAmount: prevTotal != null ? total - prevTotal : null,
+    }
+  }), [sorted.length, historial])
+
+  const displayData = useMemo(() => {
+    if (!sortState) return rowData
+    const { col, dir } = sortState
+    const d = dir === 'asc' ? 1 : -1
+    return [...rowData].sort((a, b) => {
+      if (col === 'fecha') return a.h.fecha.localeCompare(b.h.fecha) * d
+      if (col === 'pen') return (a.h.totalPEN - b.h.totalPEN) * d
+      if (col === 'usd') return (a.h.totalUSD - b.h.totalUSD) * d
+      if (col === 'total') return (a.total - b.total) * d
+      if (col === 'tc') return (a.h.tipoCambio - b.h.tipoCambio) * d
+      if (col === 'gpen') return ((a.gPEN ?? -Infinity) - (b.gPEN ?? -Infinity)) * d
+      if (col === 'gusd') return ((a.gUSD ?? -Infinity) - (b.gUSD ?? -Infinity)) * d
+      if (col === 'gtotal') return ((a.gTotal ?? -Infinity) - (b.gTotal ?? -Infinity)) * d
+      if (col === 'gamount') return ((a.gAmount ?? -Infinity) - (b.gAmount ?? -Infinity)) * d
+      return 0
+    })
+  }, [rowData, sortState])
 
   // Registros donde el periodo almacenado NO coincide con la lógica actual
   const allWrongPeriods = historial
@@ -201,17 +250,6 @@ export default function FinanceHistory() {
     }
   }
 
-  function getGrowths(idx: number) {
-    if (idx === 0) return { gPEN: null, gUSD: null, gTotal: null, gAmount: null }
-    const cur = sorted[idx], prev = sorted[idx - 1]
-    const curTotal = totalEnPEN(cur), prevTotal = totalEnPEN(prev)
-    return {
-      gPEN: calcGrowth(cur.totalPEN, prev.totalPEN),
-      gUSD: calcGrowth(cur.totalUSD, prev.totalUSD),
-      gTotal: calcGrowth(curTotal, prevTotal),
-      gAmount: curTotal - prevTotal,
-    }
-  }
 
   async function handleAdd() {
     if (!newDraft.totalPEN && !newDraft.totalUSD) return
@@ -355,23 +393,21 @@ export default function FinanceHistory() {
         <table className="w-full text-sm min-w-[900px]">
           <thead>
             <tr style={{ background: '#1e3a5f', color: '#fff' }}>
-              <th className="text-left px-3 py-3 font-semibold">Fecha</th>
+              <SortTh label="Fecha" col="fecha" dir={colDir('fecha')} onToggle={toggleSort} />
               <th className="text-left px-3 py-3 font-semibold">Período</th>
-              <th className="text-right px-3 py-3 font-semibold">PEN (S/)</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Δ% PEN</th>
-              <th className="text-right px-3 py-3 font-semibold">USD ($)</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Δ% USD</th>
-              <th className="text-right px-3 py-3 font-semibold">Total (S/)</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Δ% Total</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Δ Monto</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">TC</th>
+              <SortTh label="PEN (S/)" col="pen" dir={colDir('pen')} onToggle={toggleSort} align="right" />
+              <SortTh label="Δ% PEN" col="gpen" dir={colDir('gpen')} onToggle={toggleSort} align="right" />
+              <SortTh label="USD ($)" col="usd" dir={colDir('usd')} onToggle={toggleSort} align="right" />
+              <SortTh label="Δ% USD" col="gusd" dir={colDir('gusd')} onToggle={toggleSort} align="right" />
+              <SortTh label="Total (S/)" col="total" dir={colDir('total')} onToggle={toggleSort} align="right" />
+              <SortTh label="Δ% Total" col="gtotal" dir={colDir('gtotal')} onToggle={toggleSort} align="right" />
+              <SortTh label="Δ Monto" col="gamount" dir={colDir('gamount')} onToggle={toggleSort} align="right" />
+              <SortTh label="TC" col="tc" dir={colDir('tc')} onToggle={toggleSort} align="right" />
               <th className="w-16" />
             </tr>
           </thead>
           <tbody>
-            {sorted.map((h, idx) => {
-              const { gPEN, gUSD, gTotal, gAmount } = getGrowths(idx)
-              const total = totalEnPEN(h)
+            {displayData.map(({ h, total, gPEN, gUSD, gTotal, gAmount }) => {
               const isEditing = editingId === h.id
 
               if (isEditing && editDraft) {
@@ -421,7 +457,7 @@ export default function FinanceHistory() {
               )
             })}
 
-            {sorted.length === 0 && !adding && (
+            {displayData.length === 0 && !adding && (
               <tr>
                 <td colSpan={11} className="text-center py-12 text-sm" style={{ color: 'var(--color-muted)' }}>
                   Registra el primer mes para empezar a ver la evolución de tu patrimonio.

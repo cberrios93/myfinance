@@ -510,6 +510,17 @@ function RentHistChart({ rentPorAnio, avg, best, worst }: {
   )
 }
 
+function SortTh({ label, col, dir, onToggle, align = 'left' }: { label: string; col: string; dir: 'asc' | 'desc' | null; onToggle: (col: string) => void; align?: 'left' | 'right' }) {
+  return (
+    <th
+      onClick={() => onToggle(col)}
+      className={`px-3 py-3 font-semibold text-xs cursor-pointer select-none whitespace-nowrap ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
+      {label}<span style={{ opacity: dir ? 1 : 0.35, marginLeft: 3 }}>{dir === 'asc' ? '↑' : dir === 'desc' ? '↓' : '⇅'}</span>
+    </th>
+  )
+}
+
 export default function Returns() {
   const { rendimientos, flujosCapital, loading, agregarRendimiento, actualizarRendimiento, borrarRendimiento } = useFinanceData()
   const { escenarios } = useScenario()
@@ -526,6 +537,11 @@ export default function Returns() {
   const [instrFiltro, setInstrFiltro] = useState('todos')
   const [bulkTasa, setBulkTasa] = useState('')
   const [bulkApplying, setBulkApplying] = useState(false)
+  const [sortState, setSortState] = useState<{ col: string; dir: 'asc' | 'desc' } | null>(null)
+  function toggleSort(col: string) {
+    setSortState(s => !s || s.col !== col ? { col, dir: 'asc' } : s.dir === 'asc' ? { col, dir: 'desc' } : null)
+  }
+  function colDir(col: string): 'asc' | 'desc' | null { return sortState?.col === col ? sortState.dir : null }
   // Propuesta post-save de actualización de Patrimonio
   const [propuestaPatrimonio, setPropuestaPatrimonio] = useState<{ cuentaId: string; nuevoMonto: number; moneda: 'PEN' | 'USD' } | null>(null)
 
@@ -594,6 +610,32 @@ export default function Returns() {
   const del_anio = anioFiltro === 'todos' ? rendimientos : rendimientos.filter(r => r.anio === anioFiltro)
   const filtered = instrFiltro === 'todos' ? del_anio : del_anio.filter(r => r.instrumentoNombre === instrFiltro)
   const instrNombres = [...new Set(rendimientos.map(r => r.instrumentoNombre))].sort()
+
+  const sortedFiltered = useMemo(() => {
+    const arr = [...filtered]
+    const defaultSort = () => arr.sort((a, b) => (b.anio * 100 + (b.mes ?? 0)) - (a.anio * 100 + (a.mes ?? 0)))
+    if (!sortState) return defaultSort()
+    const { col, dir } = sortState
+    const d = dir === 'asc' ? 1 : -1
+    return arr.sort((a, b) => {
+      if (col === 'instrumento') return a.instrumentoNombre.localeCompare(b.instrumentoNombre) * d
+      if (col === 'periodo') return ((a.anio * 100 + (a.mes ?? 0)) - (b.anio * 100 + (b.mes ?? 0))) * d
+      if (col === 'fecha') return (a.fechaPago ?? '').localeCompare(b.fechaPago ?? '') * d
+      if (col === 'ganancia') {
+        const tA = a.tasaImpuesto ?? 0, tB = b.tasaImpuesto ?? 0
+        const av = a.esTraspaso ? null : a.gananciasPEN != null ? aplicarImpuesto(a.gananciasPEN, tA) : a.gananciasUSD != null ? aplicarImpuesto(a.gananciasUSD, tA) * tc : null
+        const bv = b.esTraspaso ? null : b.gananciasPEN != null ? aplicarImpuesto(b.gananciasPEN, tB) : b.gananciasUSD != null ? aplicarImpuesto(b.gananciasUSD, tB) * tc : null
+        return ((av ?? -Infinity) - (bv ?? -Infinity)) * d
+      }
+      if (col === 'base') {
+        const av = a.inversionPEN ?? (a.inversionUSD != null ? a.inversionUSD * tc : null)
+        const bv = b.inversionPEN ?? (b.inversionUSD != null ? b.inversionUSD * tc : null)
+        return ((av ?? -Infinity) - (bv ?? -Infinity)) * d
+      }
+      if (col === 'rent') return ((calcRent(a) ?? -Infinity) - (calcRent(b) ?? -Infinity)) * d
+      return 0
+    })
+  }, [filtered, sortState, tc])
 
   const filteredSinTraspaso = filtered.filter(r => !r.esTraspaso)
   const totalGanPEN = filteredSinTraspaso.reduce((s, r) => s + aplicarImpuesto(r.gananciasPEN ?? 0, r.tasaImpuesto ?? 0), 0)
@@ -819,18 +861,18 @@ export default function Returns() {
         <table className="w-full text-sm min-w-[760px]">
           <thead>
             <tr style={{ background: '#1e3a5f', color: '#fff' }}>
-              <th className="text-left px-3 py-3 font-semibold">Instrumento</th>
-              <th className="text-left px-3 py-3 font-semibold text-xs">Período</th>
-              <th className="text-left px-3 py-3 font-semibold text-xs">Fecha pago</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Ganancia</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Base</th>
-              <th className="text-right px-3 py-3 font-semibold text-xs">Rentab.</th>
+              <SortTh label="Instrumento" col="instrumento" dir={colDir('instrumento')} onToggle={toggleSort} />
+              <SortTh label="Período" col="periodo" dir={colDir('periodo')} onToggle={toggleSort} />
+              <SortTh label="Fecha pago" col="fecha" dir={colDir('fecha')} onToggle={toggleSort} />
+              <SortTh label="Ganancia" col="ganancia" dir={colDir('ganancia')} onToggle={toggleSort} align="right" />
+              <SortTh label="Base" col="base" dir={colDir('base')} onToggle={toggleSort} align="right" />
+              <SortTh label="Rentab." col="rent" dir={colDir('rent')} onToggle={toggleSort} align="right" />
               <th className="text-center px-3 py-3 font-semibold text-xs">Reinv.</th>
               <th className="w-16" />
             </tr>
           </thead>
           <tbody>
-            {filtered.map(r => {
+            {sortedFiltered.map(r => {
               const rent = calcRent(r)
               const periodo = r.mes ? `${MESES[r.mes - 1]} ${r.anio}` : `${r.anio}`
               const tasa = r.tasaImpuesto ?? 0
@@ -891,7 +933,7 @@ export default function Returns() {
                 </tr>
               )
             })}
-            {filtered.length === 0 && !adding && (
+            {sortedFiltered.length === 0 && !adding && (
               <tr>
                 <td colSpan={8}>
                   {rendimientos.length === 0 ? (

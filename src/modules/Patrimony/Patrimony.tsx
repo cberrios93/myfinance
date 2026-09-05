@@ -87,6 +87,22 @@ export default function Patrimony() {
   const [pinError, setPinError] = useState(false)
   const pinErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [showHidden, setShowHidden] = useState(false)
+  const [sortState, setSortState] = useState<{ col: string; dir: 'asc' | 'desc' } | null>(null)
+  function toggleSort(col: string) {
+    setSortState(s => !s || s.col !== col ? { col, dir: 'asc' } : s.dir === 'asc' ? { col, dir: 'desc' } : null)
+  }
+  function colDir(col: string): 'asc' | 'desc' | null { return sortState?.col === col ? sortState.dir : null }
+  function sortedItems(items: CuentaPatrimonio[]) {
+    if (!sortState) return items
+    const { col, dir } = sortState
+    const d = dir === 'asc' ? 1 : -1
+    return [...items].sort((a, b) => {
+      if (col === 'nombre') return a.nombre.localeCompare(b.nombre) * d
+      if (col === 'pen') return ((a.montoPEN ?? -Infinity) - (b.montoPEN ?? -Infinity)) * d
+      if (col === 'usd') return ((a.montoUSD ?? -Infinity) - (b.montoUSD ?? -Infinity)) * d
+      return 0
+    })
+  }
 
   async function toggleLog(cuentaId: string) {
     if (logOpenId === cuentaId) { setLogOpenId(null); return }
@@ -197,9 +213,15 @@ export default function Patrimony() {
               <th className="w-20" />
             </tr>
             <tr style={{ background: '#2d4a6e', color: '#cbd5e1' }}>
-              <th className="text-left px-4 py-2 text-xs font-medium">Cuenta</th>
-              <th className="text-right px-4 py-2 text-xs font-medium">PEN</th>
-              <th className="text-right px-4 py-2 text-xs font-medium">USD</th>
+              <th onClick={() => toggleSort('nombre')} className="text-left px-4 py-2 text-xs font-medium cursor-pointer select-none whitespace-nowrap">
+                Cuenta<span style={{ opacity: colDir('nombre') ? 1 : 0.35, marginLeft: 3 }}>{colDir('nombre') === 'asc' ? '↑' : colDir('nombre') === 'desc' ? '↓' : '⇅'}</span>
+              </th>
+              <th onClick={() => toggleSort('pen')} className="text-right px-4 py-2 text-xs font-medium cursor-pointer select-none whitespace-nowrap">
+                PEN<span style={{ opacity: colDir('pen') ? 1 : 0.35, marginLeft: 3 }}>{colDir('pen') === 'asc' ? '↑' : colDir('pen') === 'desc' ? '↓' : '⇅'}</span>
+              </th>
+              <th onClick={() => toggleSort('usd')} className="text-right px-4 py-2 text-xs font-medium cursor-pointer select-none whitespace-nowrap">
+                USD<span style={{ opacity: colDir('usd') ? 1 : 0.35, marginLeft: 3 }}>{colDir('usd') === 'asc' ? '↑' : colDir('usd') === 'desc' ? '↓' : '⇅'}</span>
+              </th>
               <th className="text-right px-4 py-2 text-xs font-medium">Acciones</th>
             </tr>
           </thead>
@@ -256,7 +278,7 @@ export default function Patrimony() {
                   </tr>
 
                   {/* Filas de cuentas — ocultas cuando colapsado */}
-                  {!isCollapsed && items.map(cuenta => (
+                  {!isCollapsed && sortedItems(items).map(cuenta => (
                     <>
                       <tr
                         key={cuenta.id}

@@ -62,8 +62,8 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
 
   async function actualizarEscenario(esc: Escenario) {
     const updated = { ...esc, actualizadoEn: new Date().toISOString() }
-    await guardarEscenario(updated)
     setEscenarios(prev => prev.map(e => e.id === updated.id ? updated : e))
+    await guardarEscenario(updated)
   }
 
   async function crearEscenario(nombre: string, base?: Partial<Escenario>): Promise<Escenario> {
