@@ -214,6 +214,7 @@ export function MatrimonioWizard({
   function confirm() {
     const eventos: Omit<EventoVida, 'id'>[] = []
     const pctLabel = s.tuPorcentaje < 100 ? ` (${s.tuPorcentaje}%)` : ''
+    const proporcionPropia = s.tuPorcentaje < 100 ? s.tuPorcentaje : undefined
 
     if (resultado.montoMensual > 0 && resultado.anioInicioT < anioT) {
       eventos.push({
@@ -224,6 +225,7 @@ export function MatrimonioWizard({
           anioFinT: anioT,
           montoMensual: resultado.montoMensual,
         },
+        ...(proporcionPropia !== undefined && { proporcionPropia }),
       })
     }
 
@@ -234,6 +236,7 @@ export function MatrimonioWizard({
         nombre: `Matrimonio – Pago final${pctLabel}`,
         tipoEvento: 'matrimonio',
         retiroUnico: { anioT, monto: pagoFinalNeto },
+        ...(proporcionPropia !== undefined && { proporcionPropia }),
       })
     }
 

@@ -40,6 +40,10 @@ Criterios de tipo:
 
 ## [Unreleased] — DEV
 
+### Eventos de vida — Vista de carga de pareja
+- **Feature** — Toggle "Yo / Pareja" en la vista Gráfica de Eventos de vida. Visible solo cuando hay al menos un evento con proporción compartida (< 100%). En modo "Pareja": las barras y KPIs muestran los montos que corresponden a la pareja, calculados como `monto_cesar × (100 - pct) / pct`.
+- **Técnico** — Campo `proporcionPropia?: number` agregado a `EventoVida` (JSONB, sin migración). `HijoWizard` y `MatrimonioWizard` lo persisten al crear eventos con distribución < 100%. Eventos existentes sin el campo se tratan como 100% propios.
+
 ---
 
 ## [v2.4.0] — 2026-09-05 — PROD

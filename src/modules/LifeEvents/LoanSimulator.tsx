@@ -242,24 +242,26 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
 
   function confirmarSeleccion(result: ScenarioResult) {
     const eventos: Omit<EventoVida, 'id'>[] = []
+    const compartida = esV && vc.esCompartida
+    const pctLabel = compartida ? ` (${vc.miPorcentaje}%)` : ''
+    const proporcionPropia = compartida ? vc.miPorcentaje : undefined
+
     if (esV && vc.incluirGastosCierre && gc && gc.total > 0) {
-      const miGastos = vc.esCompartida ? Math.round(gc.total * vc.miPorcentaje / 100) : Math.round(gc.total)
-      eventos.push({ nombre: `${tipoLabel} – Gastos de cierre${vc.esCompartida ? ` (${vc.miPorcentaje}%)` : ''}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: miGastos } })
+      const miGastos = compartida ? Math.round(gc.total * vc.miPorcentaje / 100) : Math.round(gc.total)
+      eventos.push({ nombre: `${tipoLabel} – Gastos de cierre${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: miGastos }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     }
-    const miInicial = esV && vc.esCompartida ? result.inicialPEN * vc.miPorcentaje / 100 : result.inicialPEN
+    const miInicial = compartida ? result.inicialPEN * vc.miPorcentaje / 100 : result.inicialPEN
     if (miInicial > 0)
-      eventos.push({ nombre: `${tipoLabel} – Cuota inicial${vc.esCompartida ? ` (${vc.miPorcentaje}%)` : ''}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: Math.round(miInicial) } })
-    // Cuota mensual = amortización base + seguros promedio (sin prepagos)
-    // Para cuota doble: usar cuota regular (el banco cobra menos los 10 meses normales)
+      eventos.push({ nombre: `${tipoLabel} – Cuota inicial${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: Math.round(miInicial) }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     const cuotaParaEvento = Math.round(result.cuotaRegularMensual)
-    const miCuota = esV && vc.esCompartida ? Math.round(cuotaParaEvento * vc.miPorcentaje / 100) : cuotaParaEvento
+    const miCuota = compartida ? Math.round(cuotaParaEvento * vc.miPorcentaje / 100) : cuotaParaEvento
     if (miCuota > 0)
-      eventos.push({ nombre: `${tipoLabel} – Cuota mensual${vc.esCompartida ? ` (${vc.miPorcentaje}%)` : ''}`, tipoEvento: tipoId, gastoRecurrente: { anioInicioT: anioT, anioFinT: anioT + Math.ceil(result.mesesReales / 12), montoMensual: miCuota } })
+      eventos.push({ nombre: `${tipoLabel} – Cuota mensual${pctLabel}`, tipoEvento: tipoId, gastoRecurrente: { anioInicioT: anioT, anioFinT: anioT + Math.ceil(result.mesesReales / 12), montoMensual: miCuota }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     // Prepagos → cada uno como retiro único en el año correspondiente
     for (const pp of result.scenario.prepagos) {
       const ppAnioT = anioT + Math.floor((pp.mes - 1) / 12)
-      const miMontoPP = esV && vc.esCompartida ? Math.round(pp.monto * vc.miPorcentaje / 100) : pp.monto
-      eventos.push({ nombre: `${tipoLabel} – ${pp.label}`, tipoEvento: tipoId, retiroUnico: { anioT: ppAnioT, monto: miMontoPP } })
+      const miMontoPP = compartida ? Math.round(pp.monto * vc.miPorcentaje / 100) : pp.monto
+      eventos.push({ nombre: `${tipoLabel} – ${pp.label}${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT: ppAnioT, monto: miMontoPP }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     }
     onConfirm(eventos)
   }

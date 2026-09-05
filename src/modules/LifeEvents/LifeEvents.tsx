@@ -471,10 +471,24 @@ interface DatoAnio {
   totalRetiros: number
 }
 
+function parseProporcion(ev: EventoVida): number {
+  if (ev.proporcionPropia !== undefined) return ev.proporcionPropia
+  const match = ev.nombre.match(/\((\d+)%\)/)
+  return match ? parseInt(match[1]) : 100
+}
+
+function montoPareja(monto: number, proporcionPropia: number): number {
+  if (proporcionPropia <= 0 || proporcionPropia >= 100) return 0
+  return Math.round(monto * (100 - proporcionPropia) / proporcionPropia)
+}
+
 function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: GeneralParams }) {
   const { anioActual, edadActual } = general
   const fmt = (n: number) => n.toLocaleString('es-PE', { maximumFractionDigits: 0 })
   const [hoveredDato, setHoveredDato] = useState<DatoAnio | null>(null)
+  const [vistaPareja, setVistaPareja] = useState(false)
+
+  const hayEventosConPareja = eventos.some(ev => parseProporcion(ev) < 100)
 
   const datos = useMemo<DatoAnio[]>(() => {
     if (eventos.length === 0) return []
@@ -511,7 +525,10 @@ function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: 
         const yf = anioTToCalendario(ev.gastoRecurrente.anioFinT, anioActual)
         if (y >= yi && y <= yf) {
           const tipo = ev.tipoEvento ?? 'custom'
-          recurrentesPorTipo[tipo] = (recurrentesPorTipo[tipo] ?? 0) + ev.gastoRecurrente.montoMensual
+          const monto = vistaPareja
+            ? montoPareja(ev.gastoRecurrente.montoMensual, parseProporcion(ev))
+            : ev.gastoRecurrente.montoMensual
+          recurrentesPorTipo[tipo] = (recurrentesPorTipo[tipo] ?? 0) + monto
         }
       }
 
@@ -523,10 +540,13 @@ function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: 
         .filter(ev => ev.retiroUnico && anioTToCalendario(ev.retiroUnico.anioT, anioActual) === y)
         .map(ev => ({
           tipo: ev.tipoEvento ?? 'custom',
-          monto: ev.retiroUnico!.monto,
+          monto: vistaPareja
+            ? montoPareja(ev.retiroUnico!.monto, parseProporcion(ev))
+            : ev.retiroUnico!.monto,
           nombre: ev.nombre,
           color: getTipoColor(ev.tipoEvento),
         }))
+        .filter(r => r.monto > 0)
 
       result.push({
         anioCalendario: y,
@@ -539,7 +559,7 @@ function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: 
     }
 
     return result
-  }, [eventos, anioActual, edadActual])
+  }, [eventos, anioActual, edadActual, vistaPareja])
 
   if (datos.length === 0) return (
     <div className="rounded-xl p-8 text-center" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
@@ -560,6 +580,33 @@ function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: 
   return (
     <div className="space-y-4">
       {/* KPIs */}
+      {hayEventosConPareja && (
+        <div className="flex items-center justify-between">
+          <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
+            <button
+              onClick={() => setVistaPareja(false)}
+              className="px-3 py-1.5 text-xs font-semibold"
+              style={{
+                background: !vistaPareja ? 'var(--color-acento)' : 'var(--color-fondo)',
+                color: !vistaPareja ? '#fff' : 'var(--color-muted)',
+              }}
+            >Yo</button>
+            <button
+              onClick={() => setVistaPareja(true)}
+              className="px-3 py-1.5 text-xs font-semibold"
+              style={{
+                background: vistaPareja ? 'var(--color-acento)' : 'var(--color-fondo)',
+                color: vistaPareja ? '#fff' : 'var(--color-muted)',
+              }}
+            >Pareja</button>
+          </div>
+          {vistaPareja && (
+            <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              Gastos acumulados que corresponden a tu pareja
+            </p>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-xl p-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
           <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Año más cargado</p>

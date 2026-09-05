@@ -102,11 +102,14 @@ function generarEventos(s: HijoState, general: GeneralParams): Omit<EventoVida, 
   const label = s.nombreHijo.trim() || 'Hijo/a'
   const eventos: Omit<EventoVida, 'id'>[] = []
 
+  const proporcionPropia = s.miPorcentaje < 100 ? s.miPorcentaje : undefined
+
   if (s.gastosParto > 0) {
     eventos.push({
       nombre: `${label} · Parto y primeros gastos`,
       tipoEvento: 'hijo',
       retiroUnico: { anioT: anioTNac, monto: Math.round(s.gastosParto * pct) },
+      ...(proporcionPropia !== undefined && { proporcionPropia }),
     })
   }
 
@@ -129,6 +132,7 @@ function generarEventos(s: HijoState, general: GeneralParams): Omit<EventoVida, 
       nombre: `${label} · ${etapa.label} (${etapa.edadDesde}–${edadHastaLabel} años)`,
       tipoEvento: 'hijo',
       gastoRecurrente: { anioInicioT, anioFinT, montoMensual: costoMio },
+      ...(proporcionPropia !== undefined && { proporcionPropia }),
     })
   }
 

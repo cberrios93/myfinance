@@ -63,6 +63,7 @@ export interface EventoVida {
   tipoEvento?: string
   retiroUnico?: RetiroUnico
   gastoRecurrente?: GastoRecurrente
+  proporcionPropia?: number  // % que cubre el usuario (0-100). Si ausente = 100%
 }
 
 export interface SaltoCarrera {
