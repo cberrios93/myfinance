@@ -40,9 +40,14 @@ Criterios de tipo:
 
 ## [Unreleased] — DEV
 
-### Eventos de vida — Vista de carga de pareja
-- **Feature** — Toggle "Yo / Pareja" en la vista Gráfica de Eventos de vida. Visible solo cuando hay al menos un evento con proporción compartida (< 100%). En modo "Pareja": las barras y KPIs muestran los montos que corresponden a la pareja, calculados como `monto_cesar × (100 - pct) / pct`.
-- **Técnico** — Campo `proporcionPropia?: number` agregado a `EventoVida` (JSONB, sin migración). `HijoWizard` y `MatrimonioWizard` lo persisten al crear eventos con distribución < 100%. Eventos existentes sin el campo se tratan como 100% propios.
+---
+
+## [v2.5.0] — 2026-09-05 — PROD
+
+### Eventos de vida — Carga de pareja
+
+- **Feature** — Toggle "Yo / Pareja" en la vista Gráfica de Eventos de vida. Visible solo cuando hay al menos un evento compartido (< 100%). En modo "Pareja": barras y los 3 KPIs (año pico, carga mensual, total egresos únicos) muestran los montos que corresponden a la pareja, calculados como `monto_usuario × (100−pct) / pct`.
+- **Técnico** — Campo `proporcionPropia?: number` en `EventoVida` (JSONB, sin migración SQL). `HijoWizard`, `MatrimonioWizard` y `LoanSimulator` lo persisten en eventos con distribución < 100%. Para eventos anteriores al cambio, `parseProporcion()` extrae el % del nombre del evento como fallback (`(60%)` → 60).
 
 ---
 
