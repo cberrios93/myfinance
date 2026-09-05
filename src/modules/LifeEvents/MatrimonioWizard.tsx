@@ -681,7 +681,7 @@ export function MatrimonioWizard({
                     <input
                       type="number" min={0}
                       value={s.montoPrestamoManual !== null ? s.montoPrestamoManual : resultado.tuFalta}
-                      onFocus={e => { if (s.montoPrestamoManual === null) setS(prev => ({ ...prev, montoPrestamoManual: resultado.tuFalta })) }}
+                      onFocus={() => { if (s.montoPrestamoManual === null) setS(prev => ({ ...prev, montoPrestamoManual: resultado.tuFalta })) }}
                       onChange={e => setS(prev => ({ ...prev, montoPrestamoManual: parseFloat(e.target.value) || 0 }))}
                       className="w-full px-2 py-1.5 rounded-lg text-xs outline-none font-mono"
                       style={inputStyle}
