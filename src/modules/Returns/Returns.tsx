@@ -1,5 +1,9 @@
 import { useState, useMemo } from 'react'
 import { Plus, Trash2, Edit2, Check, X, BarChart3 } from 'lucide-react'
+import {
+  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer,
+} from 'recharts'
 import { EmptyState } from '../../components/common/EmptyState'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import { useScenario } from '../../data/ScenarioContext'
@@ -448,6 +452,64 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
   )
 }
 
+// Gráfica colapsable de rentabilidad histórica
+function RentHistChart({ rentPorAnio, avg, best, worst }: {
+  rentPorAnio: { anio: string; rentabilidad: number | null; montoInvertido: number }[]
+  avg: number
+  best: { anio: string; rentabilidad: number | null }
+  worst: { anio: string; rentabilidad: number | null }
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
+      {/* Cabecera siempre visible — resumen comprimido */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex flex-wrap items-center gap-4 px-4 py-3 text-left"
+        style={{ background: 'var(--color-card)' }}
+      >
+        <span className="text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Rentabilidad histórica por año</span>
+        <div className="flex flex-wrap gap-4 flex-1">
+          <span className="text-xs font-mono" style={{ color: avg >= 0 ? '#00C9A7' : '#E24C4C' }}>
+            Promedio <strong>{avg.toFixed(2)}%</strong>
+          </span>
+          <span className="text-xs font-mono" style={{ color: '#00C9A7' }}>
+            Mejor {best.anio} <strong>{best.rentabilidad!.toFixed(2)}%</strong>
+          </span>
+          <span className="text-xs font-mono" style={{ color: '#E24C4C' }}>
+            Peor {worst.anio} <strong>{worst.rentabilidad!.toFixed(2)}%</strong>
+          </span>
+        </div>
+        <span className="text-xs ml-auto" style={{ color: 'var(--color-muted)' }}>{open ? '▲ Ocultar' : '▼ Ver gráfico'}</span>
+      </button>
+
+      {/* Gráfico expandible */}
+      {open && (
+        <div className="px-4 pb-4 pt-2" style={{ borderTop: '1px solid var(--color-borde)', background: 'var(--color-card)' }}>
+          <p className="text-xs mb-3" style={{ color: 'var(--color-muted)' }}>Rentabilidad neta promedio · Monto base en miles PEN eq.</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <ComposedChart data={rentPorAnio} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
+              <XAxis dataKey="anio" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} />
+              <YAxis yAxisId="rent" unit="%" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={42} />
+              <YAxis yAxisId="monto" orientation="right" unit="K" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={42} />
+              <Tooltip
+                contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
+                formatter={(value, name) =>
+                  name === 'Rentabilidad' ? [`${value}%`, name] : [`${value}K PEN eq.`, name]
+                }
+              />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar yAxisId="monto" dataKey="montoInvertido" name="Monto base" fill="#5B8CF740" radius={[3, 3, 0, 0]} />
+              <Line yAxisId="rent" type="monotone" dataKey="rentabilidad" name="Rentabilidad" stroke="#00C9A7" strokeWidth={2.5} dot={{ r: 4, fill: '#00C9A7', strokeWidth: 0 }} activeDot={{ r: 5 }} connectNulls />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Returns() {
   const { rendimientos, flujosCapital, loading, agregarRendimiento, actualizarRendimiento, borrarRendimiento } = useFinanceData()
   const { escenarios } = useScenario()
@@ -506,6 +568,28 @@ export default function Returns() {
 
   const years = [...new Set(rendimientos.map(r => r.anio))].sort((a, b) => b - a)
   if (!years.includes(CURRENT_YEAR)) years.unshift(CURRENT_YEAR)
+
+  // Datos para el gráfico histórico por año (todos los años, sin filtro)
+  const rentPorAnio = useMemo(() => {
+    const allYears = [...new Set(rendimientos.map(r => r.anio))].sort((a, b) => a - b)
+    return allYears.map(anio => {
+      const delAnio = rendimientos.filter(r => r.anio === anio && !r.esTraspaso)
+      const ganPEN = delAnio.reduce((s, r) => s + aplicarImpuesto(r.gananciasPEN ?? 0, r.tasaImpuesto ?? 0), 0)
+      const ganUSD = delAnio.reduce((s, r) => s + aplicarImpuesto(r.gananciasUSD ?? 0, r.tasaImpuesto ?? 0), 0)
+      const ganTotal = ganPEN + ganUSD * tc
+      // Base: monto más reciente por instrumento ese año
+      const latestDelAnio = Object.values(
+        delAnio.reduce((acc, r) => {
+          const prev = acc[r.instrumentoNombre]
+          if (!prev || (r.mes ?? 0) > (prev.mes ?? 0)) acc[r.instrumentoNombre] = r
+          return acc
+        }, {} as Record<string, Rendimiento>)
+      )
+      const baseTotal = latestDelAnio.reduce((s, r) => s + (r.inversionPEN ?? 0) + (r.inversionUSD ?? 0) * tc, 0)
+      const rent = baseTotal > 0 ? (ganTotal / baseTotal) * 100 : null
+      return { anio: String(anio), rentabilidad: rent != null ? parseFloat(rent.toFixed(2)) : null, montoInvertido: parseFloat((baseTotal / 1000).toFixed(1)) }
+    })
+  }, [rendimientos, tc])
 
   const del_anio = anioFiltro === 'todos' ? rendimientos : rendimientos.filter(r => r.anio === anioFiltro)
   const filtered = instrFiltro === 'todos' ? del_anio : del_anio.filter(r => r.instrumentoNombre === instrFiltro)
@@ -594,7 +678,7 @@ export default function Returns() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Rendimiento de Inversiones</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>Ganancias reales por instrumento y mes</p>
@@ -676,6 +760,16 @@ export default function Returns() {
           ))
         })()}
       </div>
+
+      {/* Gráfica histórica de rentabilidad — colapsable */}
+      {rentPorAnio.length >= 2 && (() => {
+        const valid = rentPorAnio.filter(d => d.rentabilidad != null)
+        if (valid.length === 0) return null
+        const avg = valid.reduce((s, d) => s + d.rentabilidad!, 0) / valid.length
+        const best = valid.reduce((a, b) => b.rentabilidad! > a.rentabilidad! ? b : a)
+        const worst = valid.reduce((a, b) => b.rentabilidad! < a.rentabilidad! ? b : a)
+        return <RentHistChart rentPorAnio={rentPorAnio} avg={avg} best={best} worst={worst} />
+      })()}
 
       <div className="flex justify-end">
         <TipoCambioWidget autoFetch={false} />

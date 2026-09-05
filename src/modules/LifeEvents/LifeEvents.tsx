@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Plus, Trash2, Edit2, Check, X, ChevronRight, ArrowLeft, Calculator, RefreshCw, Copy } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, ChevronRight, ArrowLeft, Calculator, RefreshCw, Copy, BarChart2, List } from 'lucide-react'
 import { v4 as uuid } from 'uuid'
 import { useScenario } from '../../data/ScenarioContext'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
@@ -440,6 +440,298 @@ export function LoanCalculator({
   )
 }
 
+// ── Gráfica de eventos ────────────────────────────────────────────────────────
+
+const TIPO_COLORES: Record<string, string> = {
+  vivienda: '#3B82F6',
+  auto: '#F97316',
+  hijo: '#EAB308',
+  matrimonio: '#EC4899',
+  posgrado: '#8B5CF6',
+  viaje: '#10B981',
+  custom: '#9CA3AF',
+}
+
+function getTipoColor(tipo: string | undefined): string {
+  return TIPO_COLORES[tipo ?? 'custom'] ?? '#9CA3AF'
+}
+
+function getTipoLabelCorto(tipo: string | undefined): string {
+  const found = TIPOS_EVENTO.find(t => t.id === tipo)
+  if (found) return found.label
+  return tipo ?? 'Otros'
+}
+
+interface DatoAnio {
+  anioCalendario: number
+  edad: number
+  recurrentes: { tipo: string; monto: number; color: string }[]
+  totalMensual: number
+  retiros: { tipo: string; monto: number; nombre: string; color: string }[]
+  totalRetiros: number
+}
+
+function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: GeneralParams }) {
+  const { anioActual, edadActual } = general
+  const fmt = (n: number) => n.toLocaleString('es-PE', { maximumFractionDigits: 0 })
+  const [hoveredDato, setHoveredDato] = useState<DatoAnio | null>(null)
+
+  const datos = useMemo<DatoAnio[]>(() => {
+    if (eventos.length === 0) return []
+
+    let minAnio = Infinity
+    let maxAnio = -Infinity
+
+    for (const ev of eventos) {
+      if (ev.retiroUnico) {
+        const y = anioTToCalendario(ev.retiroUnico.anioT, anioActual)
+        if (y < minAnio) minAnio = y
+        if (y > maxAnio) maxAnio = y
+      }
+      if (ev.gastoRecurrente) {
+        const yi = anioTToCalendario(ev.gastoRecurrente.anioInicioT, anioActual)
+        const yf = anioTToCalendario(ev.gastoRecurrente.anioFinT, anioActual)
+        if (yi < minAnio) minAnio = yi
+        if (yf > maxAnio) maxAnio = yf
+      }
+    }
+
+    if (!isFinite(minAnio)) return []
+
+    const result: DatoAnio[] = []
+
+    for (let y = minAnio; y <= maxAnio; y++) {
+      const anioT = y - anioActual
+      const edad = edadActual + anioT
+
+      const recurrentesPorTipo: Record<string, number> = {}
+      for (const ev of eventos) {
+        if (!ev.gastoRecurrente) continue
+        const yi = anioTToCalendario(ev.gastoRecurrente.anioInicioT, anioActual)
+        const yf = anioTToCalendario(ev.gastoRecurrente.anioFinT, anioActual)
+        if (y >= yi && y <= yf) {
+          const tipo = ev.tipoEvento ?? 'custom'
+          recurrentesPorTipo[tipo] = (recurrentesPorTipo[tipo] ?? 0) + ev.gastoRecurrente.montoMensual
+        }
+      }
+
+      const recurrentes = Object.entries(recurrentesPorTipo)
+        .map(([tipo, monto]) => ({ tipo, monto, color: getTipoColor(tipo) }))
+        .filter(x => x.monto > 0)
+
+      const retiros = eventos
+        .filter(ev => ev.retiroUnico && anioTToCalendario(ev.retiroUnico.anioT, anioActual) === y)
+        .map(ev => ({
+          tipo: ev.tipoEvento ?? 'custom',
+          monto: ev.retiroUnico!.monto,
+          nombre: ev.nombre,
+          color: getTipoColor(ev.tipoEvento),
+        }))
+
+      result.push({
+        anioCalendario: y,
+        edad,
+        recurrentes,
+        totalMensual: recurrentes.reduce((s, r) => s + r.monto, 0),
+        retiros,
+        totalRetiros: retiros.reduce((s, r) => s + r.monto, 0),
+      })
+    }
+
+    return result
+  }, [eventos, anioActual, edadActual])
+
+  if (datos.length === 0) return (
+    <div className="rounded-xl p-8 text-center" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+      <p className="text-sm" style={{ color: 'var(--color-muted)' }}>Sin eventos para graficar</p>
+    </div>
+  )
+
+  const maxMensual = Math.max(...datos.map(d => d.totalMensual), 1)
+  const CHART_H = 160
+  const RETIRO_H = 56
+
+  const anioPico = datos.reduce((max, d) => d.totalMensual > max.totalMensual ? d : max, datos[0])
+  const totalRetirosGlobal = datos.reduce((s, d) => s + d.totalRetiros, 0)
+
+  const tiposRecurrentes = [...new Set(datos.flatMap(d => d.recurrentes.map(r => r.tipo)))]
+  const hayRetiros = datos.some(d => d.retiros.length > 0)
+
+  return (
+    <div className="space-y-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl p-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Año más cargado</p>
+          <p className="text-xl font-bold font-mono" style={{ color: 'var(--color-acento)' }}>{anioPico.anioCalendario}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>{anioPico.edad} años</p>
+        </div>
+        <div className="rounded-xl p-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Carga mensual pico</p>
+          <p className="text-xl font-bold font-mono" style={{ color: 'var(--color-texto)' }}>S/ {fmt(anioPico.totalMensual)}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>comprometido ese año</p>
+        </div>
+        <div className="rounded-xl p-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Total egresos únicos</p>
+          <p className="text-xl font-bold font-mono" style={{ color: 'var(--color-texto)' }}>S/ {fmt(totalRetirosGlobal)}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>en el horizonte</p>
+        </div>
+      </div>
+
+      {/* Stacked bar chart */}
+      <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <p className="text-xs font-medium mb-3" style={{ color: 'var(--color-muted)' }}>
+          Carga mensual comprometida por año · S//mes
+        </p>
+
+        {/* Panel de detalle — fuera del contenedor scrolleable para evitar recorte */}
+        <div className="rounded-lg px-3 py-2 mb-3 min-h-[52px] flex items-center"
+          style={{ background: 'var(--color-fondo)', border: '1px solid var(--color-borde)' }}>
+          {hoveredDato ? (
+            <div className="w-full">
+              <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--color-texto)' }}>
+                {hoveredDato.anioCalendario} · {hoveredDato.edad} años
+              </p>
+              <div className="flex flex-wrap gap-x-5 gap-y-1">
+                {hoveredDato.recurrentes.map(r => (
+                  <span key={r.tipo} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: r.color }} />
+                    <span style={{ color: 'var(--color-muted)' }}>{getTipoLabelCorto(r.tipo)}:</span>
+                    <strong style={{ color: 'var(--color-texto)' }}>S/ {fmt(r.monto)}/mes</strong>
+                  </span>
+                ))}
+                {hoveredDato.recurrentes.length > 1 && hoveredDato.totalMensual > 0 && (
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-acento)' }}>
+                    Total: S/ {fmt(hoveredDato.totalMensual)}/mes
+                  </span>
+                )}
+                {hoveredDato.retiros.map((r, i) => (
+                  <span key={i} className="text-xs flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} />
+                    <span style={{ color: 'var(--color-muted)' }}>↓ {r.nombre}:</span>
+                    <strong style={{ color: 'var(--color-texto)' }}>S/ {fmt(r.monto)}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              Pasa el cursor sobre una barra para ver el detalle
+            </p>
+          )}
+        </div>
+
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: `${Math.max(datos.length * 34, 400)}px` }}>
+            {/* Zona de retiros + barras */}
+            <div className="flex gap-0.5 items-end">
+              {datos.map(d => {
+                const barH = d.totalMensual > 0 ? Math.max((d.totalMensual / maxMensual) * CHART_H, 2) : 0
+                const isHovered = hoveredDato?.anioCalendario === d.anioCalendario
+                return (
+                  <div
+                    key={d.anioCalendario}
+                    className="flex-1 flex flex-col items-center cursor-pointer"
+                    style={{ minWidth: '28px' }}
+                    onMouseEnter={() => setHoveredDato(d)}
+                    onMouseLeave={() => setHoveredDato(null)}
+                  >
+                    {/* Zona retiros — dots apilados en filas, crecen hacia arriba desde la barra */}
+                    <div
+                      style={{ height: `${RETIRO_H}px` }}
+                      className="flex flex-wrap content-end justify-center gap-0.5 pb-1 w-full"
+                    >
+                      {d.retiros.map((r, i) => (
+                        <div
+                          key={i}
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ background: r.color }}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Barra apilada */}
+                    <div
+                      className="w-full flex flex-col-reverse rounded-t-sm overflow-hidden transition-opacity"
+                      style={{
+                        height: `${barH}px`,
+                        minHeight: d.totalMensual > 0 ? '2px' : 0,
+                        opacity: hoveredDato && !isHovered ? 0.5 : 1,
+                      }}
+                    >
+                      {d.recurrentes.map(r => (
+                        <div
+                          key={r.tipo}
+                          style={{
+                            height: `${Math.max((r.monto / maxMensual) * CHART_H, 1)}px`,
+                            background: r.color,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Línea base */}
+            <div className="w-full mt-0.5" style={{ height: '1px', background: 'var(--color-borde)' }} />
+
+            {/* Eje X — año */}
+            <div className="flex gap-0.5 mt-1">
+              {datos.map(d => (
+                <div key={d.anioCalendario} className="flex-1 text-center" style={{ minWidth: '28px' }}>
+                  <p style={{ fontSize: '10px', color: 'var(--color-muted)', lineHeight: 1.2 }}>
+                    {String(d.anioCalendario).slice(2)}
+                  </p>
+                  <p style={{ fontSize: '9px', color: 'var(--color-muted)', opacity: 0.6, lineHeight: 1.1 }}>
+                    {d.edad}a
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Leyenda */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 pt-3" style={{ borderTop: '1px solid var(--color-borde)' }}>
+          {tiposRecurrentes.map(tipo => (
+            <div key={tipo} className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: getTipoColor(tipo) }} />
+              <span className="text-xs" style={{ color: 'var(--color-muted)' }}>{getTipoLabelCorto(tipo)}</span>
+            </div>
+          ))}
+          {hayRetiros && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: 'var(--color-muted)' }} />
+              <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Egreso único</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Lista de retiros únicos */}
+      {hayRetiros && (
+        <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs font-medium mb-3" style={{ color: 'var(--color-muted)' }}>Egresos puntuales</p>
+          <div className="space-y-2">
+            {datos.filter(d => d.retiros.length > 0).flatMap(d =>
+              d.retiros.map((r, i) => (
+                <div key={`${d.anioCalendario}-${i}`} className="flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: r.color }} />
+                  <span className="text-xs flex-1 truncate" style={{ color: 'var(--color-texto)' }}>{r.nombre}</span>
+                  <span className="text-xs font-mono shrink-0" style={{ color: 'var(--color-muted)' }}>{d.anioCalendario} · {d.edad} años</span>
+                  <span className="text-xs font-mono font-semibold shrink-0" style={{ color: 'var(--color-texto)' }}>S/ {fmt(r.monto)}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export default function LifeEvents() {
@@ -448,6 +740,7 @@ export default function LifeEvents() {
   const [draft, setDraft] = useState<EventoVida | null>(null)
   const [wizardOpen, setWizardOpen] = useState(false)
   const [copyOpen, setCopyOpen] = useState(false)
+  const [view, setView] = useState<'lista' | 'grafica'>('lista')
 
   if (!escenarioActivo) return <Empty />
 
@@ -484,6 +777,31 @@ export default function LifeEvents() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* Toggle Lista / Gráfica */}
+          {eventosVida.length > 0 && (
+            <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--color-borde)' }}>
+              <button
+                onClick={() => setView('lista')}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
+                style={{
+                  background: view === 'lista' ? 'var(--color-acento)' : 'var(--color-fondo)',
+                  color: view === 'lista' ? '#fff' : 'var(--color-muted)',
+                }}
+              >
+                <List size={13} /> Lista
+              </button>
+              <button
+                onClick={() => setView('grafica')}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold"
+                style={{
+                  background: view === 'grafica' ? 'var(--color-acento)' : 'var(--color-fondo)',
+                  color: view === 'grafica' ? '#fff' : 'var(--color-muted)',
+                }}
+              >
+                <BarChart2 size={13} /> Gráfica
+              </button>
+            </div>
+          )}
           {eventosVida.length > 0 && otrosEscenarios.length > 0 && (
             <button
               onClick={() => { setCopyOpen(true); setWizardOpen(false) }}
@@ -543,36 +861,40 @@ export default function LifeEvents() {
         />
       )}
 
-      <div className="space-y-3">
-        {eventosVida.map(ev => {
-          const tipo = TIPOS_EVENTO.find(t => t.id === ev.tipoEvento)
-          return (
-            <div key={ev.id} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
-              {editingId === ev.id && draft ? (
-                <EventoEditForm
-                  value={draft}
-                  onChange={setDraft}
-                  onSave={saveEdit}
-                  onCancel={() => { setEditingId(null); setDraft(null) }}
-                  general={general}
-                />
-              ) : (
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">{tipo?.icono ?? '📌'}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>{ev.nombre || '(sin nombre)'}</p>
-                    <EventoResumen ev={ev} general={general} />
+      {view === 'grafica' ? (
+        <GraficaEventos eventos={eventosVida} general={general} />
+      ) : (
+        <div className="space-y-3">
+          {eventosVida.map(ev => {
+            const tipo = TIPOS_EVENTO.find(t => t.id === ev.tipoEvento)
+            return (
+              <div key={ev.id} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+                {editingId === ev.id && draft ? (
+                  <EventoEditForm
+                    value={draft}
+                    onChange={setDraft}
+                    onSave={saveEdit}
+                    onCancel={() => { setEditingId(null); setDraft(null) }}
+                    general={general}
+                  />
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl mt-0.5">{tipo?.icono ?? '📌'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>{ev.nombre || '(sin nombre)'}</p>
+                      <EventoResumen ev={ev} general={general} />
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={() => { setEditingId(ev.id); setDraft({ ...ev }) }} className="p-1.5 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Edit2 size={14} /></button>
+                      <button onClick={() => del(ev.id)} className="p-1.5 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Trash2 size={14} /></button>
+                    </div>
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => { setEditingId(ev.id); setDraft({ ...ev }) }} className="p-1.5 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Edit2 size={14} /></button>
-                    <button onClick={() => del(ev.id)} className="p-1.5 rounded hover:opacity-70" style={{ color: 'var(--color-muted)' }}><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

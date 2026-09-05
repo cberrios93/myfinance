@@ -18,6 +18,15 @@ export default function Career() {
 
   if (!escenarioActivo || !carrera) return <div className="text-center py-20" style={{ color: 'var(--color-muted)' }}>No hay escenario activo.</div>
 
+  const { anioActual, edadActual, edadRetiro } = escenarioActivo.general
+  const tToAnio = (t: number) => anioActual + t
+  const tToEdad = (t: number) => edadActual + t
+  const anioMaximo = anioActual + (edadRetiro - edadActual)
+  const aniosDisponibles = Array.from(
+    { length: anioMaximo - anioActual },
+    (_, i) => anioActual + i + 1
+  )
+
   const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }
 
   function updateSalto(i: number, salto: SaltoCarrera) {
@@ -73,7 +82,7 @@ export default function Career() {
         </div>
 
         <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
-          Aporte año {escenarioActivo.general.edadActual + 1}: {formatAbrev(Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual)), config)} · Mensual: {formatAbrev(Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual) / 12), config)}
+          Aporte {tToAnio(1)} ({tToEdad(1)} años): {formatAbrev(Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual)), config)} · Mensual: {formatAbrev(Math.round(carrera.aporteAnualBase * (1 + carrera.crecimientoRealAnual) / 12), config)}
         </p>
       </div>
 
@@ -93,10 +102,17 @@ export default function Career() {
           <div key={i} className="flex gap-3 items-center">
             <div className="flex-1 grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Año T</label>
-                <input type="number" min={1} value={salto.anioT}
-                  onChange={e => updateSalto(i, { ...salto, anioT: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Año</label>
+                <select
+                  value={tToAnio(salto.anioT)}
+                  onChange={e => updateSalto(i, { ...salto, anioT: parseInt(e.target.value) - anioActual })}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={inputStyle}
+                >
+                  {aniosDisponibles.map(anio => (
+                    <option key={anio} value={anio}>{anio} — {edadActual + (anio - anioActual)} años</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Nuevo aporte anual (S/)</label>

@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Settings2, Landmark, ArrowLeftRight,
   CalendarClock, TrendingUp, GitBranch, ArrowUpDown, Settings, LogOut, Menu, X,
-  Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard, Calculator,
+  Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard,
   Users, ChevronRight, LineChart, ShieldCheck, Banknote
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
@@ -39,12 +39,6 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    section: 'Calculadoras',
-    items: [
-      { to: '/impuesto-5ta', label: 'Impuesto 5ta', icon: Calculator },
-    ],
-  },
-  {
     section: 'Simulación',
     items: [
       { to: '/parametros', label: 'Parámetros', icon: Settings2 },
@@ -52,6 +46,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/movimientos', label: 'Movimientos', icon: ArrowLeftRight },
       { to: '/eventos', label: 'Eventos de vida', icon: CalendarClock },
       { to: '/carrera', label: 'Carrera y aportes', icon: TrendingUp },
+      { to: '/proyeccion', label: 'Proyección', icon: LineChart },
       { to: '/escenarios', label: 'Escenarios', icon: GitBranch },
     ],
   },

@@ -44,16 +44,20 @@ interface Prepago { mes: number; monto: number; label: string }
 interface SimScenario {
   id: string; label: string; inicialPct: number
   prepagos: Prepago[]; aplicaGratificacion: boolean; plazoExtra: number
+  // 'simple' = cuota fija 12/año | 'doble' = cuota reducida + doble en jul/dic (14/año)
+  tipoCuota: 'simple' | 'doble'
 }
 
 interface AmortRow {
   mes: number; cuotaBase: number; interes: number; capitalAmort: number
-  prepago: number; esGratificacion: boolean; saldo: number
+  prepago: number; esGratificacion: boolean; esMesDoble: boolean; saldo: number
   desgravamen: number; riesgo: number; cuotaTotal: number
 }
 
 interface ScenarioResult {
   scenario: SimScenario; cuotaMensual: number; cuotaRealMensual: number
+  // cuota que el usuario ve cada mes regular (distinta si tipoCuota='doble')
+  cuotaRegularMensual: number
   miCuotaMedia: number; inicialPEN: number; principalPEN: number
   rows: AmortRow[]; totalIntereses: number; totalSeguros: number
   totalPagar: number; mesesReales: number; gastosCierre: number
@@ -69,23 +73,46 @@ function calcCuota(p: number, tea: number, n: number) {
   return i === 0 ? p / n : (p * i * (1 + i) ** n) / ((1 + i) ** n - 1)
 }
 
-function buildAmort(principal: number, tea: number, plazo: number, prepagos: Prepago[], grat: boolean, valorPEN: number, vc?: ViviendaConfig): AmortRow[] {
+// Factor de cuota doble: el banco divide en 14 cuotas/año en vez de 12.
+// Cuota regular (mes simple) = C × 12/14. Mes doble (6 y 12 de cada año) = C × 24/14.
+// Esto es lo que el banco llama "cuotas dobles": cuota regular más baja, doble en jul/dic.
+const FACTOR_DOBLE_SIMPLE = 12 / 14   // cuota mes normal (cuota doble del banco)
+const FACTOR_DOBLE_DOBLE  = 24 / 14   // cuota mes doble (julio / diciembre)
+
+function buildAmort(
+  principal: number, tea: number, plazo: number,
+  prepagos: Prepago[], grat: boolean, tipoCuota: 'simple' | 'doble',
+  valorPEN: number, vc?: ViviendaConfig,
+): AmortRow[] {
   if (principal <= 0) return []
-  const i = calcTEM(tea), cuotaBase = calcCuota(principal, tea, plazo)
+  const i = calcTEM(tea)
+  // Cuota base "simple" estándar (French)
+  const cuotaStd = calcCuota(principal, tea, plazo)
   const tDG = (vc?.incluirSeguros ? vc.tasaDesgravamen : 0) / 100
   const tRI = (vc?.incluirSeguros ? vc.tasaRiesgo      : 0) / 100
   const rows: AmortRow[] = []
   let saldo = principal
   for (let mes = 1; mes <= plazo + 36 && saldo > 0.005; mes++) {
-    const interes = saldo * i, capitalAmort = Math.min(cuotaBase - interes, saldo)
-    const desgravamen = saldo * tDG, riesgo = valorPEN * tRI
+    // Cuota doble: mes 6 y 12 de cada año del préstamo → índice de mes en el año del préstamo
+    const esMesDoble = tipoCuota === 'doble' && mes % 6 === 0
+    const cuotaBase  = tipoCuota === 'doble'
+      ? cuotaStd * (esMesDoble ? FACTOR_DOBLE_DOBLE : FACTOR_DOBLE_SIMPLE)
+      : cuotaStd
+    const interes     = saldo * i
+    const capitalAmort = Math.min(cuotaBase - interes, saldo)
+    const desgravamen  = saldo * tDG, riesgo = valorPEN * tRI
+    // Gratificación voluntaria al plazo: cuota extra (= 1 cuota estándar) → reduce plazo
     const esGrat = grat && mes % 6 === 0
-    const extraGrat = esGrat ? Math.min(cuotaBase, saldo - capitalAmort) : 0
-    const ppConf = prepagos.find(p => p.mes === mes)?.monto ?? 0
-    const extraPP = Math.min(ppConf, Math.max(0, saldo - capitalAmort - extraGrat))
-    const capTotal = capitalAmort + extraGrat + extraPP
+    const extraGrat = esGrat ? Math.min(cuotaStd, saldo - capitalAmort) : 0
+    const ppConf    = prepagos.find(p => p.mes === mes)?.monto ?? 0
+    const extraPP   = Math.min(ppConf, Math.max(0, saldo - capitalAmort - extraGrat))
+    const capTotal  = capitalAmort + extraGrat + extraPP
     saldo = Math.max(0, saldo - capTotal)
-    rows.push({ mes, cuotaBase, interes, capitalAmort: capitalAmort + extraGrat, prepago: extraPP, esGratificacion: esGrat, saldo, desgravamen, riesgo, cuotaTotal: interes + capTotal + desgravamen + riesgo })
+    rows.push({
+      mes, cuotaBase, interes, capitalAmort: capitalAmort + extraGrat,
+      prepago: extraPP, esGratificacion: esGrat, esMesDoble, saldo,
+      desgravamen, riesgo, cuotaTotal: interes + capTotal + desgravamen + riesgo,
+    })
     if (saldo <= 0.005) break
   }
   return rows
@@ -104,43 +131,50 @@ function oppCost(mensual: number, meses: number, tasaAnual: number) {
 }
 
 function runScenario(s: SimScenario, valorPEN: number, tea: number, plazo: number, vc?: ViviendaConfig): ScenarioResult {
-  const inicialPEN = valorPEN * s.inicialPct / 100
+  const inicialPEN   = valorPEN * s.inicialPct / 100
   const principalPEN = Math.max(0, valorPEN - inicialPEN)
-  const cuotaMensual = calcCuota(principalPEN, tea, plazo + s.plazoExtra)
-  const rows = buildAmort(principalPEN, tea, plazo + s.plazoExtra, s.prepagos, s.aplicaGratificacion, valorPEN, vc)
+  const plazoEfectivo = plazo + s.plazoExtra
+  // cuotaMensual = cuota "estándar" French (referencia para intereses)
+  const cuotaMensual = calcCuota(principalPEN, tea, plazoEfectivo)
+  const rows = buildAmort(principalPEN, tea, plazoEfectivo, s.prepagos, s.aplicaGratificacion, s.tipoCuota, valorPEN, vc)
   const totalIntereses = rows.reduce((a, r) => a + r.interes, 0)
   const totalSeguros   = rows.reduce((a, r) => a + r.desgravamen + r.riesgo, 0)
   const mesesReales    = rows.length
   const gc = vc?.incluirGastosCierre ? gastosCierre(valorPEN, vc).total : 0
   const totalPagar = inicialPEN + principalPEN + totalIntereses + totalSeguros + gc
-  const cuotaRealMensual = rows.length ? rows.reduce((a, r) => a + r.cuotaTotal, 0) / rows.length : cuotaMensual
+  // cuotaRealMensual = cuota promedio total (usada para el evento de gasto recurrente)
+  const cuotaRealMensual = cuotaMensual + (mesesReales > 0 ? totalSeguros / mesesReales : 0)
+  // cuotaRegularMensual = lo que el usuario paga en meses normales (menor en cuota doble)
+  const cuotaBaseRegular = s.tipoCuota === 'doble' ? cuotaMensual * FACTOR_DOBLE_SIMPLE : cuotaMensual
+  const cuotaRegularMensual = cuotaBaseRegular + (mesesReales > 0 ? totalSeguros / mesesReales : 0)
   const pct = vc?.esCompartida ? vc.miPorcentaje / 100 : 1
-  return { scenario: s, cuotaMensual, cuotaRealMensual, miCuotaMedia: cuotaRealMensual * pct, inicialPEN, principalPEN, rows, totalIntereses, totalSeguros, totalPagar, mesesReales, gastosCierre: gc }
+  return { scenario: s, cuotaMensual, cuotaRealMensual, cuotaRegularMensual, miCuotaMedia: cuotaRegularMensual * pct, inicialPEN, principalPEN, rows, totalIntereses, totalSeguros, totalPagar, mesesReales, gastosCierre: gc }
 }
 
 function generarEscenarios(p: SimProfile, valorPEN: number, _tea: number, _plazo: number, tipoId: string, vc?: ViviendaConfig): SimScenario[] {
   const esV = tipoId === 'vivienda'
   const ib = p.capitalDisponible === 'bajo' ? 10 : p.capitalDisponible === 'medio' ? 15 : p.capitalDisponible === 'alto' ? 25 : 10
-  const a: SimScenario = { id: 'a', label: `Mínimo (${ib}% inicial)`, inicialPct: ib, prepagos: [], aplicaGratificacion: false, plazoExtra: 0 }
+  const base = { tipoCuota: 'simple' as const }
+  const a: SimScenario = { id: 'a', label: `Mínimo (${ib}% inicial)`, inicialPct: ib, prepagos: [], aplicaGratificacion: false, plazoExtra: 0, ...base }
   let b: SimScenario, c: SimScenario
   if (esV) {
-    b = { id: 'b', label: `${ib}% + Gratificaciones`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0 }
+    b = { id: 'b', label: `${ib}% + Gratif. voluntarias`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0, ...base }
     if (p.tieneCapitalExtra && !vc?.inversionesRindeMas) {
-      c = { id: 'c', label: `${ib}% + Gratif. + Prepago año 2`, inicialPct: ib, prepagos: [{ mes: 24, monto: Math.round(valorPEN * 0.04), label: 'Prepago año 2' }], aplicaGratificacion: true, plazoExtra: 0 }
+      c = { id: 'c', label: `${ib}% + Gratif. + Prepago año 2`, inicialPct: ib, prepagos: [{ mes: 24, monto: Math.round(valorPEN * 0.04), label: 'Prepago año 2' }], aplicaGratificacion: true, plazoExtra: 0, ...base }
     } else if (p.capitalDisponible === 'alto') {
-      c = { id: 'c', label: `${Math.min(ib + 10, 40)}% inicial + Gratif.`, inicialPct: Math.min(ib + 10, 40), prepagos: [], aplicaGratificacion: true, plazoExtra: 0 }
+      c = { id: 'c', label: `${Math.min(ib + 10, 40)}% inicial + Gratif.`, inicialPct: Math.min(ib + 10, 40), prepagos: [], aplicaGratificacion: true, plazoExtra: 0, ...base }
     } else {
-      c = { id: 'c', label: `${ib}% + Gratif. + Plazo −5 años`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: -60 }
+      c = { id: 'c', label: `${ib}% + Gratif. + Plazo −5 años`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: -60, ...base }
     }
   } else if (p.capitalDisponible === 'alto' || p.capitalDisponible === 'medio') {
-    b = { id: 'b', label: `${Math.min(ib + 10, 40)}% inicial`, inicialPct: Math.min(ib + 10, 40), prepagos: [], aplicaGratificacion: p.tieneBono === true, plazoExtra: 0 }
-    c = { id: 'c', label: `${ib}% + Gratificaciones`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0 }
+    b = { id: 'b', label: `${Math.min(ib + 10, 40)}% inicial`, inicialPct: Math.min(ib + 10, 40), prepagos: [], aplicaGratificacion: p.tieneBono === true, plazoExtra: 0, ...base }
+    c = { id: 'c', label: `${ib}% + Gratif. voluntarias`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0, ...base }
   } else if (p.prioridad === 'cuota') {
-    b = { id: 'b', label: `${ib}% + Gratificaciones`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0 }
-    c = { id: 'c', label: 'Plazo extendido (+5 años)', inicialPct: ib, prepagos: [], aplicaGratificacion: false, plazoExtra: 60 }
+    b = { id: 'b', label: `${ib}% + Gratif. voluntarias`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0, ...base }
+    c = { id: 'c', label: 'Plazo extendido (+5 años)', inicialPct: ib, prepagos: [], aplicaGratificacion: false, plazoExtra: 60, ...base }
   } else {
-    b = { id: 'b', label: `${ib}% + Gratificaciones`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0 }
-    c = { id: 'c', label: `${ib}% + Prepago año 1`, inicialPct: ib, prepagos: [{ mes: 12, monto: Math.round(valorPEN * 0.05), label: 'Prepago año 1' }], aplicaGratificacion: p.tieneBono === true, plazoExtra: 0 }
+    b = { id: 'b', label: `${ib}% + Gratif. voluntarias`, inicialPct: ib, prepagos: [], aplicaGratificacion: true, plazoExtra: 0, ...base }
+    c = { id: 'c', label: `${ib}% + Prepago año 1`, inicialPct: ib, prepagos: [{ mes: 12, monto: Math.round(valorPEN * 0.05), label: 'Prepago año 1' }], aplicaGratificacion: p.tieneBono === true, plazoExtra: 0, ...base }
   }
   return [a, b, c]
 }
@@ -208,14 +242,25 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
 
   function confirmarSeleccion(result: ScenarioResult) {
     const eventos: Omit<EventoVida, 'id'>[] = []
-    if (esV && vc.incluirGastosCierre && gc && gc.total > 0)
-      eventos.push({ nombre: `${tipoLabel} – Gastos de cierre`, tipoEvento: tipoId, retiroUnico: { anioT, monto: Math.round(gc.total) } })
+    if (esV && vc.incluirGastosCierre && gc && gc.total > 0) {
+      const miGastos = vc.esCompartida ? Math.round(gc.total * vc.miPorcentaje / 100) : Math.round(gc.total)
+      eventos.push({ nombre: `${tipoLabel} – Gastos de cierre${vc.esCompartida ? ` (${vc.miPorcentaje}%)` : ''}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: miGastos } })
+    }
     const miInicial = esV && vc.esCompartida ? result.inicialPEN * vc.miPorcentaje / 100 : result.inicialPEN
     if (miInicial > 0)
       eventos.push({ nombre: `${tipoLabel} – Cuota inicial${vc.esCompartida ? ` (${vc.miPorcentaje}%)` : ''}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: Math.round(miInicial) } })
-    const miCuota = esV && vc.esCompartida ? Math.round(result.cuotaRealMensual * vc.miPorcentaje / 100) : Math.round(result.cuotaRealMensual)
+    // Cuota mensual = amortización base + seguros promedio (sin prepagos)
+    // Para cuota doble: usar cuota regular (el banco cobra menos los 10 meses normales)
+    const cuotaParaEvento = Math.round(result.cuotaRegularMensual)
+    const miCuota = esV && vc.esCompartida ? Math.round(cuotaParaEvento * vc.miPorcentaje / 100) : cuotaParaEvento
     if (miCuota > 0)
       eventos.push({ nombre: `${tipoLabel} – Cuota mensual${vc.esCompartida ? ` (${vc.miPorcentaje}%)` : ''}`, tipoEvento: tipoId, gastoRecurrente: { anioInicioT: anioT, anioFinT: anioT + Math.ceil(result.mesesReales / 12), montoMensual: miCuota } })
+    // Prepagos → cada uno como retiro único en el año correspondiente
+    for (const pp of result.scenario.prepagos) {
+      const ppAnioT = anioT + Math.floor((pp.mes - 1) / 12)
+      const miMontoPP = esV && vc.esCompartida ? Math.round(pp.monto * vc.miPorcentaje / 100) : pp.monto
+      eventos.push({ nombre: `${tipoLabel} – ${pp.label}`, tipoEvento: tipoId, retiroUnico: { anioT: ppAnioT, monto: miMontoPP } })
+    }
     onConfirm(eventos)
   }
 
@@ -485,7 +530,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
                 Escenario {r.scenario.id.toUpperCase()}
               </span>
               <span className="font-mono text-xs" style={{ color: tabActivo === r.scenario.id ? 'var(--color-acento)' : 'var(--color-muted)' }}>
-                S/ {M(esV && vc.incluirSeguros ? r.cuotaRealMensual : r.cuotaMensual)}/mes
+                S/ {M(esV && vc.incluirSeguros ? r.cuotaRegularMensual : r.cuotaMensual)}/mes
               </span>
             </button>
           ))}
@@ -507,8 +552,9 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
 
             {/* Métricas */}
             <div className="grid grid-cols-2 gap-2.5">
-              <MetCard label={esV && vc.incluirSeguros ? 'Cuota real/mes' : 'Cuota base/mes'}
-                value={`S/ ${M(esV && vc.incluirSeguros ? activeR.cuotaRealMensual : activeR.cuotaMensual)}`} accent />
+              <MetCard
+                label={activeScenario.tipoCuota === 'doble' ? 'Cuota regular/mes' : esV && vc.incluirSeguros ? 'Cuota real/mes' : 'Cuota base/mes'}
+                value={`S/ ${M(esV && vc.incluirSeguros ? activeR.cuotaRegularMensual : activeR.cuotaMensual)}`} accent />
               {esV && vc.esCompartida && (
                 <MetCard label={`Mi cuota (${vc.miPorcentaje}%)`} value={`S/ ${M(activeR.miCuotaMedia)}`} color="#00C9A7" />
               )}
@@ -527,11 +573,47 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
             <div className="rounded-2xl p-4 space-y-4" style={{ background: 'var(--color-fondo)', border: '1px solid var(--color-borde)' }}>
               <p className="text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Personalizar</p>
 
-              {/* Gratificaciones */}
+              {/* Sistema del banco: cuota simple vs doble (solo vivienda) */}
+              {esV && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>Sistema del banco</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
+                        {activeScenario.tipoCuota === 'doble'
+                          ? 'Cuota doble: pagas menos en meses regulares, el doble en julio y diciembre'
+                          : 'Cuota simple: mismo monto cada mes (French estándar)'}
+                      </p>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      {(['simple', 'doble'] as const).map(t => (
+                        <button key={t} onClick={() => updateEscenario(activeScenario.id, { tipoCuota: t })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                          style={{
+                            background: activeScenario.tipoCuota === t ? 'var(--color-acento)' : 'var(--color-card)',
+                            color: activeScenario.tipoCuota === t ? '#fff' : 'var(--color-muted)',
+                            border: `1px solid ${activeScenario.tipoCuota === t ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+                          }}>
+                          {t === 'simple' ? 'Simple' : 'Doble'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {activeScenario.tipoCuota === 'doble' && activeR && (
+                    <div className="flex gap-3 px-3 py-2 rounded-xl text-xs" style={{ background: 'color-mix(in srgb, var(--color-acento) 10%, transparent)', color: 'var(--color-texto)' }}>
+                      <span>Mes regular: <strong>S/ {M(activeR.cuotaRegularMensual)}</strong></span>
+                      <span>·</span>
+                      <span>Mes doble (jul/dic): <strong>S/ {M(activeR.cuotaRegularMensual * FACTOR_DOBLE_DOBLE / FACTOR_DOBLE_SIMPLE)}</strong></span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Gratificaciones voluntarias al plazo */}
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>Gratificaciones al plazo</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>Pago extra cada 6 meses (CTS + gratificación) — reduce el plazo, cuota igual</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>Gratificaciones voluntarias al plazo</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>Pago extra personal cada 6 meses (CTS/gratif.) → reduce el plazo, cuota no cambia</p>
                 </div>
                 <Toggle value={activeScenario.aplicaGratificacion} onChange={v => updateEscenario(activeScenario.id, { aplicaGratificacion: v })} />
               </div>
@@ -628,8 +710,8 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
               </thead>
               <tbody>
                 {visibles.map((row, idx) => (
-                  <tr key={row.mes} style={{ background: row.esGratificacion ? 'color-mix(in srgb, var(--color-acento) 8%, transparent)' : idx % 2 === 0 ? 'var(--color-card)' : 'transparent' }}>
-                    <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-muted)' }}>{row.mes}{row.esGratificacion && ' ★'}</td>
+                  <tr key={row.mes} style={{ background: row.esGratificacion ? 'color-mix(in srgb, var(--color-acento) 8%, transparent)' : row.esMesDoble ? 'color-mix(in srgb, #F59E0B 8%, transparent)' : idx % 2 === 0 ? 'var(--color-card)' : 'transparent' }}>
+                    <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-muted)' }}>{row.mes}{row.esGratificacion && ' ★'}{row.esMesDoble && ' ◆'}</td>
                     <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-texto)' }}>{M(row.cuotaBase)}</td>
                     <td className="px-3 py-2.5 font-mono" style={{ color: '#E24C4C' }}>{M(row.interes)}</td>
                     <td className="px-3 py-2.5 font-mono" style={{ color: 'var(--color-texto)' }}>{M(row.capitalAmort)}</td>
@@ -771,8 +853,8 @@ function MetCard({ label, value, hint, accent, color }: { label: string; value: 
 function DiffRow({ current, base, esV, vc }: { current: ScenarioResult; base: ScenarioResult; esV: boolean; vc?: ViviendaConfig }) {
   const diffI = current.totalIntereses - base.totalIntereses
   const diffM = current.mesesReales    - base.mesesReales
-  const cA    = esV && vc?.incluirSeguros ? base.cuotaRealMensual    : base.cuotaMensual
-  const cB    = esV && vc?.incluirSeguros ? current.cuotaRealMensual : current.cuotaMensual
+  const cA    = esV && vc?.incluirSeguros ? base.cuotaRegularMensual    : base.cuotaMensual
+  const cB    = esV && vc?.incluirSeguros ? current.cuotaRegularMensual : current.cuotaMensual
   const diffC = cB - cA
   const Ab    = (n: number) => Math.round(Math.abs(n)).toLocaleString('es-PE')
   const Cl    = (v: number) => v < 0 ? '#00C9A7' : '#E24C4C'

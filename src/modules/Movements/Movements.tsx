@@ -21,6 +21,15 @@ export default function Movements() {
 
   if (!escenarioActivo) return <Empty />
 
+  const { anioActual, edadActual, edadRetiro } = escenarioActivo.general
+  const tToAnio = (t: number) => anioActual + t
+  const tToEdad = (t: number) => edadActual + t
+  const anioMaximo = anioActual + (edadRetiro - edadActual)
+  const aniosDisponibles = Array.from(
+    { length: anioMaximo - anioActual },
+    (_, i) => anioActual + i + 1
+  )
+
   const { movimientos, instrumentos } = escenarioActivo
 
   function instNombre(id: string | null) {
@@ -59,7 +68,7 @@ export default function Movements() {
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Movimientos de capital</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
-            Reasignaciones entre instrumentos por año T.
+            Reasignaciones entre instrumentos en un año específico.
           </p>
         </div>
         <button onClick={() => { setNewDraft({ id: '', ...EMPTY }); setAdding(true) }}
@@ -79,10 +88,13 @@ export default function Movements() {
         {movimientos.sort((a, b) => a.anioT - b.anioT).map(mov => (
           <div key={mov.id} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
             {editingId === mov.id && draft ? (
-              <MovimientoForm value={draft} onChange={setDraft} instrumentos={instrumentos} onSave={saveEdit} onCancel={() => { setEditingId(null); setDraft(null) }} />
+              <MovimientoForm value={draft} onChange={setDraft} instrumentos={instrumentos} onSave={saveEdit} onCancel={() => { setEditingId(null); setDraft(null) }} anioActual={anioActual} edadActual={edadActual} aniosDisponibles={aniosDisponibles} />
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-acento)', minWidth: 60 }}>Año {mov.anioT}</span>
+                <div style={{ minWidth: 80 }}>
+                  <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-acento)' }}>{tToAnio(mov.anioT)}</span>
+                  <span className="text-xs ml-1.5" style={{ color: 'var(--color-muted)' }}>{tToEdad(mov.anioT)} años</span>
+                </div>
                 <div className="flex-1 text-sm" style={{ color: 'var(--color-texto)' }}>
                   {instNombre(mov.desdeInstrumentoId)} → {instNombre(mov.haciaInstrumentoId)} · {montoLabel(mov.monto)}
                 </div>
@@ -98,7 +110,7 @@ export default function Movements() {
         {adding && (
           <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '2px solid var(--color-acento)' }}>
             <p className="text-sm font-semibold mb-3" style={{ color: 'var(--color-texto)' }}>Nuevo movimiento</p>
-            <MovimientoForm value={newDraft} onChange={setNewDraft} instrumentos={instrumentos} onSave={confirmAdd} onCancel={() => setAdding(false)} />
+            <MovimientoForm value={newDraft} onChange={setNewDraft} instrumentos={instrumentos} onSave={confirmAdd} onCancel={() => setAdding(false)} anioActual={anioActual} edadActual={edadActual} aniosDisponibles={aniosDisponibles} />
           </div>
         )}
       </div>
@@ -106,12 +118,15 @@ export default function Movements() {
   )
 }
 
-function MovimientoForm({ value, onChange, instrumentos, onSave, onCancel }: {
+function MovimientoForm({ value, onChange, instrumentos, onSave, onCancel, anioActual, edadActual, aniosDisponibles }: {
   value: Movimiento
   onChange: (v: Movimiento) => void
   instrumentos: { id: string; nombre: string }[]
   onSave: () => void
   onCancel: () => void
+  anioActual: number
+  edadActual: number
+  aniosDisponibles: number[]
 }) {
   useSubmitOnCmdEnter(onSave)
   const inputStyle = { background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }
@@ -121,10 +136,17 @@ function MovimientoForm({ value, onChange, instrumentos, onSave, onCancel }: {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Año T</label>
-          <input type="number" min={1} value={value.anioT}
-            onChange={e => onChange({ ...value, anioT: parseInt(e.target.value) || 1 })}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
+          <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Año</label>
+          <select
+            value={anioActual + value.anioT}
+            onChange={e => onChange({ ...value, anioT: parseInt(e.target.value) - anioActual })}
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+            style={inputStyle}
+          >
+            {aniosDisponibles.map(anio => (
+              <option key={anio} value={anio}>{anio} — {edadActual + (anio - anioActual)} años</option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Monto (S/) o "Todo"</label>

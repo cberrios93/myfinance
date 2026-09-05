@@ -89,6 +89,43 @@ export default function Parameters() {
         </div>
       </Card>
 
+      <Card title="Proyección de ingresos">
+        <Field label="Mes de ajuste salarial en empresa actual">
+          <select
+            value={params.mesAjusteSalarial ?? 4}
+            onChange={e => setParams({ ...params, mesAjusteSalarial: Number(e.target.value) })}
+            className="w-32 text-sm px-2 py-1.5 rounded-lg"
+            style={{ background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }}
+          >
+            {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((mes, i) => (
+              <option key={i + 1} value={i + 1}>{i + 1} — {mes}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Incremento salarial anual (%)">
+          <NumberInput
+            value={parseFloat(((params.incrementoSalarialAnual ?? 0.03) * 100).toFixed(2))}
+            onChange={v => setParams({ ...params, incrementoSalarialAnual: v / 100 })}
+            min={0} max={20} step={0.5}
+          />
+        </Field>
+        <Field label="Tasa crec. patrimonio no invertido (%)">
+          <NumberInput
+            value={parseFloat(((params.tasaPatrimonioNoInvertido ?? 0.03) * 100).toFixed(2))}
+            onChange={v => setParams({ ...params, tasaPatrimonioNoInvertido: v / 100 })}
+            min={0} max={20} step={0.5}
+          />
+        </Field>
+        <div className="text-xs mt-3 space-y-1.5" style={{ color: 'var(--color-muted)' }}>
+          <p>
+            <strong style={{ color: 'var(--color-texto)' }}>Sueldo base:</strong> promedio de (sueldo básico + comisiones) desde el último ajuste de compensación hasta hoy, usando tus recibos de Haberes. El incremento proyecta su crecimiento anual.
+          </p>
+          <p>
+            <strong style={{ color: 'var(--color-texto)' }}>Patrimonio no invertido:</strong> cuentas de Patrimonio sin instrumento enlazado (efectivo, inmuebles, etc.). La tasa estima su crecimiento anual.
+          </p>
+        </div>
+      </Card>
+
       <Card title="Metas de ingreso mensual">
         <div className="space-y-3">
           {params.metas.map((meta, i) => (

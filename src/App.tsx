@@ -16,6 +16,7 @@ import Movements from './modules/Movements/Movements'
 import LifeEvents from './modules/LifeEvents/LifeEvents'
 import Career from './modules/Career/Career'
 import Scenarios from './modules/Scenarios/Scenarios'
+import Projection from './modules/Projection/Projection'
 import ExportImport from './modules/ExportImport/ExportImport'
 import Settings from './modules/Settings/Settings'
 import UserManagement from './modules/Admin/UserManagement'
@@ -126,6 +127,7 @@ function ProtectedRoutes() {
               <Route path="/movimientos" element={<Movements />} />
               <Route path="/eventos" element={<LifeEvents />} />
               <Route path="/carrera" element={<Career />} />
+              <Route path="/proyeccion" element={<Projection />} />
               <Route path="/escenarios" element={<Scenarios />} />
               <Route path="/exportar" element={<ExportImport />} />
               <Route path="/configuracion" element={<Settings />} />

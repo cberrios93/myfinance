@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  AreaChart, Area, BarChart, Bar, LineChart, Line, ComposedChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine,
   PieChart, Pie, Cell,
 } from 'recharts'
@@ -882,6 +882,60 @@ function RendimientosTab() {
         <StatCard label="Total consolidado (S/)" value={`S/ ${fmt(totalGlobal)}`} positive={totalGlobal >= 0} />
         <StatCard label="Registros" value={`${filtered.length}`} sub={`${byYear.length} año${byYear.length !== 1 ? 's' : ''}`} />
       </div>
+
+      {/* Rentabilidad histórica por año */}
+      {(() => {
+        const TC = 3.7
+        const allYears = [...new Set(rendimientos.map(r => r.anio))].sort((a, b) => a - b)
+        const rentPorAnio = allYears.map(anio => {
+          const delAnio = rendimientos.filter(r => r.anio === anio && !r.esTraspaso)
+          const ganTotal = delAnio.reduce((s, r) => s + (r.gananciasPEN ?? 0) + (r.gananciasUSD ?? 0) * TC, 0)
+          const latest = Object.values(
+            delAnio.reduce((acc, r) => {
+              const prev = acc[r.instrumentoNombre]
+              if (!prev || (r.mes ?? 0) > (prev.mes ?? 0)) acc[r.instrumentoNombre] = r
+              return acc
+            }, {} as Record<string, Rendimiento>)
+          )
+          const base = latest.reduce((s, r) => s + (r.inversionPEN ?? 0) + (r.inversionUSD ?? 0) * TC, 0)
+          const rent = base > 0 ? parseFloat(((ganTotal / base) * 100).toFixed(2)) : null
+          return { anio: String(anio), rentabilidad: rent, montoInvertido: parseFloat((base / 1000).toFixed(1)) }
+        })
+        const valid = rentPorAnio.filter(d => d.rentabilidad != null)
+        if (valid.length < 2) return null
+        const avg = valid.reduce((s, d) => s + d.rentabilidad!, 0) / valid.length
+        const best = valid.reduce((a, b) => b.rentabilidad! > a.rentabilidad! ? b : a)
+        const worst = valid.reduce((a, b) => b.rentabilidad! < a.rentabilidad! ? b : a)
+        return (
+          <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+            <div className="mb-3">
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Rentabilidad histórica por año</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>Rentabilidad neta promedio del portafolio · Monto base en miles (PEN eq.)</p>
+            </div>
+            <ResponsiveContainer width="100%" height={240}>
+              <ComposedChart data={rentPorAnio} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
+                <XAxis dataKey="anio" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} />
+                <YAxis yAxisId="rent" unit="%" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={44} />
+                <YAxis yAxisId="monto" orientation="right" unit="K" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={44} />
+                <Tooltip
+                  contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
+                  formatter={(value, name) => name === 'Rentabilidad' ? [`${value}%`, name] : [`${value}K PEN eq.`, name]}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar yAxisId="monto" dataKey="montoInvertido" name="Monto base" fill="#5B8CF740" radius={[3, 3, 0, 0]} />
+                <Line yAxisId="rent" type="monotone" dataKey="rentabilidad" name="Rentabilidad" stroke="#00C9A7" strokeWidth={2.5} dot={{ r: 4, fill: '#00C9A7', strokeWidth: 0 }} activeDot={{ r: 5 }} connectNulls />
+              </ComposedChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap gap-6 mt-3 pt-3" style={{ borderTop: '1px solid var(--color-borde)' }}>
+              <div><p className="text-xs" style={{ color: 'var(--color-muted)' }}>Promedio histórico</p><p className="text-base font-bold font-mono" style={{ color: avg >= 0 ? '#00C9A7' : '#E24C4C' }}>{avg.toFixed(2)}%</p></div>
+              <div><p className="text-xs" style={{ color: 'var(--color-muted)' }}>Mejor año</p><p className="text-base font-bold font-mono" style={{ color: '#00C9A7' }}>{best.anio} · {best.rentabilidad!.toFixed(2)}%</p></div>
+              <div><p className="text-xs" style={{ color: 'var(--color-muted)' }}>Peor año</p><p className="text-base font-bold font-mono" style={{ color: '#E24C4C' }}>{worst.anio} · {worst.rentabilidad!.toFixed(2)}%</p></div>
+              <div><p className="text-xs" style={{ color: 'var(--color-muted)' }}>Años registrados</p><p className="text-base font-bold font-mono" style={{ color: 'var(--color-texto)' }}>{valid.length}</p></div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Bar chart by year */}
       {byYear.length > 0 && (
