@@ -8,7 +8,7 @@ import { Sparkles, Copy, Check, X as XIcon } from 'lucide-react'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import { useConfig } from '../../config/ConfigContext'
-import type { HistorialMensual, Rendimiento, FlujoCajaItem, EventoVida, Escenario } from '../../data/types'
+import type { HistorialMensual, Rendimiento, FlujoCajaItem, Escenario } from '../../data/types'
 import { useScenario } from '../../data/ScenarioContext'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
