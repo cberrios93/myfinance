@@ -310,6 +310,46 @@ export default function Settings() {
         </div>
       </div>
 
+      {/* ── Sección: Dashboard ── */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--color-acento)' }}>Dashboard</p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+          <Card title="Cuentas destacadas" description="Cantidad de cuentas a mostrar en el tile del dashboard.">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Máximo visible</span>
+              <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-acento)' }}>{config.dashCuentasTop ?? 5}</span>
+            </div>
+            <input
+              type="range" min={1} max={8} step={1}
+              value={config.dashCuentasTop ?? 5}
+              onChange={e => setConfig({ ...config, dashCuentasTop: parseInt(e.target.value) })}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+              <span>1</span><span>5 (default)</span><span>8</span>
+            </div>
+          </Card>
+
+          <Card title="Rendimientos del año" description="Cantidad de instrumentos a mostrar en el tile de rendimientos.">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Máximo visible</span>
+              <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-acento)' }}>{config.dashRendimientosTop ?? 3}</span>
+            </div>
+            <input
+              type="range" min={1} max={5} step={1}
+              value={config.dashRendimientosTop ?? 3}
+              onChange={e => setConfig({ ...config, dashRendimientosTop: parseInt(e.target.value) })}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+              <span>1</span><span>3 (default)</span><span>5</span>
+            </div>
+          </Card>
+
+        </div>
+      </div>
+
       {/* ── Sección: Módulos visibles ── */}
       <div>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--color-acento)' }}>Módulos</p>

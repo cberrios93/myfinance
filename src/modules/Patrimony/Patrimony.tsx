@@ -198,7 +198,7 @@ export default function Patrimony() {
           padding: '8px 14px', fontSize: 13, color: '#F5A623', display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <Pin size={13} style={{ fill: '#F5A623', flexShrink: 0 }} />
-          Límite de 5 cuentas destacadas. Quita una antes de agregar otra.
+          Límite de {config.dashCuentasTop ?? 5} cuentas destacadas. Quita una antes de agregar otra.
         </div>
       )}
 
@@ -341,7 +341,7 @@ export default function Patrimony() {
                                 <button
                                   onClick={e => {
                                     e.stopPropagation()
-                                    if (!cuenta.pinned && cuentas.filter(c => c.pinned).length >= 5) {
+                                    if (!cuenta.pinned && cuentas.filter(c => c.pinned).length >= (config.dashCuentasTop ?? 5)) {
                                       setPinError(true)
                                       if (pinErrorTimer.current) clearTimeout(pinErrorTimer.current)
                                       pinErrorTimer.current = setTimeout(() => setPinError(false), 3000)

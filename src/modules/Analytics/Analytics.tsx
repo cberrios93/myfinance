@@ -8,7 +8,8 @@ import { Sparkles, Copy, Check, X as XIcon } from 'lucide-react'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import { useFinanceData } from '../../data/FinanceDataContext'
 import { useConfig } from '../../config/ConfigContext'
-import type { HistorialMensual, Rendimiento, FlujoCajaItem } from '../../data/types'
+import type { HistorialMensual, Rendimiento, FlujoCajaItem, EventoVida, Escenario } from '../../data/types'
+import { useScenario } from '../../data/ScenarioContext'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,8 @@ function cagr(start: number, end: number, years: number): number {
 
 type Tab = 'patrimonio' | 'flujo-real' | 'rendimientos'
 type Granularity = 'mensual' | 'anual'
+
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
 // ─── Shared stat card ────────────────────────────────────────────────────────
 
@@ -1072,13 +1075,14 @@ function RendimientosTab() {
 // Prompt generator
 // ════════════════════════════════════════════════════════════════════════════
 
-type Enfoque = 'general' | 'optimizacion' | 'proyeccion' | 'riesgo'
+type Enfoque = 'general' | 'optimizacion' | 'proyeccion' | 'riesgo' | 'eventos'
 
 const ENFOQUES: { id: Enfoque; label: string; descripcion: string }[] = [
   { id: 'general', label: 'Análisis general', descripcion: 'Visión holística de mi situación financiera, qué va bien y qué no.' },
   { id: 'optimizacion', label: 'Optimización', descripcion: 'Cómo mejorar la asignación de activos y rentabilidad.' },
   { id: 'proyeccion', label: 'Proyección', descripcion: 'Si estoy en la trayectoria correcta para mis metas de largo plazo.' },
   { id: 'riesgo', label: 'Riesgo', descripcion: 'Exposición a riesgos, diversificación y puntos de quiebre.' },
+  { id: 'eventos', label: 'Eventos de vida', descripcion: 'Evalúa decisiones financieras clave: timing, costos, distribución y qué replantear.' },
 ]
 
 function buildPrompt(
@@ -1087,7 +1091,10 @@ function buildPrompt(
   flujoCaja: FlujoCajaItem[],
   enfoque: Enfoque,
   tc: number,
+  escenario: Escenario | null = null,
 ): string {
+  const eventos = escenario?.eventosVida ?? []
+  const anioActual = escenario?.general.anioActual ?? new Date().getFullYear()
   const valid = [...historial].filter(h => !h.nota).sort((a, b) => a.fecha.localeCompare(b.fecha))
 
   // Patrimonio actual
@@ -1194,9 +1201,79 @@ function buildPrompt(
 - ¿Cuál es mi exposición cambiaria PEN/USD y es adecuada?
 - ¿Cuánto tiempo podría sostener mis gastos si pierdo mis ingresos laborales?
 - ¿Qué eventos adversos podrían destruir mi plan? ¿Cómo mitigarlos?`,
+    eventos: `Analiza mis eventos de vida financieros:
+- Para cada evento: ¿fue buen timing dado el patrimonio y flujo de caja en ese momento? ¿el monto fue razonable?
+- ¿Cómo están distribuidos en el tiempo? ¿hay períodos con demasiada presión simultánea?
+- ¿Algún evento afectó negativamente la trayectoria del patrimonio? ¿cuánto costó en términos de CAGR?
+- ¿Qué replantearías si pudieras? ¿qué eventos futuros debería anticipar dado mi ritmo de acumulación?`,
   }
 
+  // Build parámetros de simulación section
+  const g = escenario?.general
+  const carrera = escenario?.carrera
+  let simParamsStr = '  Sin escenario de simulación activo'
+  if (g && carrera) {
+    const aniosRetiro = g.edadRetiro - g.edadActual
+    const aniosPostRetiro = g.edadVidaEstimada - g.edadRetiro
+    const saltosStr = carrera.saltos.length > 0
+      ? carrera.saltos
+          .sort((a, b) => a.anioT - b.anioT)
+          .map(s => `    Año ${anioActual + s.anioT} (en ${s.anioT} años): nuevo aporte anual S/ ${fmt(s.nuevoAporteAnual)}`)
+          .join('\n')
+      : '    Sin saltos definidos'
+    // Los ratios se almacenan como decimales (0.0375 = 3.75%) — multiplicar × 100 para mostrar
+    const pct = (v: number | undefined, dec = 2) => v !== undefined ? `${(v * 100).toFixed(dec)}%` : '—'
+    simParamsStr = `Horizonte temporal:
+  - Edad actual: ${g.edadActual} años | Retiro a los: ${g.edadRetiro} años | Años hasta retiro: ${aniosRetiro}
+  - Expectativa de vida: ${g.edadVidaEstimada} años | Años de retiro proyectados: ${aniosPostRetiro}
+  - Año base: ${anioActual}
+
+Retiro y crecimiento:
+  - SWR (tasa retiro seguro): ${pct(g.swr)}
+  - Incremento salarial anual real: ${pct(g.incrementoSalarialAnual, 1)}${g.mesAjusteSalarial ? ` (ajuste en ${MESES[g.mesAjusteSalarial - 1]})` : ''}
+  - Tasa crecimiento patrimonio no invertido: ${pct(g.tasaPatrimonioNoInvertido, 1)}/año
+
+Carrera y aportes:
+  - Aporte anual base: S/ ${fmt(carrera.aporteAnualBase)} (S/ ${fmt(carrera.aporteAnualBase / 12)}/mes)
+  - Crecimiento real anual carrera: ${pct(carrera.crecimientoRealAnual, 1)}
+  - Saltos de carrera proyectados:
+${saltosStr}`
+  }
+
+  // Build eventos section
+  const eventosOrdenados = [...eventos].sort((a, b) => {
+    const anioA = a.retiroUnico ? anioActual + a.retiroUnico.anioT : anioActual + (a.gastoRecurrente?.anioInicioT ?? 0)
+    const anioB = b.retiroUnico ? anioActual + b.retiroUnico.anioT : anioActual + (b.gastoRecurrente?.anioInicioT ?? 0)
+    return anioA - anioB
+  })
+
+  const eventosStr = eventosOrdenados.length > 0
+    ? eventosOrdenados.map(ev => {
+        const tipo = ev.tipoEvento ? ` [${ev.tipoEvento}]` : ''
+        const prop = ev.proporcionPropia !== undefined && ev.proporcionPropia < 100
+          ? ` — mi parte: ${ev.proporcionPropia}%` : ''
+        if (ev.retiroUnico) {
+          const anio = anioActual + ev.retiroUnico.anioT
+          const montoPropio = ev.proporcionPropia !== undefined
+            ? ev.retiroUnico.monto * ev.proporcionPropia / 100
+            : ev.retiroUnico.monto
+          return `  - ${anio} (en ${ev.retiroUnico.anioT} años): ${ev.nombre}${tipo}\n    Gasto único: S/ ${fmt(ev.retiroUnico.monto)}${prop} → mi aporte: S/ ${fmt(montoPropio)}`
+        }
+        if (ev.gastoRecurrente) {
+          const anioIni = anioActual + ev.gastoRecurrente.anioInicioT
+          const anioFin = anioActual + ev.gastoRecurrente.anioFinT
+          const dur = ev.gastoRecurrente.anioFinT - ev.gastoRecurrente.anioInicioT
+          return `  - ${anioIni}–${anioFin} (${dur} años): ${ev.nombre}${tipo}\n    Gasto mensual: S/ ${fmt(ev.gastoRecurrente.montoMensual)}/mes${prop} | Total acumulado: S/ ${fmt(ev.gastoRecurrente.montoMensual * dur * 12)}`
+        }
+        return `  - ${ev.nombre}${tipo}`
+      }).join('\n')
+    : '  Sin eventos registrados en Simulación'
+
   const enfoqueLabel = ENFOQUES.find(e => e.id === enfoque)?.label ?? ''
+
+  const eventosSection = eventos.length > 0 && enfoque !== 'eventos'
+    ? `\n## EVENTOS DE VIDA (contexto adicional)\n${eventosStr}\n`
+    : ''
 
   return `# Contexto financiero personal — ${new Date().toLocaleDateString('es-PE')}
 
@@ -1234,8 +1311,18 @@ ${egresosStr}
 Flujo neto: S/ ${fmt(flujoNeto)}/mes
 Tasa de ahorro: ${tasaAhorro.toFixed(1)}%
 
----
+## PARÁMETROS DE SIMULACIÓN${escenario ? ` (escenario: "${escenario.nombre}")` : ''}
 
+${simParamsStr}
+${eventosSection}
+---
+${enfoque === 'eventos' ? `
+## MIS EVENTOS DE VIDA
+
+${eventosStr}
+
+---
+` : ''}
 ## SOLICITUD — ${enfoqueLabel.toUpperCase()}
 
 ${preguntaMap[enfoque]}
@@ -1258,6 +1345,7 @@ function PromptModal({
 }) {
   const [enfoque, setEnfoque] = useState<Enfoque>('general')
   const [copied, setCopied] = useState(false)
+  const { escenarioActivo } = useScenario()
 
   const tc = useMemo(() => {
     const valid = historial.filter(h => !h.nota).sort((a, b) => b.fecha.localeCompare(a.fecha))
@@ -1265,8 +1353,8 @@ function PromptModal({
   }, [historial])
 
   const prompt = useMemo(
-    () => buildPrompt(historial, rendimientos, flujoCaja, enfoque, tc),
-    [historial, rendimientos, flujoCaja, enfoque, tc]
+    () => buildPrompt(historial, rendimientos, flujoCaja, enfoque, tc, escenarioActivo),
+    [historial, rendimientos, flujoCaja, enfoque, tc, escenarioActivo]
   )
 
   function handleCopy() {
@@ -1301,7 +1389,7 @@ function PromptModal({
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-borde)' }}>
           <p className="text-xs mb-3" style={{ color: 'var(--color-muted)' }}>¿Qué tipo de análisis quieres?</p>
           <div className="grid grid-cols-2 gap-2">
-            {ENFOQUES.map(e => (
+            {ENFOQUES.slice(0, 4).map(e => (
               <button
                 key={e.id}
                 onClick={() => setEnfoque(e.id)}
@@ -1317,7 +1405,43 @@ function PromptModal({
               </button>
             ))}
           </div>
+          {/* Eventos de vida — full width card */}
+          {(() => {
+            const e = ENFOQUES[4]
+            return (
+              <button
+                onClick={() => setEnfoque(e.id)}
+                className="text-left px-3 py-2.5 rounded-xl text-sm w-full mt-2"
+                style={{
+                  background: enfoque === e.id ? 'var(--color-acento)20' : 'var(--color-card)',
+                  border: `1px solid ${enfoque === e.id ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+                  color: enfoque === e.id ? 'var(--color-acento)' : 'var(--color-texto)',
+                }}
+              >
+                <span className="font-medium">✦ {e.label}</span>
+                <span className="text-xs ml-2 opacity-70">{e.descripcion}</span>
+              </button>
+            )
+          })()}
         </div>
+
+        {/* Events summary — visible when eventos enfoque selected */}
+        {enfoque === 'eventos' && (
+          <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--color-borde)' }}>
+            {!escenarioActivo || escenarioActivo.eventosVida.length === 0 ? (
+              <p className="text-xs italic" style={{ color: 'var(--color-muted)' }}>
+                No hay eventos en el escenario activo. Agrégalos en Simulación → Eventos de vida.
+              </p>
+            ) : (
+              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+                <span className="font-semibold" style={{ color: 'var(--color-acento)' }}>{escenarioActivo.eventosVida.length} evento{escenarioActivo.eventosVida.length !== 1 ? 's' : ''}</span>
+                {' '}del escenario <span className="font-medium" style={{ color: 'var(--color-texto)' }}>"{escenarioActivo.nombre}"</span> incluidos.
+                El prompt también incorpora parámetros generales de simulación (edad, retiro, SWR, carrera).
+                Edítalos en Simulación → Eventos de vida.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Prompt preview */}
         <div className="flex-1 overflow-y-auto px-5 py-4">

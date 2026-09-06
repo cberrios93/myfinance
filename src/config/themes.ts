@@ -53,6 +53,8 @@ export interface AppConfig {
   modulosOcultos: string[]
   inflacionAnual: number
   undoTimeoutMs: number
+  dashCuentasTop: number
+  dashRendimientosTop: number
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -69,6 +71,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   modulosOcultos: [],
   inflacionAnual: 6,
   undoTimeoutMs: 8000,
+  dashCuentasTop: 5,
+  dashRendimientosTop: 3,
 }
 
 export function loadConfig(): AppConfig {

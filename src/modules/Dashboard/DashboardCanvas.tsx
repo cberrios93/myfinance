@@ -124,48 +124,58 @@ export function DashboardCanvas({ d }: { d: DashboardData }) {
         .dash-canvas .react-grid-item.react-grid-placeholder { background: var(--color-acento); opacity: 0.15; border-radius: 12px; }
       `}</style>
 
-      {/* Barra superior */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-        {editing ? (
-          <>
-            <div style={{ position: 'relative' }}>
-              <button style={btnStyle} onClick={() => setPaletteOpen(o => !o)} disabled={missing.length === 0}>
-                <Plus size={13} /> Agregar mosaico
-              </button>
-              {paletteOpen && missing.length > 0 && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 30,
-                  background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8,
-                  padding: 6, minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-                  display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 320, overflowY: 'auto',
-                }}>
-                  {missing.map(t => (
-                    <button key={t.id} onClick={() => addTile(t.id)}
-                      style={{ ...btnStyle, border: 'none', background: 'transparent', justifyContent: 'flex-start', width: '100%' }}>
-                      {t.nombre}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button style={btnStyle} onClick={() => setDraft(DEFAULT_LAYOUT)}><RotateCcw size={13} /> Restablecer</button>
-            <div style={{ flex: 1 }} />
-            <button style={btnStyle} onClick={cancelEdit}>Cancelar</button>
-            <button style={{ ...btnStyle, background: 'var(--color-acento)', borderColor: 'var(--color-acento)', color: '#06121f' }}
-              onClick={guardar} disabled={saving}>
-              {saving ? 'Guardando…' : 'Guardar'}
+      {/* Barra superior — solo en modo edición. En vista custom: íconos flotantes sin altura. */}
+      {editing ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative' }}>
+            <button style={btnStyle} onClick={() => setPaletteOpen(o => !o)} disabled={missing.length === 0}>
+              <Plus size={13} /> Agregar mosaico
             </button>
-          </>
-        ) : (
-          <>
-            <div style={{ flex: 1 }} />
-            <button style={btnStyle} onClick={quitarPersonalizacion} disabled={resetting}>
-              {resetting ? 'Restableciendo…' : 'Quitar personalización'}
-            </button>
-            <button style={btnStyle} onClick={enterEdit}><LayoutGrid size={13} /> Personalizar</button>
-          </>
-        )}
-      </div>
+            {paletteOpen && missing.length > 0 && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 30,
+                background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8,
+                padding: 6, minWidth: 220, boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+                display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 320, overflowY: 'auto',
+              }}>
+                {missing.map(t => (
+                  <button key={t.id} onClick={() => addTile(t.id)}
+                    style={{ ...btnStyle, border: 'none', background: 'transparent', justifyContent: 'flex-start', width: '100%' }}>
+                    {t.nombre}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button style={btnStyle} onClick={() => setDraft(DEFAULT_LAYOUT)}><RotateCcw size={13} /> Restablecer</button>
+          <div style={{ flex: 1 }} />
+          <button style={btnStyle} onClick={cancelEdit}>Cancelar</button>
+          <button style={{ ...btnStyle, background: 'var(--color-acento)', borderColor: 'var(--color-acento)', color: '#06121f' }}
+            onClick={guardar} disabled={saving}>
+            {saving ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
+      ) : (
+        /* Vista custom sin editar — íconos flotantes, sin espacio vertical */
+        <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 20, display: 'flex', gap: 4 }}>
+          <button onClick={quitarPersonalizacion} disabled={resetting} title="Quitar personalización"
+            style={{
+              width: 28, height: 28, borderRadius: 8,
+              border: '1px solid var(--color-borde)', background: 'var(--color-card)', color: 'var(--color-muted)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.9,
+            }}>
+            <RotateCcw size={14} />
+          </button>
+          <button onClick={enterEdit} title="Personalizar dashboard"
+            style={{
+              width: 28, height: 28, borderRadius: 8,
+              border: '1px solid var(--color-borde)', background: 'var(--color-card)', color: 'var(--color-muted)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.9,
+            }}>
+            <LayoutGrid size={14} />
+          </button>
+        </div>
+      )}
 
       {active.tiles.length === 0 && (
         <div style={{

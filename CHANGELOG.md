@@ -38,7 +38,31 @@ Criterios de tipo:
 
 ---
 
-## [Unreleased] — DEV
+## [v2.6.0] — 2026-09-05 — PROD
+
+### Analytics — Prompt IA: mejoras de Patrimonio + nuevo enfoque Eventos de vida
+
+#### Patrimonio — Mejoras visuales y UX
+- **Mejora** — Rango de análisis: control compacto en una sola fila (label "Rango", fechas inicio→fin en monospace, botón Reset condicional) encima del dual range slider. Eliminada la vista duplicada de chips dentro del slider.
+- **Mejora** — KPIs en fila única `grid-cols-4`: Racha, Aceleración patrimonial, Variación del período, CAGR. Antes en grid 2×2.
+- **Feature** — KPI **Racha**: número de meses consecutivos al alza o a la baja al final del rango seleccionado.
+- **Feature** — KPI **Aceleración patrimonial**: delta entre el crecimiento de los últimos 12 meses vs. los 12 anteriores (acelerando / desacelerando).
+- **Mejora** — Variación del período: subtítulo con Inicio S/X · Fin S/X (+Y%) para entender de dónde a dónde.
+- **Mejora** — Barras MoM coloreadas: verde si el cambio es positivo, rojo si negativo (usando `<Cell>` por barra). Tooltip con texto blanco explícito.
+- **Mejora** — Heatmap anual: columna de año muestra % de crecimiento anual en lugar de monto. Todas las celdas muestran su valor (sin filtro de umbral); texto siempre blanco.
+- **Fix** — Eliminada línea de inflación del gráfico de evolución (campo `inflacionAnual` se mantiene en Configuración para uso futuro).
+- **Fix** — Pantalla negra en Home al pasar el mouse: `ComposicionBar` (función module-level) accedía a `config` del closure de `Dashboard` → `ReferenceError` → desmontaje silencioso del árbol React. Solucionado con `useConfig()` dentro de `ComposicionBar`.
+
+#### Prompt para IA — nuevo enfoque Eventos de vida
+- **Feature** — 5to enfoque **✦ Eventos de vida** en el modal del Prompt, como card de ancho completo. Lee los eventos directamente del escenario activo (`escenario.eventosVida[]`) — no requiere re-ingresarlos. Convierte años relativos (`anioT`, `anioInicioT`) a años absolutos con `escenario.general.anioActual`.
+- **Feature** — Para cada evento el prompt incluye: año absoluto, años desde hoy, tipo, monto total, proporción propia si es compartido, y para gastos recurrentes el total acumulado proyectado.
+- **Feature** — Todos los enfoques incluyen ahora una sección **PARÁMETROS DE SIMULACIÓN** con: horizonte temporal (edad actual, retiro, expectativa de vida, años restantes), SWR, incremento salarial, tasa de crecimiento patrimonio no invertido, aporte anual base, crecimiento real de carrera y saltos de carrera proyectados con año absoluto.
+- **Feature** — Si hay eventos definidos y se usa cualquier otro enfoque (general, optimización, proyección, riesgo), los eventos aparecen como `## EVENTOS DE VIDA (contexto adicional)` automáticamente al final del prompt.
+- **Fix** — Porcentajes de simulación (SWR, tasas de crecimiento) almacenados como decimales (0.0375) ahora se muestran correctamente multiplicados × 100 (3.75%) en el prompt.
+
+#### Nav y Settings
+- **Mejora** — Renombrado "Dashboard" → "Home" en el menú lateral.
+- **Mejora** — Eliminados "Ideas & Notas" y "Deudas" del nav de Tracking (Deudas pasa al backlog como baja prioridad — el código existe en `src/modules/Debts/`).
 
 ---
 

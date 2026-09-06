@@ -136,7 +136,7 @@ export function useDashboardData() {
       const gan = (r.gananciasPEN ?? 0) + (r.gananciasUSD ?? 0) * tcCompra
       map.set(r.instrumentoNombre, (map.get(r.instrumentoNombre) ?? 0) + gan)
     }
-    const porInstrumento = [...map.entries()].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 3).map(([nombre, ganancia]) => ({ nombre, ganancia }))
+    const porInstrumento = [...map.entries()].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, config.dashRendimientosTop).map(([nombre, ganancia]) => ({ nombre, ganancia }))
     return { rendimientosYTD: ytd, gananciaTotalPEN: ganTotal, rentabilidadProm: rentProm, rendPorInstrumento: porInstrumento }
   }, [rendimientos, tcCompra])
 
@@ -149,9 +149,9 @@ export function useDashboardData() {
     const conValor = [...cuentas]
       .filter(c => c.categoria !== 'Liability')
       .map(c => ({ ...c, valPEN: (c.montoPEN ?? 0) + (c.montoUSD ?? 0) * tcCompra }))
-    const pinned = conValor.filter(c => c.pinned).slice(0, 5)
+    const pinned = conValor.filter(c => c.pinned).slice(0, config.dashCuentasTop)
     if (pinned.length > 0) return pinned
-    return conValor.sort((a, b) => b.valPEN - a.valPEN).slice(0, 5)
+    return conValor.sort((a, b) => b.valPEN - a.valPEN).slice(0, config.dashCuentasTop)
   }, [cuentas, tcCompra])
 
   // ── Barra estado: falta historial ──
