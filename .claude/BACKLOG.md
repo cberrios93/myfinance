@@ -10,6 +10,10 @@
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
+| Mejora | Listo DEV | **Tablas ordenables** — Rendimientos (todas las columnas), Historial Mensual (fecha, montos, deltas), Patrimonio (por cuenta/PEN/USD dentro de cada categoría). Implementado 2026-09-07. Pendiente deploy a PROD. |
+| Técnico | Definido | **Verificar config Proyección en PROD** — Confirmar que `mesAjusteSalarial = 4` (Abril) e `incrementoSalarialAnual` / `tasaPatrimonioNoInvertido` están calibrados en Parámetros del escenario activo en PROD. |
+| Técnico | Definido | **Verificar migración Eventos de Vida en PROD** — Confirmar que los 26 eventos de vida migrados el 2026-09-05 son visibles y correctos en la app PROD (ruta `/eventos-vida`). |
+| Técnico | Definido | **Verificar usuario `me@cesarberrios.com` en PROD** — La migración DEV→PROD del 2026-09-03 borró todos los datos de este usuario (no existía en DEV). Confirmar si necesita ser reinvitado desde Gestión de Usuarios y si tiene data que recrear. |
 
 ---
 
@@ -38,7 +42,7 @@
 | Mejora | Idea | **Confirmaciones de borrado más amigables** — en lugar del borrado inmediato o confirm() del browser, usar un modal con ícono de advertencia, nombre del ítem a borrar y botones "Cancelar / Sí, borrar". Reduce el miedo a cometer errores. |
 | Feature | Idea | **Modo de solo lectura (viewer)** — que mamá pueda ver todos sus datos sin poder editar nada accidentalmente. Toggle en Admin o en su perfil. Relacionado con el sistema de roles granulares. |
 | Mejora | Idea | **Mensajes de ayuda en módulos vacíos complejos** — en Rendimientos y Simulación, agregar un panel de "¿Cómo funciona esto?" cuando no hay datos, con 3 bullets explicando el módulo antes del CTA. Actualmente el Empty State solo dice "agrega", no explica para qué sirve. |
-| Feature | Idea | **PWA / app instalable en celular** — `manifest.json` + service worker para que Mili y mamá puedan instalar MyFinance como ícono en su pantalla de inicio (sin pasar por App Store). Estimado: 1-2h. Alternativa a Capacitor del backlog general. |
+| Feature | Definido | **PWA / app instalable en celular** — `manifest.json` + `apple-touch-icon` para instalar MyFinance como ícono en pantalla de inicio. Logo revisado (2026-09-07): usar solo el símbolo M+gráfico (sin el texto "MyFinance") sobre fondo navy `#1a2f5e`; fondo blanco del PNG original es problemático en iOS. Se necesita el archivo fuente (AI/SVG/PNG sin fondo) o recortar el símbolo del PNG entregado. Siguiente paso: implementar cuando se confirme el asset final del ícono. |
 
 ---
 

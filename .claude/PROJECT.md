@@ -39,6 +39,7 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 - **Cmd+Enter guarda** en todos los formularios — hook `src/hooks/useSubmitOnCmdEnter.ts`.
 - **edadVidaEstimada:** default 85 en ESCENARIO_VACIO.
 - **Edge Functions en dev:** `vercel dev` (no `npm run dev`) para `api/invite-user`, `api/block-user`, `api/delete-user`.
+- **Dev server en sesiones Claude Code:** el working directory de sesión puede ser `/Users/cberriosm/Projects/` (parent) en lugar de `/myfinance/`. En ese caso `preview_start` falla con ENOENT. Workaround: `cd /Users/cberriosm/Projects/myfinance && npm run dev -- --port 5174` vía Bash, luego `preview_start { url: "http://localhost:5174" }`.
 - **Sistema de temas (CRÍTICO):** `ConfigContext.tsx` aplica `PALETAS` vía `root.style.setProperty()` en runtime — esto tiene mayor especificidad que los valores declarados en `index.css`. Consecuencia: si cambias un color en `index.css` y no lo cambias en `src/config/themes.ts` (en la paleta correcta), el cambio no tendrá efecto. `themes.ts` es la fuente autoritativa de colores; `index.css` solo define los defaults iniciales antes del primer render. Si el color sigue igual después de editar index.css, limpiar localStorage (`myfinance_config`) para invalidar la paleta cacheada.
 - **Paletas activas (v2.1.0+):** Solo dos paletas: `marino-day` (Day, fondo claro `#F2F6FA`, texto navy) y `marino` (Night, fondo `#060E1B`). Ambas usan teal `#00C9A7` fijo. No agregar paletas adicionales — diseño de marca único.
 - **React Rules of Hooks en Projection:** Todos los `useMemo`/`useState` DEBEN ir antes de cualquier `return` condicional. `resultado` es nullable (`simular(escenarioActivo) | null`). Historial de bug: hooks después del early return causaron pantalla en blanco silenciosa.
@@ -60,6 +61,15 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 | DNS | CNAME `fin` → `9e56694f8cf498e1.vercel-dns-017.com` en Cloudflare |
 | Env vars Vercel | VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, ANTHROPIC_API_KEY |
 | Git push | requiere PAT con scopes `repo` + `workflow` |
+
+### Migración de datos DEV → PROD (referencia operacional)
+
+Ejecutada el 2026-09-03 (v2.0.0). Si se necesita repetir:
+- **Script:** `migrate.mjs` (Node fetch nativo, no requiere CLI ni PAT — solo Service Role Keys)
+- **Approach:** GET all desde DEV → remap `user_id` por email (DEV user ↔ PROD user) → DELETE PROD en orden inverso FK → INSERT PROD en orden FK correcto
+- **Circular FKs:** `suscripciones ↔ flujo_caja` y `gastos_familia ↔ flujo_caja` — limpiar antes de borrar, insertar `flujo_caja` sin refs circulares y restaurarlas después
+- **Precaución:** usuarios en PROD sin par en DEV (mismo email) pierden todos sus datos — verificar antes de correr
+- **Parámetros:** DEV `vzueaqospzqiihyeakra` · PROD `ukkedcdccuzvdqhdiecr` · autenticar con Service Role Keys de cada proyecto
 
 ### Migraciones ejecutadas (DEV y PROD al día)
 

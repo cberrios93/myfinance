@@ -30,6 +30,8 @@ Criterios de tipo:
 
 ### Responsive
 - **Mejora** — Responsive móvil completo: Dashboard con grids adaptativos (5→2 col KPIs, 3→1 col contenido); tablas con scroll horizontal en Patrimonio, Debts, CashFlow, Tax5th, Analytics; hook `useIsMobile` para breakpoints dinámicos; charts con altura explícita en mobile.
+- **Fix** — `AuthContext`: eliminada race condition entre `getSession()` y `onAuthStateChange`. Ahora `onAuthStateChange` es la única fuente de verdad (dispara `INITIAL_SESSION` al montar). El `setLoading(false)` se hace en `finally` de `fetchRole`, y en el branch `else` se limpian `userStatus` y `blockReason` al cerrar sesión.
+- **Fix** — `FinanceDataContext` y `PatrimonyContext`: dependency arrays `[user]` → `[user?.id]` para evitar re-renders innecesarios cuando el objeto `user` se recrea sin cambiar de identidad.
 
 ---
 
@@ -223,6 +225,7 @@ Criterios de tipo:
 ### Sistema
 - **Feature** — Onboarding wizard de 5 pasos para usuarios nuevos (una sola vez por userId vía localStorage), redirige a Patrimonio al finalizar
 - **Mejora** — Hover/active global en todos los botones: `brightness(1.18)` en hover, `scale(0.96)` + `brightness(0.88)` en click
+- **Fix** — Errores TypeScript que bloqueaban el build de Vercel: `fmtPct` no utilizado eliminado de `Analytics.tsx`; tipos de `formatter` de Recharts corregidos en `Analytics.tsx` y `Dashboard.tsx` (params tipados como `unknown` + cast); función `fmt` añadida a `FamilyExpenses.tsx` y `Paycheck.tsx` donde se usaba sin definir; variable `fechaTraspaso` no utilizada eliminada de `Returns.tsx`.
 
 ---
 
