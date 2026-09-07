@@ -33,36 +33,6 @@ Criterios de tipo:
 
 ---
 
-## [v2.3.0] — 2026-09-05 — PROD
-
-### Proyección financiera + Mejoras de visualización
-
-#### Módulo Proyección (nuevo)
-- **Feature** — Nueva sección "Proyección" bajo Simulación. Muestra: (1) 4 KPIs: patrimonio total al retiro (portafolio invertido + no invertido), renta pasiva mensual SWR, supervivencia del fondo post-retiro, años con flujo crítico. (2) Gráfico de patrimonio total apilado: portafolio invertido (azul) + patrimonio no enlazado a instrumentos (verde), detectado automáticamente de Patrimonio. (3) Gráfico de ingreso total vs. eventos: sueldo activo (desde Haberes: promedio sueldoBasico + comisionesAnioActual del ciclo de compensación vigente) + rendimiento portafolio vs. carga de eventos mensual. (4) Panel post-retiro con mini-chart de drawdown del fondo. (5) Tabla año a año colapsable: patrimonio, sueldo/mes, rendimiento/mes, total disponible, eventos/mes, % comprometido, retiros únicos.
-- **Feature** — Parámetros > "Proyección de ingresos": mes de ajuste salarial (dropdown 1–12 con nombre de mes), incremento salarial anual %, tasa de crecimiento patrimonio no invertido %.
-- **Técnico** — El sueldo base se detecta de los recibos de Haberes desde el último mes de ajuste salarial hasta hoy (máx. 12 meses, excluye meses con gratificación). Si no hay recibos, usa aporteAnualBase como fallback.
-- **Técnico** — El patrimonio no invertido se detecta como las cuentas de Patrimonio sin `cuentaPatrimonioId` vinculado a ningún instrumento del escenario activo. Se proyecta a la tasa configurada independientemente del portafolio.
-
-#### Eventos de vida — Vista Gráfica
-- **Feature** — Toggle Lista/Gráfica en Eventos de vida. La vista Gráfica muestra: 3 KPI cards (año pico, carga mensual pico, total egresos únicos), gráfico de barras apiladas por tipo de evento con zona de retiros únicos (puntos encima de cada barra, apilados en filas de máx. 3), panel de detalle al hover fijo sobre el gráfico (evita overflow), leyenda por tipo, lista de egresos puntuales al pie.
-- **Fix** — Tooltip del gráfico de eventos no se recortaba por el contenedor con overflow-x. Reemplazado por panel de estado fijo arriba del scroll.
-- **Fix** — Puntos de retiros únicos se apilaban en una sola fila y se desbordaban. Corregido con flex-wrap + content-end para apilar en filas desde abajo.
-
-#### MatrimonioWizard
-- **Fix** — Pantalla en blanco al pasar del paso 2 al 3 cuando se activaba la categoría `weddingPlanner`. Dos causas: (1) `redistribuirDesdeTotal()` no incluía `weddingPlanner` en el setS, (2) referencia a campo inexistente `resultado.montoAdelantos` (correcto: `resultado.montoAdelantosTu`).
-
-#### Responsive y UI — Ajustes finales
-- **Fix** — Patrimonio: header responsive en móvil. Los botones (TC widget, "Ocultas", "Agregar cuenta") ya no se salen de pantalla. Usan `flex-wrap` y apilan verticalmente en pantallas pequeñas.
-- **Fix** — CuentaForm (Patrimonio): grid pasa de `grid-cols-2 sm:grid-cols-4` a `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`. Los campos se apilan en móvil y se distribuyen correctamente a partir de tablet.
-- **Fix** — Returns header: mismo patrón responsive que Patrimonio. Filtros y botón "Registrar" se apilan en móvil.
-- **Feature** — Rendimientos: gráfica histórica de rentabilidad por año. ComposedChart (Recharts) con barras de monto base (K PEN eq., eje derecho) y línea de rentabilidad neta % (eje izquierdo). Visible cuando hay ≥ 2 años de datos. Incluye insights: promedio histórico, mejor año y peor año.
-- **Mejora** — Configuración: layout reescrito con 2 columnas en desktop. Agrupa las opciones en 5 secciones: Apariencia / Datos y moneda / Alertas y tiempos / Automatización / Módulos.
-- **Mejora** — Impuesto 5ta ocultado del sidebar. La ruta sigue existiendo; re-activable desde Configuración > Módulos.
-- **Mejora** — Simulación > Carrera y Aportes: los saltos de carrera ahora muestran año calendario real (ej. "2028") y edad correspondiente (ej. "34 años") basados en los datos de Parámetros (`anioActual`, `edadActual`). El campo de año es un `<select>` con todos los años hasta retiro — reemplaza el input numérico que causaba re-ordenamiento inmediato al tipear (imposible editar). El valor interno sigue siendo `anioT` relativo.
-- **Mejora** — Simulación > Movimientos: mismo patrón — formulario muestra dropdown de año calendario + edad. La lista desplegada muestra año y edad en cada fila en lugar de "Año T".
-
----
-
 ## [v2.6.0] — 2026-09-05 — PROD
 
 ### Analytics — Prompt IA: mejoras de Patrimonio + nuevo enfoque Eventos de vida
@@ -117,6 +87,36 @@ Criterios de tipo:
 - **Feature** — Parámetros > nueva sección "Gastos compartidos con pareja": campo para configurar `proporcionPropia` con explicación de su uso.
 - **Fix** — `actualizarEscenario` en `ScenarioContext` ahora actualiza el estado local antes del `await guardarEscenario` (optimistic update). Elimina race condition donde el wizard montaba con datos viejos si el usuario navegaba antes de que terminara el save a Supabase.
 - **Fix** — `HijoWizard`: `useEffect` + `useRef` que sincroniza `miPorcentaje` si `general.proporcionPropia` llega después del mount, sin pisar cambios manuales del usuario.
+
+---
+
+## [v2.3.0] — 2026-09-05 — PROD
+
+### Proyección financiera + Mejoras de visualización
+
+#### Módulo Proyección (nuevo)
+- **Feature** — Nueva sección "Proyección" bajo Simulación. Muestra: (1) 4 KPIs: patrimonio total al retiro (portafolio invertido + no invertido), renta pasiva mensual SWR, supervivencia del fondo post-retiro, años con flujo crítico. (2) Gráfico de patrimonio total apilado: portafolio invertido (azul) + patrimonio no enlazado a instrumentos (verde), detectado automáticamente de Patrimonio. (3) Gráfico de ingreso total vs. eventos: sueldo activo (desde Haberes: promedio sueldoBasico + comisionesAnioActual del ciclo de compensación vigente) + rendimiento portafolio vs. carga de eventos mensual. (4) Panel post-retiro con mini-chart de drawdown del fondo. (5) Tabla año a año colapsable: patrimonio, sueldo/mes, rendimiento/mes, total disponible, eventos/mes, % comprometido, retiros únicos.
+- **Feature** — Parámetros > "Proyección de ingresos": mes de ajuste salarial (dropdown 1–12 con nombre de mes), incremento salarial anual %, tasa de crecimiento patrimonio no invertido %.
+- **Técnico** — El sueldo base se detecta de los recibos de Haberes desde el último mes de ajuste salarial hasta hoy (máx. 12 meses, excluye meses con gratificación). Si no hay recibos, usa aporteAnualBase como fallback.
+- **Técnico** — El patrimonio no invertido se detecta como las cuentas de Patrimonio sin `cuentaPatrimonioId` vinculado a ningún instrumento del escenario activo. Se proyecta a la tasa configurada independientemente del portafolio.
+
+#### Eventos de vida — Vista Gráfica
+- **Feature** — Toggle Lista/Gráfica en Eventos de vida. La vista Gráfica muestra: 3 KPI cards (año pico, carga mensual pico, total egresos únicos), gráfico de barras apiladas por tipo de evento con zona de retiros únicos (puntos encima de cada barra, apilados en filas de máx. 3), panel de detalle al hover fijo sobre el gráfico (evita overflow), leyenda por tipo, lista de egresos puntuales al pie.
+- **Fix** — Tooltip del gráfico de eventos no se recortaba por el contenedor con overflow-x. Reemplazado por panel de estado fijo arriba del scroll.
+- **Fix** — Puntos de retiros únicos se apilaban en una sola fila y se desbordaban. Corregido con flex-wrap + content-end para apilar en filas desde abajo.
+
+#### MatrimonioWizard
+- **Fix** — Pantalla en blanco al pasar del paso 2 al 3 cuando se activaba la categoría `weddingPlanner`. Dos causas: (1) `redistribuirDesdeTotal()` no incluía `weddingPlanner` en el setS, (2) referencia a campo inexistente `resultado.montoAdelantos` (correcto: `resultado.montoAdelantosTu`).
+
+#### Responsive y UI — Ajustes finales
+- **Fix** — Patrimonio: header responsive en móvil. Los botones (TC widget, "Ocultas", "Agregar cuenta") ya no se salen de pantalla. Usan `flex-wrap` y apilan verticalmente en pantallas pequeñas.
+- **Fix** — CuentaForm (Patrimonio): grid pasa de `grid-cols-2 sm:grid-cols-4` a `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`. Los campos se apilan en móvil y se distribuyen correctamente a partir de tablet.
+- **Fix** — Returns header: mismo patrón responsive que Patrimonio. Filtros y botón "Registrar" se apilan en móvil.
+- **Feature** — Rendimientos: gráfica histórica de rentabilidad por año. ComposedChart (Recharts) con barras de monto base (K PEN eq., eje derecho) y línea de rentabilidad neta % (eje izquierdo). Visible cuando hay ≥ 2 años de datos. Incluye insights: promedio histórico, mejor año y peor año.
+- **Mejora** — Configuración: layout reescrito con 2 columnas en desktop. Agrupa las opciones en 5 secciones: Apariencia / Datos y moneda / Alertas y tiempos / Automatización / Módulos.
+- **Mejora** — Impuesto 5ta ocultado del sidebar. La ruta sigue existiendo; re-activable desde Configuración > Módulos.
+- **Mejora** — Simulación > Carrera y Aportes: los saltos de carrera ahora muestran año calendario real (ej. "2028") y edad correspondiente (ej. "34 años") basados en los datos de Parámetros (`anioActual`, `edadActual`). El campo de año es un `<select>` con todos los años hasta retiro — reemplaza el input numérico que causaba re-ordenamiento inmediato al tipear (imposible editar). El valor interno sigue siendo `anioT` relativo.
+- **Mejora** — Simulación > Movimientos: mismo patrón — formulario muestra dropdown de año calendario + edad. La lista desplegada muestra año y edad en cada fila en lugar de "Año T".
 
 ---
 
