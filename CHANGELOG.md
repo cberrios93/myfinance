@@ -10,6 +10,29 @@ Criterios de tipo:
 
 ---
 
+## [Unreleased] — DEV
+
+#### Tablas ordenables — Rendimientos, Historial, Patrimonio (implementado 2026-09-07)
+- **Mejora** — Rendimientos: todas las columnas de la tabla son ordenables (click en header). Columnas: Instrumento, Período, Fecha pago, Ganancia, Base, Rentabilidad. Cicla: ascendente ↑ → descendente ↓ → sin orden (cronológico). Indicador ⇅ en columnas inactivas. `SortTh` helper component, `sortedFiltered` via `useMemo`.
+- **Mejora** — Historial Mensual: columnas ordenables: Fecha, PEN, Δ% PEN, USD, Δ% USD, Total S/, Δ% Total, Δ Monto, TC. Los deltas se precomputan siempre en orden cronológico (`rowData` useMemo), luego `displayData` reordena el resultado — así el "mejor mes" por crecimiento es correcto aunque la tabla esté ordenada de otra forma.
+- **Mejora** — Patrimonio: sub-header clicable para ordenar cuentas dentro de cada categoría por Cuenta (nombre), PEN o USD. El agrupamiento por categoría se mantiene; el sort opera dentro de cada grupo con `sortedItems()`.
+- **Nota técnica** — v2.4.0 documentó este feature como PROD (2026-09-05) pero el código no tenía la implementación. Esta sesión (2026-09-07) es la implementación real.
+
+---
+
+## [v2.7.0] — 2026-09-07 — deploy pendiente (git push)
+
+### Brand System & UI
+- **Mejora** — Sistema de marca completo: logo SVG (escalera ascendente teal sobre cuadrado navy) en sidebar y login; wordmark "my**Finance**" (DM Sans 200i + 700); tokens CSS `--color-*` y `--chart-*` alineados a paleta oficial (teal `#00C9A7`); tipografía DM Sans + DM Mono vía Google Fonts; reemplazo global de colores hardcodeados en `.tsx` por tokens de marca.
+- **Mejora** — Modo Day/Night en Configuración: Day con fondo claro (`#F2F6FA`, cards blancas, texto navy) y Night con fondo oscuro (`#060E1B`); eliminadas las 6 paletas anteriores y el picker de acento custom. El teal `#00C9A7` es fijo en ambos modos.
+- **Mejora** — Tipografía de marca fija (DM Sans): eliminado selector de fuentes en Configuración.
+- **Fix** — Colores únicos por serie en charts del Dashboard: `Investment (Business)` → `#5B8CF7` (azul), `ETFs / Bolsa` → `#C47FD5` (violeta), línea "USD en S/" en Evolución del patrimonio → `#5B8CF7`. Antes `Savings` y `Business` compartían teal.
+
+### Responsive
+- **Mejora** — Responsive móvil completo: Dashboard con grids adaptativos (5→2 col KPIs, 3→1 col contenido); tablas con scroll horizontal en Patrimonio, Debts, CashFlow, Tax5th, Analytics; hook `useIsMobile` para breakpoints dinámicos; charts con altura explícita en mobile.
+
+---
+
 ## [v2.3.0] — 2026-09-05 — PROD
 
 ### Proyección financiera + Mejoras de visualización
@@ -35,6 +58,8 @@ Criterios de tipo:
 - **Feature** — Rendimientos: gráfica histórica de rentabilidad por año. ComposedChart (Recharts) con barras de monto base (K PEN eq., eje derecho) y línea de rentabilidad neta % (eje izquierdo). Visible cuando hay ≥ 2 años de datos. Incluye insights: promedio histórico, mejor año y peor año.
 - **Mejora** — Configuración: layout reescrito con 2 columnas en desktop. Agrupa las opciones en 5 secciones: Apariencia / Datos y moneda / Alertas y tiempos / Automatización / Módulos.
 - **Mejora** — Impuesto 5ta ocultado del sidebar. La ruta sigue existiendo; re-activable desde Configuración > Módulos.
+- **Mejora** — Simulación > Carrera y Aportes: los saltos de carrera ahora muestran año calendario real (ej. "2028") y edad correspondiente (ej. "34 años") basados en los datos de Parámetros (`anioActual`, `edadActual`). El campo de año es un `<select>` con todos los años hasta retiro — reemplaza el input numérico que causaba re-ordenamiento inmediato al tipear (imposible editar). El valor interno sigue siendo `anioT` relativo.
+- **Mejora** — Simulación > Movimientos: mismo patrón — formulario muestra dropdown de año calendario + edad. La lista desplegada muestra año y edad en cada fila en lugar de "Año T".
 
 ---
 
@@ -118,18 +143,6 @@ Criterios de tipo:
 
 ### Migraciones
 - `018_dashboard_layout.sql` — `user_profiles.dashboard_layout jsonb` (DEV + PROD).
-
----
-
-## [v2.1.0] — 2026-09-03 — PROD
-
-### Brand System & UI
-- **Mejora** — Sistema de marca completo: logo SVG (escalera ascendente teal sobre cuadrado navy) en sidebar y login; wordmark "my**Finance**" (DM Sans 200i + 700); tokens CSS `--color-*` y `--chart-*` alineados a paleta oficial (teal `#00C9A7`); tipografía DM Sans + DM Mono vía Google Fonts; reemplazo global de colores hardcodeados en `.tsx` por tokens de marca.
-- **Mejora** — Modo Day/Night en Configuración: Day con fondo claro (`#F2F6FA`, cards blancas, texto navy) y Night con fondo oscuro (`#060E1B`); eliminadas las 6 paletas anteriores y el picker de acento custom. El teal `#00C9A7` es fijo en ambos modos.
-- **Mejora** — Tipografía de marca fija (DM Sans): eliminado selector de fuentes en Configuración.
-
-### Responsive
-- **Mejora** — Responsive móvil completo: Dashboard con grids adaptativos (5→2 col KPIs, 3→1 col contenido); tablas con scroll horizontal en Patrimonio, Debts, CashFlow, Tax5th, Analytics; hook `useIsMobile` para breakpoints dinámicos; charts con altura explícita en mobile.
 
 ---
 

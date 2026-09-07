@@ -39,6 +39,13 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 - **Cmd+Enter guarda** en todos los formularios — hook `src/hooks/useSubmitOnCmdEnter.ts`.
 - **edadVidaEstimada:** default 85 en ESCENARIO_VACIO.
 - **Edge Functions en dev:** `vercel dev` (no `npm run dev`) para `api/invite-user`, `api/block-user`, `api/delete-user`.
+- **Sistema de temas (CRÍTICO):** `ConfigContext.tsx` aplica `PALETAS` vía `root.style.setProperty()` en runtime — esto tiene mayor especificidad que los valores declarados en `index.css`. Consecuencia: si cambias un color en `index.css` y no lo cambias en `src/config/themes.ts` (en la paleta correcta), el cambio no tendrá efecto. `themes.ts` es la fuente autoritativa de colores; `index.css` solo define los defaults iniciales antes del primer render. Si el color sigue igual después de editar index.css, limpiar localStorage (`myfinance_config`) para invalidar la paleta cacheada.
+- **Paletas activas (v2.1.0+):** Solo dos paletas: `marino-day` (Day, fondo claro `#F2F6FA`, texto navy) y `marino` (Night, fondo `#060E1B`). Ambas usan teal `#00C9A7` fijo. No agregar paletas adicionales — diseño de marca único.
+- **React Rules of Hooks en Projection:** Todos los `useMemo`/`useState` DEBEN ir antes de cualquier `return` condicional. `resultado` es nullable (`simular(escenarioActivo) | null`). Historial de bug: hooks después del early return causaron pantalla en blanco silenciosa.
+- **Patrimonio no invertido (Proyección):** `cuentasEnlazadas` = Set de `cuentaPatrimonioId` de instrumentos del escenario activo. Las cuentas de Patrimonio cuyo `id` NO está en ese Set se suman como `patrimonioNoInvertido` (montoPEN + montoUSD × tc). Se proyectan por separado a `tasaPatrimonioNoInvertido`.
+- **Sueldo base desde Haberes (Proyección):** Promedio de (`sueldoBasico + comisionesAnioActual`) de recibos desde el último `mesAjusteSalarial` hasta hoy (máx 12 meses, excluye meses con gratificación > 0). Si no hay recibos, fallback a `aporteAnualBase / 12`.
+- **Rendimiento portafolio anual (Proyección):** `rendimiento[t] = total[t] - total[t-1] - aporteNeto[t] + retirosPuntuales[t]`. El `aporteNeto = max(aporteBase - gastosRecurrentes, 0)` — los eventos reducen el aporte, no el ingreso bruto.
+- **Ciclo de compensación SAP:** Si `mesActual >= mesAjuste`, el ciclo inició este año. Si no, inició el año anterior. Meses con `gratificacion > 0` se excluyen del promedio salarial (son extraordinarios).
 
 ---
 
@@ -89,9 +96,11 @@ App web de finanzas personales. Reemplaza el Excel de César. Stack: React + Typ
 | `src/data/PatrimonyContext.tsx` | Provider de cuentas + historial |
 | `src/lib/tipoCambio.ts` | Fetch TC desde Rextie con cache |
 | `src/lib/supabase/finance.ts` | CRUD completo para todas las entidades |
+| `src/modules/Projection/Projection.tsx` | Proyección financiera año a año — sueldo, portafolio, patrimonio no invertido, eventos |
 | `src/lib/parseBoleta.ts` | OCR de boletas PDF vía Claude API |
 | `api/tipo-cambio.ts` | Proxy Vercel para Rextie |
 | `api/boleta.ts` | Proxy Vercel para Anthropic API |
 | `api/invite-user.ts` | Edge Function — invita usuarios vía Supabase Admin API |
+| `.claude/myfinance-logo.html` | Brand sheet completo — logo, paleta, tipografía, colores semánticos, chart colors, badges, superficie |
 | `vite.config.ts` | Proxies dev: Rextie + Anthropic |
 | `supabase/migrations/validate_schema.sql` | Script de validación DEV/PROD |
