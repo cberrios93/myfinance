@@ -10,6 +10,14 @@ Criterios de tipo:
 
 ---
 
+## [Unreleased] — DEV
+
+#### Tooltips en términos financieros (implementado 2026-09-08)
+- **Feature** — Componente `<FinancialTerm>`: subrayado punteado teal sobre cualquier término técnico; popup al hover (desktop) o tap (móvil) con nombre completo en teal y definición en 1 línea. Diccionario de 25 términos en `src/lib/financialTerms.ts`. Extensible: agregar término al diccionario + envolver con `<FinancialTerm term="clave">`.
+- **Mejora** — Aplicado en 7 módulos: Dashboard (Patrimonio neto, Flujo neto, Tasa de ahorro, Fondo emergencia), Analytics (Racha actual, Aceleración patrimonial, CAGR), Proyección (SWR), Rendimientos (Retorno s/ capital propio), Haberes (Gratificación, AFP, EsSalud, Impuesto 5ta Categoría), Simulador de préstamos (TEA).
+
+---
+
 ## [v2.8.0] — 2026-09-08 — PROD
 
 #### Rendimientos — Rediseño completo del módulo (implementado 2026-09-07)

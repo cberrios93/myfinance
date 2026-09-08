@@ -33,18 +33,12 @@
 |------|--------|------|
 | Feature | Definido | **Wizard Luna de Miel** — evento separado del Matrimonio (decisión 2026-08-31). Variables propias: destino, vuelos, hotel (noches + categoría), gastos en destino. Modelo: retiro único con posible gasto previo (reservas). Usar patrón de `MatrimonioWizard.tsx` con toggle PEN/USD. |
 
-### Ideas del brainstorm (no priorizadas aún)
+### Ideas del brainstorm (priorizadas)
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
-| Feature | Idea | **Onboarding guiado para usuarios nuevos** — checklist de primeros pasos al hacer login por primera vez: "Agrega tu primera cuenta", "Configura tu flujo de caja", "Activa el fondo de emergencia". Persiste en `user_preferences` y se marca completado. Crítico para mamá y Mili. |
-| Mejora | Idea | **Saludo personalizado por usuario** — "Hola Mili" o "Hola Gladys" en el header del Dashboard. Ya existe el nombre en `user_profiles`. Cambio de 5 min de alto impacto perceptual. |
-| Mejora | Idea | **Tooltips en términos financieros** — ícono de ayuda (?) al lado de labels técnicos: "Tasa de ahorro", "Fondo de emergencia", "Rendimiento bruto", "Traspaso". Al hover/tap: definición en 1 línea. Especialmente útil para mamá. |
-| Mejora | Idea | **Labels más simples en la navegación** — evaluar renombrar módulos para usuarios no-financieros: "Patrimonio" → "Mis cuentas", "Flujo de Caja" → "Ingresos y gastos", "Rendimientos" → "Mis inversiones". Podría ser configurable por perfil de usuario. |
-| Mejora | Idea | **Progressive disclosure en formularios** — ocultar campos avanzados (ej. "Marcar como riesgo", "Notas", "Vencimiento") detrás de un link "Opciones avanzadas ▼". El formulario se ve más simple por defecto para usuarios nuevos. |
-| Mejora | Idea | **Confirmaciones de borrado más amigables** — en lugar del borrado inmediato o confirm() del browser, usar un modal con ícono de advertencia, nombre del ítem a borrar y botones "Cancelar / Sí, borrar". Reduce el miedo a cometer errores. |
-| Feature | Idea | **Modo de solo lectura (viewer)** — que mamá pueda ver todos sus datos sin poder editar nada accidentalmente. Toggle en Admin o en su perfil. Relacionado con el sistema de roles granulares. |
-| Mejora | Idea | **Mensajes de ayuda en módulos vacíos complejos** — en Rendimientos y Simulación, agregar un panel de "¿Cómo funciona esto?" cuando no hay datos, con 3 bullets explicando el módulo antes del CTA. Actualmente el Empty State solo dice "agrega", no explica para qué sirve. |
+| Mejora | Definido | **Labels más simples en la navegación** — evaluar renombrar módulos para usuarios no-financieros: "Patrimonio" → "Mis cuentas", "Flujo de Caja" → "Ingresos y gastos", "Rendimientos" → "Mis inversiones". Podría ser configurable por perfil de usuario. |
+| Mejora | Definido | **Progressive disclosure en formularios** — ocultar campos avanzados (ej. "Marcar como riesgo", "Notas", "Vencimiento") detrás de un link "Opciones avanzadas ▼". El formulario se ve más simple por defecto para usuarios nuevos. |
 
 ---
 
