@@ -14,6 +14,7 @@ import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
 import { useConfig } from '../../config/ConfigContext'
 import { formatMonto } from '../../lib/formatMonto'
+import { FinancialTerm } from '../../components/common/FinancialTerm'
 
 function fmt(n: number, dec = 2) { return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec }) }
 function fmtPct(n: number) { return `${(n * 100).toFixed(2)}%` }
@@ -787,13 +788,13 @@ export default function Returns() {
           }, 0)
           const retornoCapitalPropio = capitalPropio > 0 ? ganTotal / capitalPropio : null
           return [
-            { label: 'Ganancias totales (PEN eq.)', main: formatMonto(ganTotal, config), color: ganTotal >= 0 ? '#00C9A7' : '#E24C4C' },
-            { label: 'Ganancias USD', main: `$ ${fmt(totalGanUSD)}`, sub: `≈ ${formatMonto(totalGanUSD * tc, config)}`, color: totalGanUSD >= 0 ? '#00C9A7' : '#E24C4C' },
-            { label: 'Monto base (PEN eq.)', main: formatMonto(baseTotal, config), color: 'var(--color-texto)' },
-            { label: 'Rentabilidad promedio', main: rentPromedio != null ? fmtPct(rentPromedio) : '—', color: rentPromedio != null && rentPromedio >= 0 ? '#00C9A7' : '#E24C4C' },
-            { label: 'Retorno s/ capital propio', main: retornoCapitalPropio != null ? fmtPct(retornoCapitalPropio) : '—', sub: capitalPropio > 0 ? `Base: ${formatMonto(capitalPropio, config)}` : 'Registra flujos de capital', color: retornoCapitalPropio != null && retornoCapitalPropio >= 0 ? '#00C9A7' : 'var(--color-muted)' },
-          ].map(({ label, main, sub, color }) => (
-            <div key={label} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+            { key: 'gan', label: 'Ganancias totales (PEN eq.)', main: formatMonto(ganTotal, config), color: ganTotal >= 0 ? '#00C9A7' : '#E24C4C' },
+            { key: 'usd', label: 'Ganancias USD', main: `$ ${fmt(totalGanUSD)}`, sub: `≈ ${formatMonto(totalGanUSD * tc, config)}`, color: totalGanUSD >= 0 ? '#00C9A7' : '#E24C4C' },
+            { key: 'base', label: 'Monto base (PEN eq.)', main: formatMonto(baseTotal, config), color: 'var(--color-texto)' },
+            { key: 'rent', label: 'Rentabilidad promedio', main: rentPromedio != null ? fmtPct(rentPromedio) : '—', color: rentPromedio != null && rentPromedio >= 0 ? '#00C9A7' : '#E24C4C' },
+            { key: 'retorno', label: <FinancialTerm term="retorno_capital">Retorno s/ capital propio</FinancialTerm>, main: retornoCapitalPropio != null ? fmtPct(retornoCapitalPropio) : '—', sub: capitalPropio > 0 ? `Base: ${formatMonto(capitalPropio, config)}` : 'Registra flujos de capital', color: retornoCapitalPropio != null && retornoCapitalPropio >= 0 ? '#00C9A7' : 'var(--color-muted)' },
+          ].map(({ key, label, main, sub, color }) => (
+            <div key={key} className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
               <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{label}</p>
               <p className="font-bold text-sm font-mono" style={{ color }}>{main}</p>
               {sub && <p className="font-mono text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>{sub}</p>}

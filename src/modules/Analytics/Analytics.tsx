@@ -10,6 +10,7 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import { useConfig } from '../../config/ConfigContext'
 import type { HistorialMensual, Rendimiento, FlujoCajaItem, Escenario } from '../../data/types'
 import { useScenario } from '../../data/ScenarioContext'
+import { FinancialTerm } from '../../components/common/FinancialTerm'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -376,7 +377,7 @@ function PatrimonioTab() {
         <div className="grid grid-cols-4 gap-3">
           {racha && (
             <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
-              <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Racha actual</p>
+              <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}><FinancialTerm term="racha">Racha actual</FinancialTerm></p>
               <p className="text-2xl font-bold font-mono" style={{ color: racha.positive ? '#00C9A7' : '#E24C4C' }}>
                 {racha.positive ? '▲' : '▼'} {racha.count} {racha.count === 1 ? 'mes' : 'meses'}
               </p>
@@ -387,7 +388,7 @@ function PatrimonioTab() {
           )}
           {aceleracion && (
             <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
-              <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Aceleración patrimonial</p>
+              <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}><FinancialTerm term="aceleracion">Aceleración patrimonial</FinancialTerm></p>
               <p className="text-2xl font-bold font-mono" style={{ color: aceleracion.delta >= 0 ? '#00C9A7' : '#E24C4C' }}>
                 {aceleracion.delta >= 0 ? '+' : ''}{aceleracion.delta.toFixed(1)}%
               </p>
@@ -419,7 +420,7 @@ function PatrimonioTab() {
                 const { text, color } = cagrLabel(stats.cagrVal)
                 return (
                   <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
-                    <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>CAGR · {stats.years}a</p>
+                    <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}><FinancialTerm term="cagr">CAGR</FinancialTerm> · {stats.years}a</p>
                     <p className="text-2xl font-bold font-mono" style={{ color }}>
                       {stats.cagrVal >= 0 ? '+' : ''}{stats.cagrVal.toFixed(2)}%
                     </p>

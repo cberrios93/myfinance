@@ -2,6 +2,7 @@ import { formatAbrev } from '../../../lib/formatMonto'
 import type { DashboardData } from '../useDashboardData'
 import { fmtPct } from './shared'
 import { Kpi } from './frame'
+import { FinancialTerm } from '../../../components/common/FinancialTerm'
 
 // Los 5 KPIs de la fila 1. Extraídos de Dashboard.tsx sin cambios (Etapa 2).
 
@@ -13,7 +14,7 @@ export function KpiPatrimonio({ d }: { d: DashboardData }) {
     ? `${cambioMes >= 0 ? 'Subió' : 'Bajó'} ${fmtPct(Math.abs(cambioMes))} respecto al mes anterior`
     : undefined
   return (
-    <Kpi label="Patrimonio neto" value={formatAbrev(patrimonioNeto, config)}
+    <Kpi label={<FinancialTerm term="patrimonio_neto">Patrimonio neto</FinancialTerm>} value={formatAbrev(patrimonioNeto, config)}
       dot={dotColor}
       insight={insightText && insightColor ? { text: insightText, color: insightColor } : undefined}
       sub={cambioMes !== null ? (
@@ -33,7 +34,7 @@ export function KpiFlujo({ d }: { d: DashboardData }) {
   const dotColor = flujoNeto >= 0 ? '#00C9A7' : '#E24C4C'
   const insightText = flujoNeto >= 0 ? 'Ingresas más de lo que gastas' : 'Gastas más de lo que ingresas este mes'
   return (
-    <Kpi label="Flujo neto / mes" value={formatAbrev(flujoNeto, config)} valueColor={flujoNeto >= 0 ? '#00C9A7' : '#E24C4C'}
+    <Kpi label={<FinancialTerm term="flujo_neto">Flujo neto / mes</FinancialTerm>} value={formatAbrev(flujoNeto, config)} valueColor={flujoNeto >= 0 ? '#00C9A7' : '#E24C4C'}
       dot={dotColor}
       insight={{ text: insightText, color: dotColor }}
       sub={`Ing. ${formatAbrev(ingresosMensuales, config)} · Egr. ${formatAbrev(egresosMensuales, config)}`} />
@@ -48,7 +49,7 @@ export function KpiAhorro({ d }: { d: DashboardData }) {
       ? `Apunta al 20% — te faltan ${(20 - tasaAhorro).toFixed(0)} p.p.`
       : 'Tasa crítica — revisa tus gastos fijos'
   return (
-    <Kpi label="Tasa de ahorro" value={fmtPct(tasaAhorro)} valueColor={ahorroColor}
+    <Kpi label={<FinancialTerm term="tasa_ahorro">Tasa de ahorro</FinancialTerm>} value={fmtPct(tasaAhorro)} valueColor={ahorroColor}
       dot={ahorroColor}
       insight={{ text: insightText, color: ahorroColor }}
       sub={<span style={{ color: ahorroColor }}>{tasaAhorro >= 20 ? 'Sobre objetivo' : tasaAhorro >= 10 ? 'Bajo objetivo' : 'Crítico'}</span>} />
@@ -63,7 +64,7 @@ export function KpiEmergencia({ d }: { d: DashboardData }) {
       ? `Adecuado — cubre tus gastos por ${fondoEmergencia.meses.toFixed(1)} meses`
       : 'Bajo el mínimo recomendado de 3 meses'
   return (
-    <Kpi label="Fondo emergencia"
+    <Kpi label={<FinancialTerm term="fondo_emergencia">Fondo emergencia</FinancialTerm>}
       value={`${fondoEmergencia.meses.toFixed(1)} meses`}
       valueColor={fondoColor}
       dot={fondoColor}

@@ -6,6 +6,7 @@ import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import { parseBoleta } from '../../lib/parseBoleta'
 import { useConfig } from '../../config/ConfigContext'
 import { formatMonto } from '../../lib/formatMonto'
+import { FinancialTerm } from '../../components/common/FinancialTerm'
 function fmt(n: number, dec = 2) {
   return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec })
 }
@@ -221,7 +222,7 @@ function parsearCsv(texto: string): { filas: Draft[]; errores: ErrorFila[] } {
 
 // ─── Form helpers ─────────────────────────────────────────────────────────────
 
-function NumInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function NumInput({ label, value, onChange }: { label: React.ReactNode; value: number; onChange: (v: number) => void }) {
   return (
     <div>
       <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>{label}</label>
@@ -285,7 +286,7 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
         <NumInput label="Venta Vacaciones" value={value.ventaVacaciones} onChange={n('ventaVacaciones')} />
         <NumInput label="Remun. 1ro de Mayo" value={value.remuneracion1Mayo} onChange={n('remuneracion1Mayo')} />
         <NumInput label="Vacaciones Devengadas" value={value.vacacionesDevengadas} onChange={n('vacacionesDevengadas')} />
-        <NumInput label="Gratificación" value={value.gratificacion} onChange={n('gratificacion')} />
+        <NumInput label={<FinancialTerm term="gratificacion">Gratificación</FinancialTerm>} value={value.gratificacion} onChange={n('gratificacion')} />
         <NumInput label="Equity Shares Taxable" value={value.equitySharesTaxable} onChange={n('equitySharesTaxable')} />
         <Total label="Total Haberes" value={c.totalHaberes} color="#00C9A7" />
       </Section>
@@ -305,10 +306,10 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
       </Section>
 
       <Section title="Descuentos" color="#E24C4C">
-        <NumInput label="AFP, Fdo Pensiones (10%)" value={value.afp} onChange={n('afp')} />
+        <NumInput label={<FinancialTerm term="afp">AFP, Fdo Pensiones (10%)</FinancialTerm>} value={value.afp} onChange={n('afp')} />
         <NumInput label="AFP, Seguro (1.37%)" value={value.seguroAfp} onChange={n('seguroAfp')} />
         <NumInput label="AFP, Comisión (0.28%)" value={value.comisionAfp} onChange={n('comisionAfp')} />
-        <NumInput label="Impuesto 5ta Categoría" value={value.impuesto5ta} onChange={n('impuesto5ta')} />
+        <NumInput label={<FinancialTerm term="impuesto_5ta">Impuesto 5ta Categoría</FinancialTerm>} value={value.impuesto5ta} onChange={n('impuesto5ta')} />
         <Total label="Total Descuentos" value={c.totalDescuentos} color="#E24C4C" />
       </Section>
 
@@ -321,7 +322,7 @@ function ReciboForm({ value, onChange, onSave, onCancel }: {
         <NumInput label="Descto Aporte Empresa" value={value.desctoAporteEmpresa} onChange={n('desctoAporteEmpresa')} />
         <NumInput label="Dcto Seguro de Vida" value={value.dctoSeguroVida} onChange={n('dctoSeguroVida')} />
         <NumInput label="Dcto Tickets Alimentación" value={value.dctoTicketsAlimentacion} onChange={n('dctoTicketsAlimentacion')} />
-        <NumInput label="EsSalud + Vida" value={value.essaludVida} onChange={n('essaludVida')} />
+        <NumInput label={<FinancialTerm term="essalud">EsSalud + Vida</FinancialTerm>} value={value.essaludVida} onChange={n('essaludVida')} />
         <NumInput label="Equity Shares Taxable Dscto" value={value.equitySharesTaxableDscto} onChange={n('equitySharesTaxableDscto')} />
         <NumInput label="Equity Tax Cover Adv. Dscto" value={value.equityTaxCoverAdvanceDscto} onChange={n('equityTaxCoverAdvanceDscto')} />
         <Total label="Total Otros Descuentos" value={c.totalOtrosDescuentos} color="#f97316" />

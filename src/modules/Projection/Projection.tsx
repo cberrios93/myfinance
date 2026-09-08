@@ -10,6 +10,7 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
 import { simular } from '../../engine/calculator'
 import type { Carrera, EventoVida } from '../../data/types'
+import { FinancialTerm } from '../../components/common/FinancialTerm'
 
 // ── Helpers del motor ─────────────────────────────────────────────────────────
 
@@ -246,7 +247,7 @@ export default function Projection() {
             <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Renta pasiva al retiro</p>
           </div>
           <p className="text-xl font-bold font-mono" style={{ color: '#10B981' }}>S/ {fmtNum(Math.round(retiroAnualSWR / 12))}/mes</p>
-          <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>SWR {(general.swr * 100).toFixed(1)}% · S/ {fmtNum(Math.round(retiroAnualSWR))}/año</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}><FinancialTerm term="swr">SWR</FinancialTerm> {(general.swr * 100).toFixed(1)}% · S/ {fmtNum(Math.round(retiroAnualSWR))}/año</p>
         </div>
 
         <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>

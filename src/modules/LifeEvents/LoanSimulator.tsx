@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
 import type { EventoVida, GeneralParams } from '../../data/types'
+import { FinancialTerm } from '../../components/common/FinancialTerm'
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -319,7 +320,7 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
 
               {/* TEA */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Tasa de interés anual (TEA %)</label>
+                <label className="block text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Tasa de interés anual (<FinancialTerm term="tea">TEA</FinancialTerm> %)</label>
                 <input type="number" min={0} step={0.1} value={teaPct}
                   onChange={e => setTeaPct(parseFloat(e.target.value) || 0)}
                   className="w-full px-4 py-3 rounded-xl text-base outline-none font-mono"

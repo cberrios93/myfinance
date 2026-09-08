@@ -18,7 +18,7 @@ export function TileFrame({ title, style, children }: {
 }
 
 export function Kpi({ label, value, sub, valueColor, dot, insight }: {
-  label: string
+  label: React.ReactNode
   value: string
   sub?: React.ReactNode
   valueColor?: string
