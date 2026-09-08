@@ -10,7 +10,8 @@
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
-| Mejora | Listo DEV | **Tablas ordenables** — Rendimientos (todas las columnas), Historial Mensual (fecha, montos, deltas), Patrimonio (por cuenta/PEN/USD dentro de cada categoría). Implementado 2026-09-07. Pendiente deploy a PROD. |
+| Mejora | En PROD | **Tablas ordenables** — Rendimientos (todas las columnas), Historial Mensual (fecha, montos, deltas), Patrimonio (por cuenta/PEN/USD dentro de cada categoría). En PROD v2.8.0 (2026-09-08). |
+| Técnico | Definido | **Eliminar secret `SUPABASE_USER_ID` en GitHub Actions** — El script `crear-historial.mjs` ya no lo usa (refactorizado a multi-usuario). Ir a GitHub → repo → Settings → Secrets and variables → Actions y borrarlo. |
 | Técnico | Definido | **Verificar config Proyección en PROD** — Confirmar que `mesAjusteSalarial = 4` (Abril) e `incrementoSalarialAnual` / `tasaPatrimonioNoInvertido` están calibrados en Parámetros del escenario activo en PROD. |
 | Técnico | Definido | **Verificar migración Eventos de Vida en PROD** — Confirmar que los 26 eventos de vida migrados el 2026-09-05 son visibles y correctos en la app PROD (ruta `/eventos-vida`). |
 | Técnico | Definido | **Verificar usuario `me@cesarberrios.com` en PROD** — La migración DEV→PROD del 2026-09-03 borró todos los datos de este usuario (no existía en DEV). Confirmar si necesita ser reinvitado desde Gestión de Usuarios y si tiene data que recrear. |
@@ -30,6 +31,12 @@
 | Mejora | Definido | **Bottom nav bar en móvil** — reemplazar la navegación lateral/hamburguesa por una barra fija en la parte inferior con 5 íconos (Home, Dinero, Flujo, Análisis, Más). El ícono activo se resalta en teal. Mockup disponible en sesión de sep 2026. **Revisar antes de implementar:** impacto en el layout actual del sidebar en desktop y en el menú móvil existente. |
 | Mejora | Definido | **Vista simple del Dashboard** — toggle "Simple / Completa" en el header del Dashboard. Vista simple muestra solo 3 cards grandes: "Lo que tienes" (Patrimonio total), "Lo que gastas al mes" (Egreso mensual), "Lo que ahorras" (Flujo neto), con lenguaje llano y sin números secundarios. Mockup disponible en sesión de sep 2026. **Revisar antes de implementar:** cómo coexiste con el canvas personalizable de v2.2.0. |
 
+### Próximos wizards de eventos de vida
+
+| Tipo | Estado | Ítem |
+|------|--------|------|
+| Feature | Definido | **Wizard Luna de Miel** — evento separado del Matrimonio (decisión 2026-08-31). Variables propias: destino, vuelos, hotel (noches + categoría), gastos en destino. Modelo: retiro único con posible gasto previo (reservas). Usar patrón de `MatrimonioWizard.tsx` con toggle PEN/USD. |
+
 ### Ideas del brainstorm (no priorizadas aún)
 
 | Tipo | Estado | Ítem |
@@ -43,6 +50,15 @@
 | Feature | Idea | **Modo de solo lectura (viewer)** — que mamá pueda ver todos sus datos sin poder editar nada accidentalmente. Toggle en Admin o en su perfil. Relacionado con el sistema de roles granulares. |
 | Mejora | Idea | **Mensajes de ayuda en módulos vacíos complejos** — en Rendimientos y Simulación, agregar un panel de "¿Cómo funciona esto?" cuando no hay datos, con 3 bullets explicando el módulo antes del CTA. Actualmente el Empty State solo dice "agrega", no explica para qué sirve. |
 | Feature | Definido | **PWA / app instalable en celular** — `manifest.json` + `apple-touch-icon` para instalar MyFinance como ícono en pantalla de inicio. Logo revisado (2026-09-07): usar solo el símbolo M+gráfico (sin el texto "MyFinance") sobre fondo navy `#1a2f5e`; fondo blanco del PNG original es problemático en iOS. Se necesita el archivo fuente (AI/SVG/PNG sin fondo) o recortar el símbolo del PNG entregado. Siguiente paso: implementar cuando se confirme el asset final del ícono. |
+
+---
+
+## 🟠 Analytics — Pendientes (sep 2026)
+
+| Tipo | Estado | Ítem |
+|------|--------|------|
+| Feature | Definido | **Composición de categorías por tiempo** (Analytics opción 1) — Gráfico de barras apiladas mostrando la distribución del patrimonio por categoría (Savings, Investment, etc.) mes a mes. **Bloqueado:** `historial_mensual` solo almacena `total_pen` y `total_usd`; no hay desglose por categoría. Opciones: (a) aceptar snapshot del estado actual como dato único, (b) descartar, (c) agregar campos per-categoría en historial → requiere migración `019_historial_categorias.sql` + refactor del script de creación mensual. **Pendiente decisión de César.** |
+| Feature | En PROD | **Deploy Analytics a PROD** — FlujoRealTab y donut de concentración. En PROD v2.8.0 (2026-09-08). |
 
 ---
 
@@ -71,6 +87,32 @@
 | 5 | Mejora | Idea | **Presupuesto en Flujo de Caja** — columna `presupuesto` por ítem. El KPI de ahorro pasa a mostrar real vs. plan. Vista de varianza del mes. |
 | 6 | Mejora | Idea | **Benchmarking de rendimientos** — campo `benchmark` opcional por portafolio (VOO, QQQM, S&P500, IPC Lima, manual). Fetch del retorno anual del benchmark vía API (Yahoo Finance). Columna adicional: Tu retorno / Benchmark / Alpha. |
 | 7 | Feature | Idea | **Alertas proactivas** — sistema de notificaciones in-app o email: vencimiento de instrumento próximo, historial mensual sin cerrar, desviación flujo vs. presupuesto > umbral, rebalanceo necesario. El cron de GitHub Actions ya existe y se puede reutilizar. |
+| 8 | Feature | Idea | **FIRE metrics** — FI Number, FI Ratio, Work Optional Age, Coast/Lean/Fat FIRE labels. Calculables del engine existente (Scenarios + calculator.ts). Solo falta exponerlos como KPIs o sección en Scenarios. |
+| 9 | Feature | Idea | **Módulo AFP** — aporte mensual, comisión, TIR histórica personal, rentabilidad AFP vs benchmark, proyección hasta 65, simulación de fondo (1/2/3) y simulación Hábitat vs Profuturo, impacto de comisiones. Datos se ingresan manualmente. |
+| 10 | Feature | Idea | **Módulo Prestamype / Private Credit** — cronograma de pagos, estado (al día/mora), LTV, yield efectivo considerando premium de subasta, capital pendiente, interés cobrado. Datos manuales. |
+| 11 | Mejora | Idea | **FX Management básico** — TC ya integrado (Rextie). Agregar: distribución PEN/USD del patrimonio como KPI, ganancia/pérdida por FX en rendimientos, allocation objetivo por moneda configurable. Sin APIs adicionales. |
+| 12 | Feature | Idea | **Decision Journal** — extender Notes como diario de inversiones estructurado: fecha, decisión, tesis, retorno esperado, riesgos, alternativa descartada, horizonte, resultado posterior. Permite revisar si la tesis fue correcta. |
+| 13 | Feature | Idea | **Data Quality Engine** — score de calidad de datos: cuentas sin precio actualizado, historial mensual sin cerrar, descuadres base/valor, campos faltantes. Derivable de datos existentes. Evita errores silenciosos. |
+| 14 | Feature | Idea | **Monthly Financial Close formal** — cierre mensual estructurado: reporte consolidado (ingresos/gastos/ahorro/rentabilidad/FX/patrimonio), bloqueo del período, snapshot guardado. Formaliza el proceso mensual que ya se hace informalmente. |
+| 15 | Feature | Idea | **Financial Health Score** — score 0-100 derivable de liquidez, ahorro, deuda, diversificación, progreso FI. El tile `kpi-salud` ya está definido en el canvas del Dashboard — falta la lógica y la vista de detalle del score. |
+| 16 | Feature | Idea | **AI Monthly Insights** — resumen automático mensual (What happened → Why → What to do) via Anthropic API. La infraestructura ya está (API key, proxy Vercel, parseBoleta como precedente). Alto valor, bajo esfuerzo incremental. |
+
+### Funcionalidades evaluadas y descartadas (sep 2026)
+> Analizadas en detalle. No agregar al backlog sin cambio de contexto relevante.
+
+| # | Funcionalidad | Razón descarte |
+|---|--------------|---------------|
+| 8 | Concentración look-through ETFs | Requiere API de composición de fondos (Morningstar/Bloomberg) — costosa, compleja de mantener |
+| 9 | Risk Dashboard (Sharpe, beta, VaR) | Requiere series de precios históricos diarios — sin datos de mercado es decorativo |
+| 10 | Stress Testing completo | Misma dependencia que #9. Versión simplificada ya disponible en Scenarios |
+| 17 | Real Estate module | Prematuro — sin propiedad aún. Retomar cuando sea relevante |
+| 22 | Capital Allocation Engine | Riesgo de recomendaciones incorrectas; mejor hacerlo manualmente con datos existentes |
+| 23 | Opportunity Analyzer | Score formal Invest/Consider/Reject difícil de calibrar bien |
+| 24 | Opportunity Cost Engine | Caso de uso del engine de Scenarios actual, no feature nueva |
+| 27 ext. | Tax Layer completo | Régimen tributario peruano sobre inversiones extranjeras: complejo y cambiante. Fuera del scope |
+| 34 | AI Copilot conversacional | Proyecto paralelo de alto esfuerzo. V3.0 eventual |
+| 37 | Monte Carlo | Ya decidido: backlog avanzado |
+| 38 | Investment Policy Statement | Documento de configuración — mejor en Notion/doc externo |
 
 ---
 
@@ -86,7 +128,6 @@
 |------|--------|------|
 | Feature | Idea | **Gráfico distribución patrimonial en Análisis** — donut/pie con % por categoría (Savings, Investment Stock Exchange, etc.) usando datos de Patrimonio en tiempo real. Pendiente de diseño y ubicación dentro del módulo de Análisis |
 | Feature | Idea | **Notificaciones por email** — alerta bajo umbral, recordatorio historial mensual |
-| Feature | Idea | **Historial automático configurable (multi-usuario)** — toggle en Settings para activar/desactivar creación automática el 1° de cada mes. Implementación: tabla `user_preferences` con campo `historial_auto boolean default false`; script GitHub Actions elimina el secret `SUPABASE_USER_ID` y en su lugar consulta todos los usuarios con `historial_auto = true`, procesándolos en loop. UI: toggle en Settings que escribe en `user_preferences`. Ya existe el cron (`.github/workflows/historial-mensual.yml`) — requiere refactor del script + migración DB + UI. |
 | Feature | Idea | **Deudas** — módulo de seguimiento de deudas (existe código en `src/modules/Debts/Debts.tsx`). Oculto del nav por ahora. Retomar cuando sea relevante. |
 | Feature | Idea | **Multi-moneda** — EUR, BRL, etc. |
 | Feature | Idea | **Compartir escenarios** — link read-only |
@@ -95,3 +136,4 @@
 | Técnico | Idea | **Tests** — cobertura mínima para `calculator.ts` |
 | Técnico | Idea | **Auditoría de acciones** — tabla `audit_log` |
 | Técnico | Idea | **Loop engineering** — automatización con `/schedule`: historial mensual automático, monitor de deploy, revisión semanal de backlog. Revisar cuando el proyecto esté más maduro |
+| Técnico | Idea | **Skill `/myfinance-release`** — skill de Claude Code que lee `[Unreleased]` del CHANGELOG, propone número de versión siguiente, genera email de release notes listo para enviar y convierte la sección a versión numerada con fecha |

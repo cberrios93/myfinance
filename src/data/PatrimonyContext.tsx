@@ -99,8 +99,14 @@ export function PatrimonyProvider({ children }: { children: ReactNode }) {
   }
 
   async function toggleHideCuenta(id: string, isHidden: boolean) {
+    const cuenta = cuentas.find(x => x.id === id)
     await toggleHiddenCuenta(id, isHidden)
     setCuentas(prev => prev.map(x => x.id === id ? { ...x, isHidden } : x))
+    const label = isHidden ? `Cuenta "${cuenta?.nombre ?? ''}" ocultada` : `Cuenta "${cuenta?.nombre ?? ''}" mostrada`
+    showUndo(label, async () => {
+      await toggleHiddenCuenta(id, !isHidden)
+      setCuentas(prev => prev.map(x => x.id === id ? { ...x, isHidden: !isHidden } : x))
+    })
   }
 
   async function agregarHistorial(data: Omit<HistorialMensual, 'id' | 'creadoEn' | 'actualizadoEn'>) {

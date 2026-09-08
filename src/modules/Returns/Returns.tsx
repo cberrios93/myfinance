@@ -522,7 +522,7 @@ function SortTh({ label, col, dir, onToggle, align = 'left' }: { label: string; 
 }
 
 export default function Returns() {
-  const { rendimientos, flujosCapital, loading, agregarRendimiento, actualizarRendimiento, borrarRendimiento } = useFinanceData()
+  const { rendimientos, flujosCapital, loading, agregarRendimiento, actualizarRendimiento, borrarRendimiento, bulkActualizarTasaRendimientos } = useFinanceData()
   const { escenarios } = useScenario()
   const { cuentas, actualizarCuenta } = usePatrimony()
   const { tc: tcData } = useTipoCambio()
@@ -707,8 +707,7 @@ export default function Returns() {
     if (isNaN(tasa) || instrFiltro === 'todos') return
     setBulkApplying(true)
     try {
-      const targets = rendimientos.filter(r => r.instrumentoNombre === instrFiltro && !r.esTraspaso)
-      await Promise.all(targets.map(r => actualizarRendimiento({ ...r, tasaImpuesto: tasa })))
+      await bulkActualizarTasaRendimientos(instrFiltro, tasa)
       setBulkTasa('')
     } finally {
       setBulkApplying(false)

@@ -10,7 +10,69 @@ Criterios de tipo:
 
 ---
 
-## [Unreleased] — DEV
+## [v2.8.0] — 2026-09-08 — PROD
+
+#### Rendimientos — Rediseño completo del módulo (implementado 2026-09-07)
+- **Mejora** — Instrumento se selecciona desde dropdown poblado con los instrumentos del escenario activo (ya no se escribe manualmente). El dropdown muestra nombre, moneda y tipo de renta de cada instrumento.
+- **Mejora** — Período como fecha de pago (date picker nativo al día actual) + desglose mes/año derivados automáticamente de la fecha elegida. El campo `mes` (1–12) se persiste en la tabla `rendimientos` vía migración `012_rendimientos_mes.sql`.
+- **Mejora** — Monto base (PEN o USD) se pre-llena desde el balance actual de la cuenta de Patrimonio vinculada al instrumento y es de solo lectura. La moneda es única por instrumento (sin bi-moneda).
+- **Mejora** — Ganancia ↔ Rentabilidad bidireccionales: modificar el campo de ganancia actualiza la rentabilidad automáticamente (ganancia / monto base) y viceversa. El cambio es instantáneo mientras el usuario escribe.
+- **Mejora** — Panel de información del formulario expandido a 5 columnas: Monto inicial · Balance actual · Ganancia acumulada (S/) · Rentabilidad acumulada (%) · Tipo de renta. Los acumulados se calculan desde el historial completo del instrumento.
+- **Mejora** — Campo "Comentario" renombrado a "Notas".
+- **Feature** — `tipoRenta` en `Instrumento`: define el comportamiento de reinversión a nivel de instrumento (se configura desde el módulo Instrumentos, no desde Rendimientos). Valores: `pago` (ganancia se cobra, capital queda igual), `capitalizacion` (ganancia se reinvierte, capital crece), `variable` (se registra el valor actual y el sistema calcula el delta automáticamente).
+- **Feature** — Flujo post-save para instrumentos tipo `capitalizacion` y `variable`: tras guardar un rendimiento, aparece un banner que propone actualizar el saldo de la cuenta de Patrimonio vinculada al nuevo monto (base + ganancia). El usuario puede confirmar o descartar.
+- **Técnico** — `InstrInfo = { moneda, montoInicial, montoActual, tipoRenta, cuentaId }` construido desde todos los instrumentos del escenario activo. `tipoRenta` se almacena en JSONB dentro de `escenarios` — no requiere migración SQL adicional.
+- **Técnico** — Migración `012_rendimientos_mes.sql`: agrega columna `mes integer check (mes >= 1 and mes <= 12)` a la tabla `rendimientos`. ✓ DEV + PROD.
+
+#### Instrumentos — Acumulados históricos en la lista (implementado 2026-09-07)
+- **Mejora** — Cada tarjeta de instrumento en la lista muestra ahora **Ganancia acumulada (S/)** y **Rentabilidad acumulada (%)** calculadas desde el historial completo de Rendimientos. La ganancia acumulada convierte rendimientos USD a PEN usando el TC del momento. La rentabilidad se calcula sobre el monto efectivo actual del instrumento.
+- **Mejora** — Badge visual por tipo de renta (`pago` / `capitalización` / `variable`) con color diferenciado en la tarjeta del instrumento.
+- **Mejora** — Selector `tipoRenta` en el formulario de instrumento con texto descriptivo por tipo. Valor por defecto: `pago`.
+
+#### Patrimonio — Persistencia del estado colapsado (implementado 2026-09-07)
+- **Mejora** — El estado de collapse/expand de las categorías en Patrimonio persiste en `localStorage` bajo la clave `patrimony_collapsed_<userId>`. Al navegar a otro módulo y volver, las categorías quedan exactamente como el usuario las dejó. Scoped por usuario para evitar conflictos en uso multi-usuario.
+
+#### Sistema de Undo global (implementado 2026-09-07)
+- **Feature** — Sistema de deshacer acción en toda la app. Toast centrado en la parte inferior con barra de countdown configurable (default 8s, ajustable 5–30s). Cubre **crear, editar y eliminar** en todos los módulos: Patrimonio (cuentas + historial), Escenarios, Rendimientos, Flujo de Caja, Flujos de Capital, Haberes, Suscripciones, Gastos Familia, Deudas, Notas.
+- **Mejora** — Configuración → slider "Tiempo para deshacer" (5s–30s). Persiste en localStorage via `AppConfig.undoTimeoutMs`.
+- **Técnico** — Archivos nuevos: `src/contexts/UndoContext.tsx` (UndoProvider + `useUndo()` hook), `src/components/UndoToast.tsx`. `makeCRUD` en `FinanceDataContext` refactorizado con `useRef` para snapshot sin stale closures. Suscripciones y GastosFamilia capturan también el snapshot del FlujoCajaItem vinculado antes del borrado para restaurarlo en el undo.
+
+#### Wizard de Matrimonio (implementado 2026-08-31)
+- **Feature** — `MatrimonioWizard.tsx`: wizard de 3 pasos para presupuestar una boda. Paso 1: año + nº de invitados con detección automática de escala (íntima ≤30 / estándar 31–80 / grande 81–150 / gran boda 151+) y botones de escala rápida. Paso 2: 5 categorías agrupadas (venue+catering, foto+video, ceremonia+deco+música, vestimenta+logística+papelería, buffer); cada categoría tiene **% editable bidireccional** (edito % → monto se ajusta sobre subtotal, edito monto → % se recalcula); **toggle PEN/USD global** con TC Rextie en tiempo real (compra) — los inputs de monto se editan en la moneda elegida y se almacenan internamente en PEN; **total editable** (onBlur/Enter) que redistribuye las 4 categorías proporcionalmente manteniendo sus ratios; badge "ajustado" en categorías redistribuidas y botón "↺ Restablecer estimados". Paso 3: financiamiento — ahorro actual, aportes externos, período de adelantos (meses), % adelantado; calcula ahorro mensual requerido; genera 2 entradas en el escenario: `gastoRecurrente` (adelantos/mes en N meses previos) + `retiroUnico` (pago final el año de la boda). Reemplaza el campo genérico `costoCelebracion` que existía antes. Sin cambios en DB ni en `types.ts`.
+- **Decisión de producto** — Luna de Miel se modela como evento separado (tipo "viaje") con su propio wizard futuro. No está incluida en el wizard de Matrimonio.
+
+#### Historial mensual automático — multi-usuario con toggle en Settings (implementado 2026-08-26)
+- **Feature** — Toggle "Historial mensual automático" en Configuración → sección Automatización. Persiste en `user_profiles.historial_auto` (Supabase, no localStorage). Al activarlo, el cron de GitHub Actions incluirá al usuario en la ejecución del 1° de cada mes.
+- **Técnico** — `src/lib/supabase/preferences.ts`: funciones `obtenerHistorialAuto()` / `setHistorialAuto()` para leer/escribir la preferencia.
+- **Técnico** — `scripts/crear-historial.mjs` refactorizado: ya no usa el secret `SUPABASE_USER_ID` hardcodeado — consulta todos los usuarios con `historial_auto = true` y procesa cada uno en loop (multi-usuario).
+- **Técnico** — `.github/workflows/historial-mensual.yml`: eliminado el env `SUPABASE_USER_ID`. El secret en GitHub Actions puede borrarse.
+- **Técnico** — Migración `008_user_preferences.sql`: agrega columna `historial_auto boolean default false` a `user_profiles` + policy de UPDATE para que el usuario actualice su propio perfil. ✓ DEV + PROD.
+
+#### Posgrado Wizard — reescritura completa con variables opcionales (implementado 2026-09-07)
+- **Mejora** — `PosgradoWizard.tsx` reescrito como wizard de 4 pasos: (1) El programa, (2) Financiamiento, (3) Gastos, (4) Resumen.
+- **Fix de diseño** — Input principal pasa de "cuota mensual" a **costo total del programa** (el precio que da la institución). El usuario elige después cómo financiarlo.
+- **Feature** — 3 estrategias de financiamiento: Cuotas propias (distribuye costoNeto / duracionMeses), Préstamo (amortización francesa con TEA, plazo, cuota inicial %; avisa si el crédito excede la duración del programa), Pago adelantado (retiro único al inicio).
+- **Feature** — Soporte local / extranjero: local muestra gastos adicionales mensuales; extranjero muestra alojamiento, vida, vuelos (N × costo/año mensualizado), seguro + visa/año mensualizado — todo en USD con TC Rextie live.
+- **Feature** — Beca (toggle paso 1): slider 0–100% de cobertura → reduce costoNeto antes de calcular cualquier estrategia.
+- **Feature** — Ingreso TA/RA (toggle paso 1): monto mensual PEN o USD → se descuenta de la cuota mensual neta.
+- **Feature** — Sección colapsable "Costos únicos opcionales" en paso 3, todos desactivados por defecto: Proceso de admisión (GMAT/GRE) → `retiroUnico` al inicio; Inscripción / matrícula → `retiroUnico` al inicio; Cursos de idioma → `gastoRecurrente` N meses antes; Mudanza / establecimiento (solo extranjero) → `retiroUnico` al inicio; Tesis / proyecto final → `retiroUnico` al término.
+- **Técnico** — Genera hasta 8 entradas en `eventosVida[]` según opciones activas. Preview paso 4 muestra todas con año, edad, tipo y monto. Compila limpio (`npx tsc --noEmit`).
+
+#### Dashboard — Redesign visual y nuevas funcionalidades (implementado 2026-09-07)
+- **Mejora** — Suscripciones activas muestran hasta 9 ítems en grilla 3×3 compacta. Cada celda: badge inicial (borde amarillo si vencimiento próximo), nombre truncado, periodicidad y monto.
+- **Feature** — Barra de estado inferior con 4 chips compactos: (1) TC Rextie compra/venta en tiempo real, (2) próximo vencimiento de suscripción con días restantes, (3) alerta de historial mensual pendiente (basado en `PERIODO_THRESHOLD=10`), (4) score de salud financiera 0–100 compuesto: fondo emergencia 30pts + tasa ahorro 30pts + crecimiento MoM patrimonial 20pts + suscripciones sin vencidas 20pts.
+- **Mejora** — Zoom 1.1 como baseline del layout (`zoom: 1.1` en el container raíz + `height: calc(100%/1.1)` para compensar desbordamiento). La vista al 100% del navegador equivale a la anterior vista al 110%.
+- **Técnico** — `CAT_COLORES` en Dashboard sincronizado a `CAT_COLORS` de `Patrimony.tsx` (fuente canónica): Savings=#3B82F6, Stock=#8B5CF6, Fintech=#F59E0B, Business=#10B981, Asset=#6B7280, Liability=#EF4444.
+- **Feature** — Cuentas destacadas: el mosaico "Cuentas principales" muestra las hasta 5 cuentas pinneadas desde Patrimonio. Sin cuentas pinneadas, muestra top-5 por valor. Título dinámico: "Cuentas destacadas" / "Cuentas principales".
+- **Feature** — Pin de cuentas en Patrimonio: botón Pin por cuenta (amarillo cuando activo), límite de 5 con alerta inline (banner amarillo auto-dismiss 3s vía `useRef`). Persistido en `cuentas.pinned` en Supabase.
+- **Mejora** — `ComposicionBar`: barra horizontal estilo almacenamiento macOS con leyenda 2 columnas y tooltip hover por segmento. Reemplaza el donut+leyenda anterior que se recortaba.
+- **Mejora** — Evolución del Patrimonio: `LineChart` con 3 líneas (total=azul sólido, PEN=amarillo punteado, USD=verde punteado). Reemplaza `AreaChart` de una sola serie.
+- **Técnico** — `CuentaPatrimonio.pinned: boolean` en `types.ts`. Migración `011_cuenta_pinned.sql` ✓ DEV + PROD. Función `togglePinnedCuenta()` en `src/lib/supabase/patrimony.ts`. Acción `togglePinCuenta()` en `PatrimonyContext`.
+
+#### Analytics — FlujoRealTab + Donut de concentración (implementado 2026-09-07)
+- **Feature** — Nueva pestaña **Flujo real** en el módulo Análisis. Gráfico de barras que compara el flujo neto mensual declarado en Flujo de Caja (línea de referencia) contra el delta mensual real del patrimonio total (barra verde/roja). Permite detectar meses donde el gasto real diverge del presupuesto. Filtrado por el mismo rango de fechas del dual range slider.
+- **Feature** — Donut de concentración en pestaña **Rendimientos** de Análisis: `PieChart` con `innerRadius={55}` que muestra la distribución de ganancias netas por instrumento. Visible solo cuando el filtro es "todos los instrumentos" y hay al menos un instrumento con ganancia positiva. Traspasos excluidos del cálculo.
+- **Técnico** — Tab type del módulo Análisis actualizado a `'patrimonio' | 'flujo-real' | 'rendimientos'`. Imports de `PieChart`, `Pie`, `Cell` añadidos desde Recharts.
 
 #### Tablas ordenables — Rendimientos, Historial, Patrimonio (implementado 2026-09-07)
 - **Mejora** — Rendimientos: todas las columnas de la tabla son ordenables (click en header). Columnas: Instrumento, Período, Fecha pago, Ganancia, Base, Rentabilidad. Cicla: ascendente ↑ → descendente ↓ → sin orden (cronológico). Indicador ⇅ en columnas inactivas. `SortTh` helper component, `sortedFiltered` via `useMemo`.
@@ -20,7 +82,7 @@ Criterios de tipo:
 
 ---
 
-## [v2.7.0] — 2026-09-07 — deploy pendiente (git push)
+## [v2.7.0] — 2026-09-07 — PROD
 
 ### Brand System & UI
 - **Mejora** — Sistema de marca completo: logo SVG (escalera ascendente teal sobre cuadrado navy) en sidebar y login; wordmark "my**Finance**" (DM Sans 200i + 700); tokens CSS `--color-*` y `--chart-*` alineados a paleta oficial (teal `#00C9A7`); tipografía DM Sans + DM Mono vía Google Fonts; reemplazo global de colores hardcodeados en `.tsx` por tokens de marca.

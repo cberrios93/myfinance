@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyFinance — Guía de Usuario</title>
+<style>
+/* ── Brand tokens ── */
+:root {
+  --navy:    #060E1B;
+  --card:    #0C1A2E;
+  --card2:   #162B4A;
+  --teal:    #00C9A7;
+  --teal-d:  #009E83;
+  --text:    #EDF2F8;
+  --muted:   #8A9BB0;
+  --border:  #1E3A5A;
+  --red:     #E24C4C;
+  --orange:  #F5A623;
+  --blue:    #5B8CF7;
+  --purple:  #C47FD5;
+  --radius:  10px;
+}
+
+/* ── Reset / base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+body { background: #f0f4f8; color: #1a2a3a; line-height: 1.6; }
+
+/* ── Print ── */
+@media print {
+  body { background: white; font-size: 11pt; }
+  .page { box-shadow: none; margin: 0; border-radius: 0; page-break-after: always; }
+  .no-print { display: none !important; }
+  a { color: inherit; }
+}
+
+/* ── Page wrapper ── */
+.page {
+  max-width: 860px;
+  margin: 0 auto 32px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Cover ── */
+.cover {
+  background: linear-gradient(160deg, #060E1B 0%, #0C2040 60%, #162B4A 100%);
+  color: white;
+  min-height: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 48px;
+  gap: 0;
+}
+.cover-logo { margin-bottom: 40px; }
+.cover-logo svg { width: 72px; height: 72px; }
+.cover-brand { display: flex; align-items: baseline; gap: 0; margin-bottom: 4px; }
+.cover-brand .my { font-weight: 200; font-style: italic; color: rgba(237,242,248,0.45); font-size: 32px; letter-spacing: 0.01em; }
+.cover-brand .fin { font-weight: 800; color: #EDF2F8; font-size: 32px; letter-spacing: -0.02em; }
+.cover h1 { font-size: 18px; font-weight: 400; color: rgba(237,242,248,0.7); margin-bottom: 48px; letter-spacing: 0.05em; text-transform: uppercase; }
+.cover-tagline { font-size: 15px; color: rgba(237,242,248,0.5); max-width: 480px; line-height: 1.8; margin-bottom: 60px; }
+.cover-teal-line { width: 48px; height: 3px; background: #00C9A7; border-radius: 2px; margin-bottom: 40px; }
+.cover-meta { display: flex; gap: 32px; }
+.cover-meta-item { text-align: center; }
+.cover-meta-item .label { font-size: 11px; color: rgba(237,242,248,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+.cover-meta-item .value { font-size: 13px; color: rgba(237,242,248,0.7); margin-top: 4px; }
+
+/* ── Section header ── */
+.section-header {
+  background: linear-gradient(90deg, #060E1B 0%, #0C2040 100%);
+  color: white;
+  padding: 40px 48px 32px;
+  border-bottom: 3px solid #00C9A7;
+}
+.section-header .sec-num { font-size: 12px; color: #00C9A7; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 8px; }
+.section-header h2 { font-size: 26px; font-weight: 700; color: #EDF2F8; margin-bottom: 8px; }
+.section-header .sec-sub { font-size: 14px; color: #8A9BB0; }
+
+/* ── Content area ── */
+.content { padding: 40px 48px; }
+.content-2col { padding: 40px 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+
+/* ── Typography ── */
+h3 { font-size: 17px; font-weight: 700; color: #162B4A; margin: 32px 0 12px; border-left: 3px solid #00C9A7; padding-left: 12px; }
+h4 { font-size: 14px; font-weight: 700; color: #1a2a3a; margin: 20px 0 8px; }
+p { margin-bottom: 12px; color: #2d4060; line-height: 1.7; }
+ul, ol { padding-left: 24px; margin-bottom: 12px; }
+li { margin-bottom: 6px; color: #2d4060; line-height: 1.6; }
+strong { color: #162B4A; }
+code { background: #edf2f8; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; color: #162B4A; }
+
+/* ── Nav bar in page ── */
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 48px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+}
+.page-nav a { color: #00C9A7; text-decoration: none; font-weight: 500; }
+.page-nav .sep { color: #cbd5e1; }
+.page-nav .crumb { color: #64748b; }
+
+/* ── Page footer ── */
+.page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 48px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.page-footer a { color: #00C9A7; text-decoration: none; }
+
+/* ── Callout boxes ── */
+.callout { border-radius: 10px; padding: 14px 18px; margin: 16px 0; display: flex; gap: 12px; align-items: flex-start; }
+.callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { flex: 1; }
+.callout-body strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.callout-body p { margin: 0; font-size: 13px; }
+.callout.tip { background: #f0faf8; border: 1px solid #00C9A730; }
+.callout.tip strong { color: #00876f; }
+.callout.info { background: #eff6ff; border: 1px solid #5B8CF730; }
+.callout.info strong { color: #2563eb; }
+.callout.warning { background: #fffbeb; border: 1px solid #F5A62340; }
+.callout.warning strong { color: #92400e; }
+.callout.check { background: #f0fdf4; border: 1px solid #22c55e30; }
+.callout.check strong { color: #15803d; }
+
+/* ── Steps ── */
+.steps { counter-reset: step; }
+.step { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+.step-num {
+  counter-increment: step;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #162B4A; color: white;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.step-num::before { content: counter(step); }
+.step-body { flex: 1; }
+.step-body h5 { font-size: 14px; font-weight: 600; color: #162B4A; margin-bottom: 4px; }
+.step-body p { margin: 0; font-size: 13px; color: #4a5568; line-height: 1.6; }
+
+/* ── KPI cards ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin: 20px 0; }
+.kpi-card { background: #162B4A; border-radius: 10px; padding: 18px; color: white; }
+.kpi-label { font-size: 11px; color: #8A9BB0; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.kpi-value { font-size: 22px; font-weight: 700; color: #00C9A7; font-family: 'Courier New', monospace; }
+.kpi-sub { font-size: 11px; color: #8A9BB0; margin-top: 4px; }
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 10px; border: 1px solid #e2e8f0; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: #162B4A; color: white; }
+th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 600; }
+td { padding: 10px 14px; border-bottom: 1px solid #f0f4f8; color: #2d4060; }
+tr:last-child td { border-bottom: none; }
+tr:nth-child(even) td { background: #f8fafc; }
+
+/* ── Category badge ── */
+.badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-teal { background: #00C9A720; color: #00876f; }
+.badge-red { background: #E24C4C20; color: #b91c1c; }
+.badge-orange { background: #F5A62320; color: #92400e; }
+.badge-blue { background: #5B8CF720; color: #1d4ed8; }
+.badge-purple { background: #C47FD520; color: #7e22ce; }
+.badge-gray { background: #8A9BB020; color: #475569; }
+
+/* ── Screen mockup ── */
+.screen-mock {
+  background: #060E1B;
+  border-radius: 12px;
+  border: 1px solid #1E3A5A;
+  padding: 20px;
+  margin: 20px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #8A9BB0;
+}
+.screen-mock .sm-header { color: #EDF2F8; font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.screen-mock .sm-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1E3A5A; }
+.screen-mock .sm-row:last-child { border-bottom: none; }
+.screen-mock .sm-label { color: #8A9BB0; }
+.screen-mock .sm-value { color: #EDF2F8; font-weight: 600; }
+.screen-mock .sm-value.pos { color: #00C9A7; }
+.screen-mock .sm-value.neg { color: #E24C4C; }
+
+/* ── Nav center (help page) ── */
+.help-center {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.help-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s;
+}
+.help-card:hover { border-color: #00C9A7; }
+.help-card .hc-emoji { font-size: 24px; margin-bottom: 10px; }
+.help-card .hc-title { font-size: 14px; font-weight: 700; color: #162B4A; margin-bottom: 4px; }
+.help-card .hc-sub { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+.help-card .hc-link { font-size: 12px; color: #00C9A7; font-weight: 600; }
+
+/* ── Dictionary ── */
+.dict-entry { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #f0f4f8; }
+.dict-entry:last-child { border-bottom: none; }
+.dict-term { font-size: 15px; font-weight: 700; color: #162B4A; margin-bottom: 6px; }
+.dict-def { font-size: 13px; color: #4a5568; line-height: 1.7; margin-bottom: 8px; }
+.dict-example { background: #f0faf8; border-left: 3px solid #00C9A7; padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: #2d4060; font-style: italic; }
+
+/* ── Anchor targets (for PDF bookmarks workaround) ── */
+[id] { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     PORTADA
+══════════════════════════════════════════════════════ -->
+<div class="page" id="portada">
+  <div class="cover">
+    <div class="cover-logo">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="8" fill="#162B4A"/>
+        <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+      </svg>
+    </div>
+    <div class="cover-brand">
+      <span class="my">my</span><span class="fin">Finance</span>
+    </div>
+    <h1>Guía de Usuario</h1>
+    <div class="cover-teal-line"></div>
+    <p class="cover-tagline">
+      Todo lo que necesitas para administrar tus finanzas personales con MyFinance.<br>
+      Desde el primer registro hasta entender tus resultados.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="label">Versión</div>
+        <div class="value">1.0</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Actualizado</div>
+        <div class="value">Septiembre 2026</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Dirigido a</div>
+        <div class="value">Todos los usuarios</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     CENTRO DE AYUDA (página 2)
+══════════════════════════════════════════════════════ -->
+<div class="page" id="centro-ayuda">
+  <div class="section-header">
+    <div class="sec-num">Centro de Ayuda</div>
+    <h2>¿Qué necesitas hacer hoy?</h2>
+    <div class="sec-sub">Elige tu punto de partida y llega directamente a lo que buscas.</div>
+  </div>
+  <div class="content">
+    <div class="help-center">
+      <a class="help-card" href="#bienvenida">
+        <div class="hc-emoji">👋</div>
+        <div class="hc-title">Soy nuevo en MyFinance</div>
+        <div class="hc-sub">Quiero entender el sistema y empezar desde cero.</div>
+        <div class="hc-link">→ Ir a Primeros pasos</div>
+      </a>
+      <a class="help-card" href="#patrimonio">
+        <div class="hc-emoji">💰</div>
+        <div class="hc-title">Quiero registrar mis cuentas</div>
+        <div class="hc-sub">Ahorros, inversiones, activos o deudas.</div>
+        <div class="hc-link">→ Ir a Patrimonio</div>
+      </a>
+      <a class="help-card" href="#rendimientos">
+        <div class="hc-emoji">📈</div>
+        <div class="hc-title">Quiero registrar mis ganancias</div>
+        <div class="hc-sub">Rendimiento de inversiones mes a mes.</div>
+        <div class="hc-link">→ Ir a Rendimientos</div>
+      </a>
+      <a class="help-card" href="#flujo-caja">
+        <div class="hc-emoji">🔄</div>
+        <div class="hc-title">Quiero ver mis ingresos y gastos</div>
+        <div class="hc-sub">Mi flujo de dinero mes a mes.</div>
+        <div class="hc-link">→ Ir a Flujo de Caja</div>
+      </a>
+      <a class="help-card" href="#analisis">
+        <div class="hc-emoji">📊</div>
+        <div class="hc-title">Quiero entender mis números</div>
+        <div class="hc-sub">Gráficos, evolución y análisis de mi patrimonio.</div>
+        <div class="hc-link">→ Ir a Análisis</div>
+      </a>
+      <a class="help-card" href="#problemas">
+        <div class="hc-emoji">❓</div>
+        <div class="hc-title">Algo no me cuadra</div>
+        <div class="hc-sub">Errores, dudas y cómo corregirlos.</div>
+        <div class="hc-link">→ Solucionar un problema</div>
+      </a>
+      <a class="help-card" href="#diccionario">
+        <div class="hc-emoji">📖</div>
+        <div class="hc-title">No entiendo un término</div>
+        <div class="hc-sub">Explicaciones financieras en lenguaje sencillo.</div>
+        <div class="hc-link">→ Diccionario financiero</div>
+      </a>
+      <a class="help-card" href="#faq">
+        <div class="hc-emoji">💬</div>
+        <div class="hc-title">Tengo una pregunta concreta</div>
+        <div class="hc-sub">Las dudas más frecuentes respondidas.</div>
+        <div class="hc-link">→ Preguntas frecuentes</div>
+      </a>
+    </div>
+
+    <h3 id="estructura-nav">Recorrido recomendado para empezar</h3>
+    <p>Si es tu primera vez, te sugerimos seguir este orden:</p>
+    <ol>
+      <li><strong>Bienvenida</strong> — entiende qué es MyFinance y para qué sirve.</li>
+      <li><strong>Primeros pasos</strong> — configura lo básico antes de ingresar datos.</li>
+      <li><strong>Patrimonio</strong> — registra todas tus cuentas e inversiones.</li>
+      <li><strong>Flujo de Caja</strong> — anota tus ingresos y gastos mensuales.</li>
+      <li><strong>Historial</strong> — guarda tu primera foto financiera del mes.</li>
+      <li><strong>Rendimientos</strong> (si tienes inversiones) — registra sus ganancias.</li>
+      <li><strong>Análisis</strong> — observa cómo están tus finanzas.</li>
+    </ol>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Guía de Usuario</span>
+    <a href="#portada">↑ Volver al inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     1. BIENVENIDA
+══════════════════════════════════════════════════════ -->
+<div class="page" id="bienvenida">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Bienvenida</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Sección 1</div>
+    <h2>Bienvenido a MyFinance</h2>
+    <div class="sec-sub">Entiende qué es, para qué sirve y qué puedes hacer con él.</div>
+  </div>
+  <div class="content">
+    <h3>¿Qué es MyFinance?</h3>
+    <p>
+      MyFinance es tu sistema financiero personal. Es una aplicación web segura — accesible desde tu computadora o teléfono — que te permite <strong>ver en un solo lugar todo lo que tienes, todo lo que ganas y todo lo que gastas</strong>.
+    </p>
+    <p>
+      Piénsalo como un cuaderno de finanzas muy inteligente: tú escribes la información, y MyFinance la organiza, la suma, la grafica y te ayuda a entender cómo está tu dinero hoy y hacia dónde va.
+    </p>
+
+    <h3>¿Qué problemas resuelve?</h3>
+    <p>¿Alguna vez te has preguntado alguna de estas cosas?</p>
+    <ul>
+      <li>¿Cuánto dinero tengo en total, sumando todas mis cuentas?</li>
+      <li>¿Cuánto he ganado con mis inversiones este año?</li>
+      <li>¿En qué gasto más dinero cada mes?</li>
+      <li>¿Cuánto necesito ahorrar para retirarme a los 65 años?</li>
+      <li>¿Mi patrimonio creció o bajó este mes?</li>
+    </ul>
+    <p>MyFinance responde todas estas preguntas de forma clara y visual.</p>
+
+    <h3>¿Qué puede registrar en MyFinance?</h3>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Cuentas</div>
+        <div class="kpi-value" style="font-size:14px; color:#EDF2F8;">Ahorros, inversiones, activos, deudas</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ganancias</div>
+        <div class="kpi-value" style="font-size:14px; color:#EDF2F8;">Rendimiento de cada inversión</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ingresos y gastos</div>
+        <div class="kpi-value" style="font-size:14px; color:#EDF2F8;">Tu flujo mensual de dinero</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Suscripciones</div>
+        <div class="kpi-value" style="font-size:14px; color:#EDF2F8;">Netflix, Spotify y otros pagos fijos</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>No necesita conocimientos técnicos</strong>
+        <p>Si sabes usar WhatsApp, Gmail o tu app del banco, puedes usar MyFinance. Está diseñado para ser simple.</p>
+      </div>
+    </div>
+
+    <h3>¿Qué aprenderás usando MyFinance?</h3>
+    <p>Con el tiempo, MyFinance te ayudará a entender:</p>
+    <ul>
+      <li><strong>Tu patrimonio neto:</strong> cuánto vales financieramente hoy.</li>
+      <li><strong>Cómo crece tu dinero:</strong> si tus inversiones están funcionando.</li>
+      <li><strong>Tu balance mensual:</strong> si ganas más de lo que gastas.</li>
+      <li><strong>Tu trayectoria:</strong> si estás encaminado hacia tus metas financieras.</li>
+    </ul>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Guía de Usuario · Bienvenida</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     2. PRIMEROS PASOS
+══════════════════════════════════════════════════════ -->
+<div class="page" id="primeros-pasos">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Primeros pasos</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Sección 2</div>
+    <h2>MyFinance en 5 minutos</h2>
+    <div class="sec-sub">Acabas de ingresar por primera vez. Esto es lo que debes hacer.</div>
+  </div>
+  <div class="content">
+    <h3>¿Qué estás viendo?</h3>
+    <p>
+      Al ingresar, MyFinance te muestra el <strong>Home</strong> — tu panel de control principal. Al principio aparecerá vacío porque aún no has registrado información. Eso es normal.
+    </p>
+    <p>
+      En la parte izquierda (o en el menú superior si usas el teléfono) verás la <strong>barra de navegación</strong> con todas las secciones del sistema.
+    </p>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>El wizard de bienvenida</strong>
+        <p>La primera vez que ingreses, MyFinance muestra automáticamente un tour de 5 pasos que explica cómo está organizado el sistema. Léelo — tarda 2 minutos.</p>
+      </div>
+    </div>
+
+    <h3>¿Qué hacer primero? Sigue este orden</h3>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Configura tus preferencias (opcional, 2 minutos)</h5>
+          <p>Ve a <strong>Configuración</strong> en el menú. Elige el tema visual (Day o Night) según tu preferencia. También puedes ocultar los módulos que no uses.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Registra tus cuentas en Patrimonio</h5>
+          <p>Ve a <strong>Patrimonio</strong>. Agrega cada cuenta bancaria, inversión, propiedad o deuda que tengas. Esto es lo más importante — es la base de todo el sistema.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Registra tu flujo de caja</h5>
+          <p>Ve a <strong>Flujo de Caja</strong>. Anota tus ingresos fijos (sueldo, arriendos) y gastos fijos mensuales (servicios, alimentación).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Guarda tu primera foto del mes en Historial</h5>
+          <p>Ve a <strong>Historial</strong>. Registra el total de tu patrimonio de este mes. MyFinance usará este dato para mostrar cómo crece tu dinero con el tiempo.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Revisa tu Home</h5>
+          <p>Regresa al <strong>Home</strong>. Ahora deberías ver tus primeros datos. Si algo no aparece, es normal — el sistema necesita al menos un mes de historial para algunos gráficos.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>¿Qué puedes dejar para después?</h3>
+    <p>No tienes que hacer todo el primer día. Estas secciones son opcionales al inicio:</p>
+    <ul>
+      <li><strong>Rendimientos</strong> — cuando quieras registrar las ganancias de tus inversiones.</li>
+      <li><strong>Suscripciones y Gastos Familia</strong> — cuando quieras más detalle de tus gastos.</li>
+      <li><strong>Simulación</strong> — cuando quieras proyectar tu futuro financiero.</li>
+      <li><strong>Haberes</strong> — solo si quieres registrar el detalle de tu boleta de pago.</li>
+    </ul>
+
+    <div class="callout check">
+      <div class="callout-icon">✅</div>
+      <div class="callout-body">
+        <strong>¿Cómo sé que terminé la configuración inicial?</strong>
+        <p>Si registraste al menos una cuenta en Patrimonio, un ítem en Flujo de Caja y un registro en Historial, tu configuración básica está lista. Ya puedes empezar a usar MyFinance.</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Guía de Usuario · Primeros pasos</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     3. ESTRUCTURA
+══════════════════════════════════════════════════════ -->
+<div class="page" id="estructura">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Cómo está organizado</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Sección 3</div>
+    <h2>Cómo está organizado MyFinance</h2>
+    <div class="sec-sub">El sistema tiene cuatro grandes áreas. Cada una tiene un propósito claro.</div>
+  </div>
+  <div class="content">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Área</th>
+            <th>Módulos</th>
+            <th>Para qué sirve</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>🏠 Home</strong></td>
+            <td>Dashboard</td>
+            <td>Panel de control con resumen de tu situación financiera. Personalizable.</td>
+          </tr>
+          <tr>
+            <td><strong>📋 Tracking</strong></td>
+            <td>Patrimonio, Historial, Flujo de Caja, Rendimientos, Flujos de Capital, Haberes, Suscripciones, Gastos Familia</td>
+            <td>Registrar y seguir tu realidad financiera actual. Es la base del sistema.</td>
+          </tr>
+          <tr>
+            <td><strong>📊 Análisis</strong></td>
+            <td>Análisis</td>
+            <td>Ver gráficos y estadísticas de cómo evolucionan tus finanzas.</td>
+          </tr>
+          <tr>
+            <td><strong>🧮 Calculadoras</strong></td>
+            <td>Impuesto 5ta</td>
+            <td>Calculadora del impuesto a la renta de quinta categoría (Perú).</td>
+          </tr>
+          <tr>
+            <td><strong>🔮 Simulación</strong></td>
+            <td>Parámetros, Instrumentos, Movimientos, Eventos de vida, Carrera y aportes, Escenarios</td>
+            <td>Proyectar tu futuro financiero y planificar el retiro.</td>
+          </tr>
+          <tr>
+            <td><strong>⚙️ Sistema</strong></td>
+            <td>Exportar/Importar, Configuración</td>
+            <td>Configurar la app y exportar tus datos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Empieza por Tracking</strong>
+        <p>La sección Tracking contiene lo esencial. El Análisis y la Simulación dependen de los datos que registres aquí.</p>
+      </div>
+    </div>
+
+    <h3>Cómo se conecta todo</h3>
+    <p>Los módulos de MyFinance no son independientes — se alimentan entre sí:</p>
+    <ul>
+      <li>Lo que registras en <strong>Patrimonio</strong> aparece en el <strong>Home</strong> y en <strong>Análisis</strong>.</li>
+      <li>Lo que registras en <strong>Historial</strong> genera los gráficos de evolución en <strong>Análisis</strong>.</li>
+      <li>Las <strong>Suscripciones</strong> y <strong>Gastos Familia</strong> se sincronizan automáticamente con <strong>Flujo de Caja</strong>.</li>
+      <li>Los <strong>Rendimientos</strong> pueden actualizar automáticamente los saldos en <strong>Patrimonio</strong>.</li>
+      <li>Los <strong>Flujos de Capital</strong> permiten calcular el retorno real sobre el dinero que tú pusiste.</li>
+    </ul>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Guía de Usuario · Estructura</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     4. PATRIMONIO
+══════════════════════════════════════════════════════ -->
+<div class="page" id="patrimonio">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Tracking</span>
+    <span class="sep">›</span>
+    <span class="crumb">Patrimonio</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulo · Tracking</div>
+    <h2>Patrimonio</h2>
+    <div class="sec-sub">El balance real de todo lo que tienes, en tiempo real.</div>
+  </div>
+  <div class="content">
+    <h3>¿Para qué sirve?</h3>
+    <p>
+      Patrimonio es donde registras todas tus cuentas financieras: cuentas de ahorro, inversiones, propiedades, vehículos, y también tus deudas. MyFinance suma todo y te muestra tu <strong>balance total</strong> en soles (S/) y dólares (US$).
+    </p>
+    <p>
+      Piénsalo como un inventario de todo tu dinero: lo que tienes en el banco, lo que tienes invertido, y también lo que debes. La diferencia entre lo que tienes y lo que debes es tu <strong>patrimonio neto</strong>.
+    </p>
+
+    <h3>Categorías disponibles</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Categoría</th><th>En español simple</th><th>Ejemplos</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-teal">Savings</span></td><td>Ahorros</td><td>Cuenta bancaria, cuenta CTS, fondo de emergencia</td></tr>
+          <tr><td><span class="badge badge-purple">Investment (Stock Exchange)</span></td><td>Inversión en bolsa</td><td>ETFs, acciones, fondos mutuos de bolsa</td></tr>
+          <tr><td><span class="badge badge-orange">Investment (Fintech)</span></td><td>Inversión en fintech</td><td>Renta4, Cobra, Prestamype, plataformas digitales</td></tr>
+          <tr><td><span class="badge badge-teal">Investment (Business)</span></td><td>Inversión en negocio</td><td>Participación en empresa propia o socia</td></tr>
+          <tr><td><span class="badge badge-gray">Asset</span></td><td>Activo físico</td><td>Departamento, casa, vehículo, terreno</td></tr>
+          <tr><td><span class="badge badge-red">Liability</span></td><td>Pasivo / Deuda</td><td>Hipoteca, préstamo bancario, deuda de tarjeta</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cómo agregar una cuenta</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Haz clic en "Agregar cuenta"</h5>
+          <p>Botón verde en la esquina superior derecha de la pantalla.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Escribe el nombre de la cuenta</h5>
+          <p>Usa un nombre que reconozcas fácilmente. Ejemplo: <code>Interbank Ahorros</code>, <code>Schwab ETFs</code>, <code>Departamento Surco</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa el monto actual</h5>
+          <p>Si la cuenta está en soles, escribe el saldo en <strong>Monto PEN (S/)</strong>. Si está en dólares, escribe en <strong>Monto USD ($)</strong>. Puedes tener ambos si corresponde.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Selecciona la categoría</h5>
+          <p>Elige la categoría que mejor describa esta cuenta (ver tabla arriba).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Haz clic en "Guardar"</h5>
+          <p>La cuenta aparecerá en la lista, agrupada por su categoría. El total general se actualiza automáticamente.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Atajo de teclado</strong>
+        <p>En computadora, puedes presionar <code>Cmd+Enter</code> (Mac) o <code>Ctrl+Enter</code> (Windows) en lugar de hacer clic en Guardar.</p>
+      </div>
+    </div>
+
+    <h3>Ejemplo práctico</h3>
+    <p>Tienes S/ 15,000 en tu cuenta de ahorros del BCP y US$ 5,200 en tu portafolio de ETFs en Schwab.</p>
+    <ul>
+      <li>Cuenta 1: Nombre <code>BCP Ahorros</code> · Monto PEN: <code>15000</code> · Categoría: <code>Savings</code></li>
+      <li>Cuenta 2: Nombre <code>Schwab ETFs</code> · Monto USD: <code>5200</code> · Categoría: <code>Investment (Stock Exchange)</code></li>
+    </ul>
+    <p>MyFinance convertirá los dólares a soles automáticamente usando el tipo de cambio del día, y te mostrará el total combinado.</p>
+
+    <h3>Funciones adicionales</h3>
+    <ul>
+      <li><strong>Editar:</strong> Haz clic en el ícono de lápiz junto a cualquier cuenta para cambiar su saldo o información. Haz esto cada vez que tu saldo real cambie.</li>
+      <li><strong>Destacar en Dashboard (📌):</strong> Fija hasta 5 cuentas en tu panel de inicio para verlas de inmediato. Haz clic en el ícono de pin.</li>
+      <li><strong>Ver historial de cambios (🕐):</strong> Haz clic en el ícono de reloj para ver cómo ha cambiado el saldo de esa cuenta con el tiempo. También puedes restaurar un saldo anterior.</li>
+      <li><strong>Ocultar cuentas vacías (👁):</strong> Si una cuenta tiene saldo cero, puedes ocultarla para que no aparezca en la lista. Se puede mostrar de nuevo con el botón "Ocultas".</li>
+      <li><strong>Marcar como riesgo:</strong> Marca la casilla "Marcar como riesgo" si quieres identificar una cuenta visualmente en rojo (por ejemplo, una inversión de alto riesgo).</li>
+      <li><strong>Eliminar:</strong> Haz clic en el ícono de papelera. La cuenta se elimina permanentemente.</li>
+    </ul>
+
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Importante</strong>
+        <p>Actualiza los saldos de tus cuentas regularmente (al menos una vez al mes). MyFinance muestra un punto naranja junto a las cuentas que no han sido actualizadas en el período configurado.</p>
+      </div>
+    </div>
+
+    <h3>¿Qué sucede después de guardar?</h3>
+    <p>Al guardar una cuenta o actualizar su saldo, MyFinance actualiza automáticamente:</p>
+    <ul>
+      <li>El <strong>total general</strong> en la parte superior de Patrimonio.</li>
+      <li>Los <strong>indicadores del Home</strong> si la cuenta está destacada (📌).</li>
+      <li>El <strong>valor de los instrumentos vinculados</strong> si la cuenta está conectada a algún instrumento de simulación.</li>
+    </ul>
+
+    <div class="callout check">
+      <div class="callout-icon">✅</div>
+      <div class="callout-body">
+        <strong>¿Cómo sé que lo hice correctamente?</strong>
+        <p>Verifica que el nombre de tu cuenta aparezca en la tabla, dentro de la categoría correcta, y que el monto mostrado coincida con lo que ingresaste.</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Patrimonio</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     5. HISTORIAL
+══════════════════════════════════════════════════════ -->
+<div class="page" id="historial">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Tracking</span>
+    <span class="sep">›</span>
+    <span class="crumb">Historial</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulo · Tracking</div>
+    <h2>Historial</h2>
+    <div class="sec-sub">Una foto mensual de tu patrimonio total para ver cómo crece con el tiempo.</div>
+  </div>
+  <div class="content">
+    <h3>¿Para qué sirve?</h3>
+    <p>
+      El Historial guarda una <strong>"fotografía" de tu patrimonio total cada mes</strong>. A diferencia de Patrimonio (que muestra tu balance actual), el Historial te permite ver cómo ha evolucionado tu dinero mes a mes, año a año.
+    </p>
+    <p>
+      Gracias a estos registros, el módulo de Análisis puede mostrarte gráficos de evolución, calcular tu tasa de crecimiento anual y comparar tu patrimonio de hoy con el de hace 2 o 5 años.
+    </p>
+
+    <h3>¿Qué información guarda cada registro?</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Qué es</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Fecha</strong></td><td>El día en que haces la captura (suele ser a inicio o fin de mes).</td></tr>
+          <tr><td><strong>Período</strong></td><td>El mes y año que representa este registro. Se calcula automáticamente desde la fecha.</td></tr>
+          <tr><td><strong>Total PEN (S/)</strong></td><td>La suma total de todas tus cuentas en soles ese mes.</td></tr>
+          <tr><td><strong>Total USD ($)</strong></td><td>La suma total de todas tus cuentas en dólares ese mes.</td></tr>
+          <tr><td><strong>Tipo de cambio</strong></td><td>El tipo de cambio del día, usado para convertir los dólares a soles.</td></tr>
+          <tr><td><strong>Nota</strong></td><td>Comentario opcional. Ejemplo: "Mes de bonificación" o "Compré departamento".</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Regla del período</strong>
+        <p>Si la fecha es del día 10 o antes, el registro se asigna al mes anterior. Si es del día 11 en adelante, se asigna al mes actual. Esto asegura que captures el cierre correcto.</p>
+      </div>
+    </div>
+
+    <h3>Cómo registrar un historial mensual</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Haz clic en "Agregar registro"</h5>
+          <p>Botón verde en la parte superior derecha.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa la fecha</h5>
+          <p>Usa la fecha de hoy o la fecha de cierre del mes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa los totales</h5>
+          <p>En <strong>Total PEN</strong> escribe la suma de todas tus cuentas en soles. En <strong>Total USD</strong> escribe la suma en dólares. Puedes consultar estos totales en Patrimonio.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Verifica el tipo de cambio</h5>
+          <p>MyFinance carga automáticamente el TC del día. Si lo necesitas, puedes editarlo manualmente.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Guarda el registro</h5>
+          <p>Haz clic en "Guardar". El registro aparecerá en la tabla con el porcentaje de crecimiento respecto al mes anterior.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Importar desde CSV</h3>
+    <p>Si tienes registros históricos en una hoja de cálculo (Excel), puedes importarlos en bloque usando el botón <strong>"Importar CSV"</strong>. El archivo debe tener las columnas: <code>fecha, total_pen, total_usd, tipo_cambio, nota</code>.</p>
+    <p>También puedes descargar una <strong>plantilla de ejemplo</strong> con el botón correspondiente.</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>¿Con qué frecuencia registrar?</strong>
+        <p>Lo ideal es una vez al mes, siempre en la misma fecha (por ejemplo, el primer o último día del mes). La consistencia es más importante que la exactitud perfecta.</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Historial</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     6. FLUJO DE CAJA
+══════════════════════════════════════════════════════ -->
+<div class="page" id="flujo-caja">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Tracking</span>
+    <span class="sep">›</span>
+    <span class="crumb">Flujo de Caja</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulo · Tracking</div>
+    <h2>Flujo de Caja</h2>
+    <div class="sec-sub">Cuánto entra y cuánto sale de tu bolsillo cada mes.</div>
+  </div>
+  <div class="content">
+    <h3>¿Para qué sirve?</h3>
+    <p>
+      El Flujo de Caja es donde registras tus <strong>ingresos y gastos mensuales fijos</strong>. Te dice si terminas el mes ganando más de lo que gastas (superávit) o gastando más de lo que ganas (déficit).
+    </p>
+
+    <h3>Tipos de ítems</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tipo</th><th>Qué es</th><th>Ejemplos</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-teal">Ingreso</span></td><td>Dinero que entra cada mes</td><td>Sueldo, arriendo cobrado, dividendos recibidos</td></tr>
+          <tr><td><span class="badge badge-red">Gasto</span></td><td>Dinero que sale cada mes</td><td>Servicios, alimentación, transporte, salud</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Categorías de gastos disponibles</h3>
+    <p>Inversiones · Transporte · Salud · Vivienda · Otro</p>
+
+    <h3>Cómo agregar un ítem</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Haz clic en "Agregar ítem"</h5>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Escribe la descripción</h5>
+          <p>Nombre descriptivo. Ejemplo: <code>Sueldo SAP</code>, <code>Agua y luz</code>, <code>Gimnasio</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Selecciona si es Ingreso o Gasto</h5>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Elige la categoría (opcional)</h5>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa el monto mensual</h5>
+          <p>En soles (PEN) o dólares (USD). Solo uno de los dos es necesario.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Activa o desactiva el ítem</h5>
+          <p>La casilla "Activo" incluye el ítem en el cálculo del balance. Si lo desactivas, se excluye del total pero no se elimina.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Suscripciones y Gastos Familia — sincronización automática</strong>
+        <p>Los ítems creados desde los módulos de Suscripciones y Gastos Familia aparecen automáticamente en Flujo de Caja con badges especiales. No puedes editarlos aquí directamente — ve al módulo correspondiente para modificarlos.</p>
+      </div>
+    </div>
+
+    <h3>¿Qué muestra el resumen?</h3>
+    <p>Al final de la lista verás:</p>
+    <ul>
+      <li><strong>Total ingresos:</strong> suma de todos tus ítems de tipo Ingreso activos.</li>
+      <li><strong>Total gastos:</strong> suma de todos tus ítems de tipo Gasto activos.</li>
+      <li><strong>Balance mensual:</strong> ingresos menos gastos. En verde si es positivo, en rojo si es negativo.</li>
+    </ul>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Flujo de Caja</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     7. RENDIMIENTOS
+══════════════════════════════════════════════════════ -->
+<div class="page" id="rendimientos">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Tracking</span>
+    <span class="sep">›</span>
+    <span class="crumb">Rendimientos</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulo · Tracking</div>
+    <h2>Rendimientos de Inversiones</h2>
+    <div class="sec-sub">El historial de ganancias (o pérdidas) de cada una de tus inversiones.</div>
+  </div>
+  <div class="content">
+    <h3>¿Para qué sirve?</h3>
+    <p>
+      Este módulo es donde registras <strong>cuánto ganaste (o perdiste) en cada inversión, mes a mes</strong>. Así puedes saber qué inversiones están rindiendo bien y cuáles no.
+    </p>
+
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Requisito previo</strong>
+        <p>Para registrar rendimientos, primero debes crear al menos un Escenario con sus Instrumentos en la sección de Simulación. El instrumento define el nombre de la inversión y su configuración.</p>
+      </div>
+    </div>
+
+    <h3>Tipos de inversión (TipoRenta)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tipo</th><th>Qué significa</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-purple">Renta fija — pago</span></td>
+            <td>La inversión te paga una ganancia periódica, pero el capital original queda igual.</td>
+            <td>Depósito a plazo, bonos, préstamos P2P</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-teal">Capitalización</span></td>
+            <td>La ganancia se suma al capital — no la cobras, se reinvierte.</td>
+            <td>Cuenta de ahorro con interés compuesto, algunos fondos</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-blue">Renta variable</span></td>
+            <td>El valor de la inversión sube o baja — registras el valor actual y el sistema calcula la ganancia.</td>
+            <td>ETFs, acciones, fondos mutuos de bolsa</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cómo registrar un rendimiento</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Haz clic en "Registrar"</h5>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Selecciona el instrumento</h5>
+          <p>Elige el nombre de la inversión desde el selector. MyFinance mostrará automáticamente su monto inicial y balance actual.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa la fecha de pago</h5>
+          <p>La fecha en que recibiste o registraste la ganancia. Define el mes y año del registro.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa la ganancia o el valor actual</h5>
+          <p>
+            • <strong>Renta fija:</strong> escribe cuánto te pagaron (ganancia en S/ o US$).<br>
+            • <strong>Capitalización/Variable:</strong> escribe el valor actual de la inversión — MyFinance calcula la ganancia automáticamente.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Ingresa el impuesto (si aplica)</h5>
+          <p>Si la ganancia viene con retención de impuesto (ej. 5%), ingrésalo en el campo "Impuesto %". MyFinance calculará el neto automáticamente.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h5>Guarda</h5>
+          <p>Si la inversión tiene cuenta vinculada, MyFinance te preguntará si quieres actualizar el saldo en Patrimonio.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Explicación de campos clave</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Qué significa</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Instrumento</strong></td><td>El nombre de tu inversión (definido en Simulación → Instrumentos).</td></tr>
+          <tr><td><strong>Ganancia</strong></td><td>Cuánto ganaste en ese período. Puede ser negativo si perdiste dinero.</td></tr>
+          <tr><td><strong>Base</strong></td><td>El monto que tenías invertido al inicio de ese período.</td></tr>
+          <tr><td><strong>Rentabilidad %</strong></td><td>Ganancia ÷ Base × 100. Se calcula automáticamente.</td></tr>
+          <tr><td><strong>Reinvertido</strong></td><td>Marca si la ganancia fue reinvertida (no la retiraste).</td></tr>
+          <tr><td><strong>Pendiente</strong></td><td>Marca si aún no confirmaste este registro (sirve como recordatorio).</td></tr>
+          <tr><td><strong>Aporte del mes</strong></td><td>Si pusiste capital adicional este mes (además de la inversión original).</td></tr>
+          <tr><td><strong>Traspaso</strong></td><td>Cuando el saldo sale de este instrumento hacia otro. No es ganancia ni pérdida.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>KPIs del módulo</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Ganancias totales</div>
+        <div class="kpi-value" style="font-size:15px">S/ suma total</div>
+        <div class="kpi-sub">Todas las inversiones, neto de impuestos</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Rentabilidad promedio</div>
+        <div class="kpi-value" style="font-size:15px">X.XX%</div>
+        <div class="kpi-sub">Ganancia total ÷ monto base</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Retorno s/ capital propio</div>
+        <div class="kpi-value" style="font-size:15px">X.XX%</div>
+        <div class="kpi-sub">Ganancia ÷ dinero que pusiste tú</div>
+      </div>
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Rendimientos</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     8. FLUJOS DE CAPITAL, SUSCRIPCIONES, GASTOS FAMILIA, HABERES
+══════════════════════════════════════════════════════ -->
+<div class="page" id="otros-tracking">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Tracking</span>
+    <span class="sep">›</span>
+    <span class="crumb">Otros módulos</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulos · Tracking</div>
+    <h2>Flujos de Capital · Suscripciones · Gastos Familia · Haberes</h2>
+    <div class="sec-sub">Herramientas complementarias para un seguimiento más detallado.</div>
+  </div>
+  <div class="content">
+
+    <h3 id="flujos-capital">Flujos de Capital</h3>
+    <p>
+      Registra cuándo <strong>pusiste dinero nuevo en tus inversiones</strong> (aporte) o <strong>retiraste dinero</strong> de ellas (retiro). Este módulo permite calcular el rendimiento real sobre tu propio capital.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Qué es</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Fecha</strong></td><td>Cuándo realizaste el movimiento.</td></tr>
+          <tr><td><strong>Tipo</strong></td><td>"Aporte" = pusiste dinero. "Retiro" = sacaste dinero.</td></tr>
+          <tr><td><strong>Monto</strong></td><td>Cuánto dinero moviste.</td></tr>
+          <tr><td><strong>Moneda</strong></td><td>PEN (soles) o USD (dólares).</td></tr>
+          <tr><td><strong>Nota</strong></td><td>Comentario opcional. Ej: "Primer aporte a Schwab".</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Este dato aparece en Rendimientos como "Retorno sobre capital propio" — una medida más honesta de qué tan bien rinden tus inversiones con el dinero que pusiste tú.</p>
+
+    <h3 id="suscripciones">Suscripciones</h3>
+    <p>
+      Registra todos tus servicios de pago recurrente: streaming, software, membresías, servicios. MyFinance calcula cuánto gastas al mes y al año en suscripciones, y <strong>sincroniza automáticamente ese gasto con Flujo de Caja</strong>.
+    </p>
+    <h4>Campos principales</h4>
+    <ul>
+      <li><strong>Nombre:</strong> nombre del servicio (Ej: Netflix, Spotify, Adobe).</li>
+      <li><strong>Monto total:</strong> lo que pagas por período.</li>
+      <li><strong>Moneda:</strong> PEN o USD.</li>
+      <li><strong>Periodicidad:</strong> Mensual o Anual.</li>
+      <li><strong>Personas:</strong> si compartes el costo con otras personas, registra su nombre y cuánto pone cada una.</li>
+      <li><strong>Vencimiento:</strong> fecha de renovación o expiración.</li>
+      <li><strong>Activa:</strong> si está activa, se incluye en el gasto mensual. Si la desactivas, queda registrada pero no suma.</li>
+    </ul>
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Suscripciones anuales</strong>
+        <p>Si tienes una suscripción anual (ej: US$ 120/año), MyFinance la convierte automáticamente a su equivalente mensual (US$ 10/mes) para incluirla en tu flujo de caja mensual.</p>
+      </div>
+    </div>
+
+    <h3 id="gastos-familia">Gastos Familia</h3>
+    <p>
+      Registra gastos fijos relacionados con tu familia: educación de hijos, salud de padres, pensión alimentaria, servicios del hogar. Al igual que Suscripciones, <strong>se sincroniza automáticamente con Flujo de Caja</strong> con un badge naranja "Familia".
+    </p>
+    <h4>Campos principales</h4>
+    <ul>
+      <li><strong>Descripción:</strong> nombre del gasto.</li>
+      <li><strong>Beneficiario:</strong> a quién corresponde el gasto.</li>
+      <li><strong>Tipo:</strong> clasificación del gasto.</li>
+      <li><strong>Monto:</strong> en PEN o USD.</li>
+      <li><strong>Periodicidad:</strong> Mensual o Anual.</li>
+    </ul>
+
+    <h3 id="haberes">Haberes</h3>
+    <p>
+      Módulo especializado para registrar el detalle completo de tu <strong>boleta de pago</strong>. Incluye todos los haberes, descuentos, aportes del empleador e impuestos. También permite importar boletas en formato PDF mediante lectura automática.
+    </p>
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>¿Para quién es este módulo?</strong>
+        <p>Haberes está diseñado para quienes quieren llevar un registro detallado de su remuneración mensual (especialmente en empresas con esquemas de compensación complejos). Si solo necesitas registrar cuánto cobras en Flujo de Caja, no necesitas usar este módulo.</p>
+      </div>
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Tracking complementario</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     9. ANÁLISIS
+══════════════════════════════════════════════════════ -->
+<div class="page" id="analisis">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Análisis</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulo · Análisis</div>
+    <h2>Análisis</h2>
+    <div class="sec-sub">Gráficos y estadísticas para entender cómo evolucionan tus finanzas.</div>
+  </div>
+  <div class="content">
+    <h3>¿Para qué sirve?</h3>
+    <p>
+      Análisis convierte todos los datos que registraste en <strong>gráficos y estadísticas</strong> fáciles de leer. Aquí puedes ver si tu patrimonio está creciendo, qué tan bien rinden tus inversiones, y cómo está tu flujo de caja real.
+    </p>
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Necesita datos previos</strong>
+        <p>Análisis usa los registros de Historial, Rendimientos y Flujo de Caja. Si acabas de empezar, los gráficos tendrán poca información. Con el tiempo, serán más útiles.</p>
+      </div>
+    </div>
+
+    <h3>Las tres pestañas de Análisis</h3>
+
+    <h4>📈 Pestaña "Patrimonio"</h4>
+    <p>Muestra cómo ha crecido tu patrimonio total mes a mes.</p>
+    <ul>
+      <li><strong>Gráfico de evolución:</strong> línea que sube (o baja) con el tiempo.</li>
+      <li><strong>CAGR (tasa de crecimiento anual):</strong> a qué velocidad promedio crece tu dinero por año.</li>
+      <li><strong>Vista mensual o anual:</strong> puedes cambiar la granularidad.</li>
+    </ul>
+
+    <h4>🔄 Pestaña "Flujo real"</h4>
+    <p>Muestra la diferencia real entre lo que entra y lo que sale cada mes, calculada a partir del cambio en el Historial.</p>
+
+    <h4>📊 Pestaña "Rendimientos"</h4>
+    <p>Muestra las ganancias de tus inversiones visualmente: barras por mes, por instrumento, y totales acumulados.</p>
+
+    <h3>Cómo leer el CAGR</h3>
+    <p>
+      El <strong>CAGR</strong> (tasa de crecimiento anual compuesto) indica a qué velocidad promedio crece tu patrimonio cada año. Por ejemplo:
+    </p>
+    <ul>
+      <li>CAGR de <strong>8%</strong>: tu patrimonio crece un 8% promedio por año.</li>
+      <li>CAGR de <strong>0%</strong>: tu patrimonio se mantiene igual en términos reales.</li>
+      <li>CAGR negativo: tu patrimonio está disminuyendo con el tiempo.</li>
+    </ul>
+    <p>Un buen CAGR depende de la inflación y tus metas. En Perú, si la inflación es ~4%, un CAGR de 8% significa que realmente creces un 4% en términos reales.</p>
+
+    <h3>Instantánea IA</h3>
+    <p>
+      Hay un botón con ícono de chispa (✨) que genera un resumen automático de tu situación financiera. Haz clic y espera unos segundos para leer el análisis.
+    </p>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Análisis</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     10. SIMULACIÓN
+══════════════════════════════════════════════════════ -->
+<div class="page" id="simulacion">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Simulación</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Área · Simulación</div>
+    <h2>Simulación Financiera</h2>
+    <div class="sec-sub">Proyecta tu futuro financiero y planifica tu retiro.</div>
+  </div>
+  <div class="content">
+    <h3>¿Para qué sirve la Simulación?</h3>
+    <p>
+      La sección de Simulación te permite hacerte preguntas del tipo: <em>"Si sigo ahorrando lo mismo y mis inversiones crecen al 6% anual, ¿podré retirarme a los 65 con suficiente dinero?"</em> MyFinance hace los cálculos y te muestra los resultados en una proyección año a año.
+    </p>
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>La Simulación es para planificación, no para registro</strong>
+        <p>Aquí no registras datos reales — creas escenarios hipotéticos. Lo que registras en Tracking (cuentas, rendimientos) es real; lo que configuras en Simulación son proyecciones a futuro.</p>
+      </div>
+    </div>
+
+    <h3>Módulos de la Simulación (en orden recomendado)</h3>
+
+    <h4>1. Escenarios</h4>
+    <p>Un escenario es un "plan financiero" completo. Puedes tener varios escenarios para comparar diferentes estrategias. Ejemplo: "Plan conservador" vs "Plan agresivo".</p>
+    <p>Para crear un escenario: ve a <strong>Escenarios</strong> → "Nuevo escenario" → ponle un nombre.</p>
+    <p>El escenario activo se selecciona desde el menú lateral. Todos los demás módulos de Simulación trabajan sobre el escenario activo.</p>
+
+    <h4>2. Parámetros</h4>
+    <p>Define los datos generales de tu plan:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Campo</th><th>Qué significa</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Edad actual</strong></td><td>Tu edad hoy.</td></tr>
+          <tr><td><strong>Edad de retiro</strong></td><td>A qué edad quieres dejar de trabajar.</td></tr>
+          <tr><td><strong>Esperanza de vida</strong></td><td>Hasta qué edad planificas (por defecto 85 años).</td></tr>
+          <tr><td><strong>SWR</strong></td><td>"Safe Withdrawal Rate" — el porcentaje que retiras de tu fondo cada año en el retiro. Típicamente 4%.</td></tr>
+          <tr><td><strong>Metas</strong></td><td>Cuánto dinero mensual quieres tener en el retiro.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>3. Instrumentos</h4>
+    <p>Define cada inversión que tienes o planeas tener. Por ejemplo: "ETF VOO", "Departamento Miraflores", "Fondo de pensiones".</p>
+    <p>Para cada instrumento configuras: monto inicial, tasa de rendimiento real esperada, categoría, tipo de renta (pago/capitalización/variable).</p>
+
+    <h4>4. Movimientos</h4>
+    <p>Define transferencias de capital entre instrumentos a lo largo del tiempo. Ejemplo: "En el año 10, mover todo el fondo de renta fija al ETF de acciones".</p>
+
+    <h4>5. Eventos de vida</h4>
+    <p>Agrega gastos extraordinarios que afectan tu plan. Ejemplo: comprar casa en 5 años (retiro único de S/ 200,000), o pagar educación universitaria de un hijo por 5 años (gasto recurrente).</p>
+
+    <h4>6. Carrera y aportes</h4>
+    <p>Define cuánto aportas a tus inversiones cada año (en base a tu sueldo proyectado) y cómo esperas que crezca con el tiempo o con cambios de trabajo.</p>
+
+    <h3>Cómo leer los resultados en Escenarios</h3>
+    <p>Una vez configurado, el módulo de Escenarios muestra:</p>
+    <ul>
+      <li>Tu patrimonio proyectado año a año hasta la edad de retiro.</li>
+      <li>Si tu fondo es suficiente para financiar tu retiro hasta la esperanza de vida.</li>
+      <li>En qué año alcanzas cada una de tus metas financieras.</li>
+      <li>Cuánto tiempo dura tu fondo post-retiro antes de agotarse.</li>
+    </ul>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Simulación</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     11. CONFIGURACIÓN Y SISTEMA
+══════════════════════════════════════════════════════ -->
+<div class="page" id="configuracion">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Sistema</span>
+    <span class="sep">›</span>
+    <span class="crumb">Configuración</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Módulo · Sistema</div>
+    <h2>Configuración y Exportar / Importar</h2>
+    <div class="sec-sub">Personaliza la app y gestiona tus datos.</div>
+  </div>
+  <div class="content">
+    <h3>Configuración</h3>
+    <p>Accede desde el menú lateral → <strong>Configuración</strong>. Aquí puedes:</p>
+
+    <h4>Modo visual (Day / Night)</h4>
+    <p>Elige entre dos modos de visualización:</p>
+    <ul>
+      <li><strong>Day ☀️</strong>: fondo más claro, ideal para uso general durante el día.</li>
+      <li><strong>Night 🌙</strong>: fondo más oscuro, ideal para usar de noche o en ambientes con poca luz.</li>
+    </ul>
+    <p>Haz clic en el modo deseado y se aplica inmediatamente. Esta preferencia se guarda en tu navegador.</p>
+
+    <h4>Ocultar módulos</h4>
+    <p>Si no usas ciertos módulos, puedes ocultarlos del menú para simplificar la navegación. Los módulos opcionales son: Haberes, Suscripciones, Gastos Familia, Deudas, Ideas &amp; Notas, Análisis, Impuesto 5ta.</p>
+    <p>Para ocultar un módulo: marca la casilla junto a su nombre. Para mostrarlo de nuevo: desmarca la casilla.</p>
+
+    <h4>Días de alerta de patrimonio</h4>
+    <p>Configura cuántos días sin actualizar hacen que una cuenta muestre el punto naranja de alerta. Por defecto suele ser 30 días.</p>
+
+    <h4>Historial automático</h4>
+    <p>Activa esta opción para que MyFinance capture automáticamente un registro de historial mensual sin que tengas que hacerlo manualmente.</p>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <strong>Las preferencias se guardan localmente</strong>
+        <p>El modo visual y los módulos ocultos se guardan en tu navegador. Si cambias de dispositivo o navegador, deberás configurarlos de nuevo.</p>
+      </div>
+    </div>
+
+    <h3>Exportar / Importar</h3>
+    <p>Accede desde el menú → <strong>Exportar / Importar</strong>.</p>
+    <p>Este módulo permite exportar los datos de tu escenario de Simulación a un archivo Excel (.xlsx), con hojas separadas para: Parámetros generales, Instrumentos, Movimientos, Eventos de vida, Carrera, y la Proyección calculada.</p>
+    <p>También puedes importar un archivo Excel previamente exportado para restaurar o compartir un escenario.</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <strong>Exporta para hacer respaldo</strong>
+        <p>Exporta tus escenarios periódicamente para tener una copia de seguridad de tu planificación financiera.</p>
+      </div>
+    </div>
+
+    <h3>Deudas e Ideas &amp; Notas</h3>
+    <h4>Deudas</h4>
+    <p>Registra préstamos que tienes pendientes de cobrar a otras personas. Para cada deuda registras: deudor (nombre de quién te debe), concepto, capital prestado, intereses acordados, estado (Pendiente / Parcial / Pagado) y fecha de depósito esperada.</p>
+
+    <h4>Ideas &amp; Notas</h4>
+    <p>Espacio libre para anotar ideas financieras, recordatorios o reflexiones. Puedes organizar las notas con etiquetas (tags).</p>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Configuración</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     12. DICCIONARIO
+══════════════════════════════════════════════════════ -->
+<div class="page" id="diccionario">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Diccionario financiero</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Referencia</div>
+    <h2>Diccionario Financiero de MyFinance</h2>
+    <div class="sec-sub">Todos los términos financieros que usa la aplicación, explicados de forma simple.</div>
+  </div>
+  <div class="content">
+    <div class="dict-entry">
+      <div class="dict-term">Patrimonio</div>
+      <div class="dict-def">Todo lo que tienes de valor (cuentas, inversiones, propiedades) menos todo lo que debes (préstamos, deudas). Es tu "valor neto" como persona.</div>
+      <div class="dict-example">Si tienes S/ 100,000 en inversiones y debes S/ 20,000 al banco, tu patrimonio es S/ 80,000.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Activo</div>
+      <div class="dict-def">Cualquier cosa que tiene valor económico y que posees: una cuenta bancaria, una inversión, una propiedad, un vehículo.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Pasivo / Liability</div>
+      <div class="dict-def">Una deuda u obligación de pago que tienes. Dinero que debes devolver.</div>
+      <div class="dict-example">Una hipoteca, un préstamo bancario, una deuda de tarjeta de crédito.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Rentabilidad</div>
+      <div class="dict-def">Qué porcentaje ganaste o perdiste sobre tu inversión. Se calcula dividiendo la ganancia entre el dinero que invertiste.</div>
+      <div class="dict-example">Invertiste S/ 10,000 y ganaste S/ 800. Tu rentabilidad es 8% (800 ÷ 10,000 × 100).</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Rentabilidad acumulada</div>
+      <div class="dict-def">El total de lo que has ganado desde que empezaste a invertir, sumando todos los períodos.</div>
+      <div class="dict-example">Si ganaste 5% en el primer año y 8% en el segundo, tu rentabilidad acumulada es aproximadamente 13.4%.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">CAGR (Tasa de Crecimiento Anual Compuesto)</div>
+      <div class="dict-def">A qué velocidad promedio crece tu inversión cada año, considerando el efecto del interés compuesto. Es la medida más justa para comparar inversiones de distinta duración.</div>
+      <div class="dict-example">Si en 5 años tu dinero pasó de S/ 10,000 a S/ 14,693, tu CAGR es 8% anual.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Capital / Principal</div>
+      <div class="dict-def">El dinero original que invertiste, sin contar las ganancias.</div>
+      <div class="dict-example">Invertiste S/ 10,000. Ese es tu capital o principal. Si ganaste S/ 800, tu total es S/ 10,800, pero tu capital sigue siendo S/ 10,000.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Flujo de Caja</div>
+      <div class="dict-def">El movimiento de dinero que entra y sale de tu bolsillo cada mes. Si entra más de lo que sale, tienes un flujo positivo (superávit). Si sale más, tienes un flujo negativo (déficit).</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Tipo de Cambio (TC)</div>
+      <div class="dict-def">El precio de un dólar en soles. MyFinance lo obtiene automáticamente del día para convertir tus activos en dólares a soles.</div>
+      <div class="dict-example">Si el TC es 3.75 y tienes US$ 1,000, equivale a S/ 3,750.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">SWR (Safe Withdrawal Rate)</div>
+      <div class="dict-def">El porcentaje máximo de tu fondo que puedes retirar cada año durante el retiro sin que el dinero se acabe. El valor más usado es 4%.</div>
+      <div class="dict-example">Si tienes S/ 1,000,000 al retiro y tu SWR es 4%, puedes retirar S/ 40,000 al año (S/ 3,333 al mes) indefinidamente.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Capitalización (o Capitalización compuesta)</div>
+      <div class="dict-def">Cuando la ganancia se suma automáticamente al capital y en el siguiente período genera ganancia sobre sí misma. "Los intereses ganan intereses".</div>
+      <div class="dict-example">Tienes S/ 10,000 al 10% anual. Año 1: ganas S/ 1,000 → total S/ 11,000. Año 2: ganas 10% sobre S/ 11,000 = S/ 1,100 → total S/ 12,100. Sin capitalización siempre ganarías S/ 1,000.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Aporte del mes</div>
+      <div class="dict-def">Dinero nuevo que pusiste en una inversión durante el mes, además del capital que ya tenías.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Traspaso</div>
+      <div class="dict-def">Cuando sacas dinero de una inversión para moverlo a otra. No es una ganancia ni una pérdida — el dinero cambia de lugar dentro de tu patrimonio.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Período / Historial mensual</div>
+      <div class="dict-def">Una captura del total de tu patrimonio en un mes específico. Sirve para ver cómo ha evolucionado tu dinero a lo largo del tiempo.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Retiro (en Simulación)</div>
+      <div class="dict-def">El momento en que dejas de trabajar y empiezas a vivir de tus ahorros e inversiones. En la simulación, defines a qué edad quieres retirarte.</div>
+    </div>
+
+    <div class="dict-entry">
+      <div class="dict-term">Tasa real</div>
+      <div class="dict-def">El rendimiento de una inversión descontando la inflación. Si tu inversión rinde 10% pero la inflación es 4%, tu tasa real es aproximadamente 6%.</div>
+    </div>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Diccionario financiero</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     13. PROBLEMAS FRECUENTES
+══════════════════════════════════════════════════════ -->
+<div class="page" id="problemas">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Problemas frecuentes</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Referencia</div>
+    <h2>Algo no cuadra: ¿qué reviso?</h2>
+    <div class="sec-sub">Los problemas más comunes y cómo resolverlos.</div>
+  </div>
+  <div class="content">
+
+    <h3>🔢 El total de Patrimonio no me cuadra</h3>
+    <p><strong>Qué puede estar ocurriendo:</strong></p>
+    <ul>
+      <li>Actualizaste el saldo de una cuenta pero MyFinance sigue mostrando el valor anterior.</li>
+      <li>Tienes una cuenta oculta que no se ve en la lista pero suma al total.</li>
+      <li>El tipo de cambio cambió — las cuentas en USD se convierten al TC actual.</li>
+    </ul>
+    <p><strong>Qué revisar:</strong></p>
+    <ol>
+      <li>Verifica cada cuenta individualmente — los saldos mostrados ¿coinciden con tus estados de cuenta reales?</li>
+      <li>Activa el botón "Ocultas" para ver si hay cuentas ocultas que estén sumando.</li>
+      <li>Revisa el TC mostrado en la esquina superior — ¿está actualizado?</li>
+    </ol>
+
+    <h3>📈 La rentabilidad parece incorrecta</h3>
+    <p><strong>Qué puede estar ocurriendo:</strong></p>
+    <ul>
+      <li>El "monto base" del registro de rendimiento no coincide con el saldo real de la inversión.</li>
+      <li>Olvidaste incluir el aporte del mes en el cálculo.</li>
+      <li>Hay un impuesto configurado que está reduciendo la ganancia mostrada.</li>
+    </ul>
+    <p><strong>Qué revisar:</strong></p>
+    <ol>
+      <li>Abre el registro en Rendimientos → clic en el ícono de editar.</li>
+      <li>Verifica que el "Base" mostrado coincida con lo que tenías invertido en ese período.</li>
+      <li>Revisa si el campo "Impuesto %" tiene un valor que no debería estar ahí.</li>
+    </ol>
+
+    <h3>💰 Registré algo con la moneda equivocada</h3>
+    <p><strong>Solución:</strong> Edita el registro (ícono de lápiz) y cambia el monto al campo correcto (PEN o USD). Guarda.</p>
+
+    <h3>📅 Puse mal la fecha en un registro de Rendimientos</h3>
+    <p><strong>Solución:</strong> Edita el registro. La fecha de pago define el mes y año del período. Al corregirla, el período se actualizará automáticamente.</p>
+
+    <h3>🔁 Dupliqué un registro accidentalmente</h3>
+    <p><strong>Solución:</strong> Identifica cuál de los dos es el duplicado y elimínalo con el ícono de papelera. MyFinance tiene función de deshacer (aparece una notificación en la esquina) si lo haces inmediatamente.</p>
+
+    <h3>🗑️ Eliminé algo que no debía</h3>
+    <p><strong>Si acabas de eliminarlo:</strong> Busca la notificación de "deshacer" que aparece brevemente en la pantalla y haz clic en ella para recuperarlo.</p>
+    <p><strong>Si ya pasó tiempo:</strong> Deberás volver a registrar la información manualmente.</p>
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <strong>Importante</strong>
+        <p>La función de deshacer solo funciona durante los segundos inmediatamente después de la acción. Actúa rápido cuando veas la notificación.</p>
+      </div>
+    </div>
+
+    <h3>📊 Un gráfico en Análisis no muestra información</h3>
+    <p><strong>Qué puede estar ocurriendo:</strong> El módulo de Análisis necesita al menos 2 registros en Historial para mostrar la evolución. Si acabas de empezar, es normal que los gráficos estén vacíos.</p>
+    <p><strong>Qué hacer:</strong> Agrega al menos 2 registros históricos en el módulo Historial (pueden ser de meses pasados) y los gráficos aparecerán.</p>
+
+    <h3>🔗 No puedo seleccionar un instrumento en Rendimientos</h3>
+    <p><strong>Causa:</strong> La lista de instrumentos viene de la sección de Simulación. Si no has creado ningún Escenario con Instrumentos, el selector aparecerá vacío.</p>
+    <p><strong>Solución:</strong> Ve a <strong>Simulación → Escenarios</strong> → crea un escenario → ve a <strong>Simulación → Instrumentos</strong> → agrega tus inversiones.</p>
+
+    <h3>⚠️ Una cuenta muestra un punto naranja</h3>
+    <p>El punto naranja indica que la cuenta no ha sido actualizada en el período configurado (por defecto 30 días). No es un error — es un recordatorio para que actualices el saldo.</p>
+    <p><strong>Solución:</strong> Edita la cuenta y actualiza el monto con el saldo actual.</p>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · Problemas frecuentes</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     14. FAQ
+══════════════════════════════════════════════════════ -->
+<div class="page" id="faq">
+  <div class="page-nav">
+    <a href="#centro-ayuda">🏠 Inicio</a>
+    <span class="sep">›</span>
+    <span class="crumb">Preguntas frecuentes</span>
+  </div>
+  <div class="section-header">
+    <div class="sec-num">Referencia</div>
+    <h2>Preguntas Frecuentes</h2>
+    <div class="sec-sub">Las dudas más comunes de los usuarios de MyFinance.</div>
+  </div>
+  <div class="content">
+
+    <h4>¿Tengo que registrar absolutamente todo?</h4>
+    <p>No. Empieza con lo más importante: tus cuentas en Patrimonio y tu flujo de caja básico. Puedes ir agregando más detalle gradualmente. MyFinance es más útil mientras más información tengas, pero funciona bien desde el primer registro.</p>
+
+    <h4>¿Qué registro primero?</h4>
+    <p>Primero: <strong>Patrimonio</strong> (tus cuentas actuales). Segundo: <strong>Flujo de Caja</strong> (ingresos y gastos). Tercero: <strong>Historial</strong> (la foto del mes actual).</p>
+
+    <h4>¿Puedo corregir información después?</h4>
+    <p>Sí. Todo en MyFinance puede editarse. Busca el ícono de lápiz (✏️) junto a cualquier registro para modificarlo.</p>
+
+    <h4>¿Qué pasa si tengo inversiones en dólares y en soles?</h4>
+    <p>MyFinance maneja ambas monedas simultáneamente. Puedes tener cuentas en PEN y en USD. Para el total, convierte los dólares a soles usando el tipo de cambio del día (que se actualiza automáticamente).</p>
+
+    <h4>¿Dónde veo cuánto dinero tengo en total?</h4>
+    <p>En <strong>Patrimonio</strong>: la primera fila de la tabla (marcada como TOTAL) muestra la suma de todo. También en el <strong>Home</strong> si tienes cuentas destacadas (📌).</p>
+
+    <h4>¿Dónde veo cuánto he ganado con mis inversiones?</h4>
+    <p>En <strong>Rendimientos</strong>: los KPIs en la parte superior muestran las ganancias totales. También en <strong>Análisis → Rendimientos</strong> con gráficos.</p>
+
+    <h4>¿Por qué cambió mi patrimonio si no hice nada?</h4>
+    <p>Si tienes cuentas en dólares, el valor en soles cambia cuando cambia el tipo de cambio, aunque no hayas movido dinero. Revisa el TC del día en la esquina superior de Patrimonio.</p>
+
+    <h4>¿Qué pasa si elimino una cuenta de Patrimonio?</h4>
+    <p>La cuenta desaparece permanentemente y ya no suma al total. Si tenía vinculación con algún instrumento de Simulación, esa vinculación se pierde. Si fue un error, deberás crearla de nuevo manualmente.</p>
+
+    <h4>¿Puedo usar MyFinance desde el teléfono?</h4>
+    <p>Sí. MyFinance está optimizado para funcionar en teléfonos y tabletas. En dispositivos móviles, el menú de navegación aparece en la parte superior (ícono de tres líneas ☰). Todas las funciones están disponibles.</p>
+
+    <h4>¿Qué es el "escenario activo" del menú lateral?</h4>
+    <p>Es el plan de simulación financiera que está seleccionado actualmente. Solo afecta a los módulos de Simulación. Si no usas Simulación, puedes ignorarlo.</p>
+
+    <h4>¿Mis datos están seguros?</h4>
+    <p>MyFinance usa autenticación segura. Solo tú puedes ver tus datos. La aplicación requiere correo y contraseña para ingresar, y puedes cerrar sesión cuando quieras desde el menú inferior del panel lateral.</p>
+
+    <h4>¿Cómo cierro sesión?</h4>
+    <p>En la parte inferior del menú lateral (o en el menú superior en móvil) encontrarás el botón <strong>Cerrar sesión</strong> junto al ícono de puerta de salida.</p>
+  </div>
+  <div class="page-footer">
+    <span>myFinance · FAQ</span>
+    <a href="#centro-ayuda">🏠 Inicio</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     BACK COVER
+══════════════════════════════════════════════════════ -->
+<div class="page" id="back-cover">
+  <div class="cover" style="min-height: 300px;">
+    <div class="cover-brand" style="margin-bottom: 16px;">
+      <span class="my">my</span><span class="fin">Finance</span>
+    </div>
+    <div class="cover-teal-line"></div>
+    <p class="cover-tagline" style="font-size: 13px;">
+      Guía de Usuario — Versión 1.0 — Septiembre 2026<br>
+      Para dudas o reportes, contacta al administrador de tu cuenta.
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

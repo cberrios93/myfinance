@@ -41,6 +41,7 @@ interface FinanceDataContextValue {
   agregarRendimiento: (d: Omitido<Rendimiento>) => Promise<void>
   actualizarRendimiento: (r: Rendimiento) => Promise<void>
   borrarRendimiento: (id: string) => Promise<void>
+  bulkActualizarTasaRendimientos: (instrumento: string, tasa: number) => Promise<void>
   // Recibos
   agregarRecibo: (d: Omitido<ReciboHaberes>) => Promise<void>
   actualizarRecibo: (r: ReciboHaberes) => Promise<void>
@@ -346,12 +347,29 @@ export function FinanceDataProvider({ children }: { children: ReactNode }) {
     },
   }
 
+  async function bulkActualizarTasaRendimientos(instrumento: string, tasa: number) {
+    const targets = rendRef.current.filter(r => r.instrumentoNombre === instrumento && !r.esTraspaso)
+    if (targets.length === 0) return
+    const snapshots = targets.map(r => ({ ...r }))
+    const updated = targets.map(r => ({ ...r, tasaImpuesto: tasa, actualizadoEn: ahora() }))
+    await Promise.all(updated.map(r => guardarRendimiento(r)))
+    setRendimientos(prev => prev.map(r => updated.find(u => u.id === r.id) ?? r))
+    showUndo(
+      `Impuesto ${tasa}% aplicado a ${instrumento} (${targets.length} registros)`,
+      async () => {
+        await Promise.all(snapshots.map(r => guardarRendimiento(r)))
+        setRendimientos(prev => prev.map(r => snapshots.find(s => s.id === r.id) ?? r))
+      }
+    )
+  }
+
   return (
     <Ctx.Provider value={{
       loading, flujoCaja, rendimientos, recibos, suscripciones, gastosFamilia, deudas, notas, flujosCapital,
       agregarFlujoCapital: fk.agregar, actualizarFlujoCapital: fk.actualizar, borrarFlujoCapital: fk.borrar,
       agregarFlujo: fc.agregar, actualizarFlujo: fc.actualizar, borrarFlujo: fc.borrar,
       agregarRendimiento: rend.agregar, actualizarRendimiento: rend.actualizar, borrarRendimiento: rend.borrar,
+      bulkActualizarTasaRendimientos,
       agregarRecibo: rec.agregar, actualizarRecibo: rec.actualizar, borrarRecibo: rec.borrar,
       recargarRecibos: async () => { setRecibos(await listarRecibos()) },
       agregarSuscripcion: sus.agregar, actualizarSuscripcion: sus.actualizar, borrarSuscripcion: sus.borrar,

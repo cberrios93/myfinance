@@ -1,0 +1,1280 @@
+<title>MyFinance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,200;1,9..40,300&family=DM+Mono:wght@400;500&display=swap">
+
+<style>
+/* ── Brand tokens (theme-invariant) ── */
+:root {
+  --navy:      #0C1A2E;
+  --navy-mid:  #162B4A;
+  --teal:      #00C9A7;
+  --teal-dim:  #009E83;
+  --polar:     #F0F5FB;
+  --slate:     #8A9BB0;
+
+  /* Page tokens – light */
+  --bg:        #F0F5FB;
+  --surface:   #FFFFFF;
+  --txt-1:     #0C1A2E;
+  --txt-2:     #3D5878;
+  --txt-3:     #8A9BB0;
+  --rule:      #D2E0EE;
+
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+}
+
+/* Dark – system */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:      #060E1B;
+    --surface: #0C1A2E;
+    --txt-1:   #EDF2F8;
+    --txt-2:   #7A9AB8;
+    --txt-3:   #3E5A78;
+    --rule:    #162B4A;
+  }
+}
+
+/* Dark – explicit */
+:root[data-theme="dark"] {
+  --bg:      #060E1B;
+  --surface: #0C1A2E;
+  --txt-1:   #EDF2F8;
+  --txt-2:   #7A9AB8;
+  --txt-3:   #3E5A78;
+  --rule:    #162B4A;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--txt-1);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero {
+  background: var(--navy);
+  padding: 104px 32px 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle teal grid */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,201,167,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,201,167,.045) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+}
+
+.hero-tagline {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--teal);
+  opacity: .8;
+}
+
+/* ══════════════════════════════════════
+   LOGO COMPONENT
+══════════════════════════════════════ */
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon { display: block; flex-shrink: 0; }
+
+.logo-wordmark {
+  display: flex;
+  align-items: baseline;
+  line-height: 1;
+}
+
+/* Sizing variants */
+.logo--hero  { gap: 20px; }
+.logo--md    { gap: 13px; }
+.logo--sm    { gap: 9px; }
+.logo--icon  { /* icon only, no wordmark */ }
+
+.logo--hero  .wm-my,
+.logo--hero  .wm-fin { font-size: 54px; }
+
+.logo--md    .wm-my,
+.logo--md    .wm-fin { font-size: 27px; }
+
+.logo--sm    .wm-my,
+.logo--sm    .wm-fin { font-size: 18px; }
+
+/* Wordmark — on dark */
+.wm-my {
+  font-family: var(--sans);
+  font-weight: 200;
+  font-style: italic;
+  color: rgba(255,255,255,.52);
+  letter-spacing: .01em;
+}
+.wm-fin {
+  font-family: var(--sans);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.025em;
+}
+
+/* Wordmark — on light */
+.logo--light .wm-my  { color: rgba(12,26,46,.38); }
+.logo--light .wm-fin { color: var(--navy); }
+
+/* ══════════════════════════════════════
+   PAGE SHELL
+══════════════════════════════════════ */
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 72px 32px 96px;
+}
+
+/* ── Section ── */
+.section { margin-bottom: 72px; }
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.sec-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  flex-shrink: 0;
+}
+
+.sec-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* ══════════════════════════════════════
+   LOCKUPS
+══════════════════════════════════════ */
+.lockups {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 20px 28px;
+  border-radius: 3px;
+  min-height: 188px;
+  gap: 20px;
+}
+
+.lockup--dark   { background: var(--navy); }
+.lockup--mid    { background: var(--navy-mid); }
+.lockup--light  { background: var(--surface); border: 1px solid var(--rule); }
+
+.lockup-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+}
+
+/* ══════════════════════════════════════
+   ICON SIZES
+══════════════════════════════════════ */
+.icon-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.icon-pad-dark  { background: var(--navy);     padding: 20px; border-radius: 3px; display:flex; }
+.icon-pad-light { background: var(--surface);  padding: 20px; border-radius: 3px; display:flex; border: 1px solid var(--rule); }
+
+.icon-size-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: var(--txt-3);
+}
+
+/* ══════════════════════════════════════
+   PALETTE
+══════════════════════════════════════ */
+.palette {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.swatch { border-radius: 3px; overflow: hidden; }
+
+.swatch-chip { height: 72px; }
+
+.swatch-info {
+  padding: 10px 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-top: none;
+}
+
+.swatch-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--txt-1);
+  margin-bottom: 2px;
+}
+
+.swatch-hex {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--txt-3);
+}
+
+.swatch-use {
+  font-size: 10px;
+  color: var(--txt-3);
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+/* ══════════════════════════════════════
+   TYPOGRAPHY
+══════════════════════════════════════ */
+.type-stack { display: flex; flex-direction: column; }
+
+.type-row {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 24px;
+  align-items: baseline;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.type-row:first-child { border-top: 1px solid var(--rule); }
+
+.type-meta {}
+
+.t-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  margin-bottom: 4px;
+}
+
+.t-spec {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--txt-2);
+}
+
+/* ══════════════════════════════════════
+   USAGE
+══════════════════════════════════════ */
+.usage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.u-card {
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+}
+
+.u-card-nav {
+  background: var(--navy);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.u-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.u-nav-link {
+  font-size: 11px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .01em;
+}
+
+.u-nav-link.active { color: rgba(255,255,255,.88); }
+
+.u-nav-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--teal);
+  border-radius: 50%;
+  align-self: center;
+}
+
+.u-card-body {
+  background: var(--surface);
+  padding: 20px;
+}
+
+.u-card-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+  margin-bottom: 16px;
+}
+
+.u-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.u-row:last-child { border-bottom: none; }
+
+.u-row-label { font-size: 12px; color: var(--txt-2); }
+
+.u-row-value {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--txt-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.u-row-value.up { color: var(--teal); }
+
+/* Favicon sizes */
+.sizes-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.size-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.size-bg {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.size-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: var(--txt-3);
+}
+
+/* ══════════════════════════════════════
+   CHART PALETTE
+══════════════════════════════════════ */
+.chart-swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chart-swatch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+
+.chart-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chart-swatch-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt-1);
+  display: block;
+}
+
+.chart-swatch-hex {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--txt-3);
+  display: block;
+}
+
+.chart-preview {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 20px 20px 0;
+  overflow: hidden;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend-line {
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--txt-2);
+}
+
+.chart-grid-line { stroke: var(--rule); }
+.chart-axis-line { stroke: var(--rule); }
+.chart-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  fill: var(--txt-3);
+}
+
+/* ══════════════════════════════════════
+   SEMANTIC COLORS
+══════════════════════════════════════ */
+.semantic-list {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sem-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sem-row:last-child { border-bottom: none; }
+
+.sem-stripe { width: 4px; flex-shrink: 0; }
+
+.sem-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+}
+
+.sem-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt-1);
+  margin-bottom: 3px;
+}
+
+.sem-meta { display: flex; gap: 12px; }
+
+.sem-hex {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--txt-3);
+}
+
+.sem-use { font-size: 10px; color: var(--txt-3); }
+
+.sem-example {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════════════════════════════
+   BADGES
+══════════════════════════════════════ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge--sim { background: rgba(0,201,167,.12); color: #008C70; }
+.badge--fam { background: rgba(245,166,35,.16); color: #9A6300; }
+.badge--sub { background: rgba(138,155,176,.14); color: #4E6B88; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .badge--sim { color: #00C9A7; }
+  :root:not([data-theme="light"]) .badge--fam { color: #F5A623; }
+  :root:not([data-theme="light"]) .badge--sub { color: #7A9AB8; }
+}
+
+:root[data-theme="dark"] .badge--sim { color: #00C9A7; }
+:root[data-theme="dark"] .badge--fam { color: #F5A623; }
+:root[data-theme="dark"] .badge--sub { color: #7A9AB8; }
+
+.badge-demo {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.badge-demo-header {
+  padding: 10px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--txt-3);
+}
+
+.badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.badge-row:last-child { border-bottom: none; }
+
+.badge-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge-row-label { font-size: 12px; color: var(--txt-2); }
+
+.badge-row-value {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--txt-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════════════════════════════
+   SURFACE SCALE
+══════════════════════════════════════ */
+.surface-scale {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.surf-swatch {
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.surf-chip { height: 48px; }
+
+.surf-info {
+  padding: 8px 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-top: none;
+}
+
+.surf-role {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--txt-1);
+  margin-bottom: 2px;
+}
+
+.surf-hex {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--txt-3);
+}
+</style>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="hero">
+  <div class="hero-content">
+
+    <!-- Primary logo — hero size -->
+    <div class="logo logo--hero">
+      <svg class="logo-icon" width="72" height="72" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="8" fill="#0C1A2E"/>
+        <rect width="40" height="40" rx="8" fill="rgba(0,201,167,0.07)"/>
+        <polyline
+          points="8,30 8,22 16,22 16,15 25,15 25,8 33,8"
+          fill="none"
+          stroke="#00C9A7"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+      </svg>
+      <div class="logo-wordmark">
+        <span class="wm-my">my</span><span class="wm-fin">Finance</span>
+      </div>
+    </div>
+
+    <p class="hero-tagline">Sistema financiero personal · Lima, Perú</p>
+  </div>
+</section>
+
+<!-- ══════════════════ PAGE ══════════════════ -->
+<main class="page">
+
+  <!-- LOCKUPS -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Lockups</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="lockups">
+
+      <!-- Dark -->
+      <div class="lockup lockup--dark">
+        <div class="logo logo--md">
+          <svg class="logo-icon" width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#162B4A"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+          <div class="logo-wordmark">
+            <span class="wm-my">my</span><span class="wm-fin">Finance</span>
+          </div>
+        </div>
+        <span class="lockup-label">Horizontal · sobre navy</span>
+      </div>
+
+      <!-- Mid -->
+      <div class="lockup lockup--mid">
+        <div class="logo logo--md">
+          <svg class="logo-icon" width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#0C1A2E"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+          <div class="logo-wordmark">
+            <span class="wm-my">my</span><span class="wm-fin">Finance</span>
+          </div>
+        </div>
+        <span class="lockup-label">Horizontal · sobre navy-mid</span>
+      </div>
+
+      <!-- Light -->
+      <div class="lockup lockup--light">
+        <div class="logo logo--md logo--light">
+          <svg class="logo-icon" width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#0C1A2E"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+          <div class="logo-wordmark">
+            <span class="wm-my">my</span><span class="wm-fin">Finance</span>
+          </div>
+        </div>
+        <span class="lockup-label">Horizontal · sobre blanco</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ICON ONLY -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Ícono — tamaños</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="icon-row">
+
+      <div class="icon-item">
+        <div class="icon-pad-dark">
+          <svg width="64" height="64" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#162B4A"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+        </div>
+        <span class="icon-size-label">64 px</span>
+      </div>
+
+      <div class="icon-item">
+        <div class="icon-pad-dark">
+          <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#162B4A"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+        </div>
+        <span class="icon-size-label">40 px</span>
+      </div>
+
+      <div class="icon-item">
+        <div class="icon-pad-dark">
+          <svg width="24" height="24" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#162B4A"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+        </div>
+        <span class="icon-size-label">24 px</span>
+      </div>
+
+      <div class="icon-item">
+        <div class="icon-pad-dark">
+          <svg width="16" height="16" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#162B4A"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+        </div>
+        <span class="icon-size-label">16 px</span>
+      </div>
+
+      <!-- Separator -->
+      <div style="width:1px;height:80px;background:var(--rule);align-self:center;"></div>
+
+      <div class="icon-item">
+        <div class="icon-pad-light">
+          <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#0C1A2E"/>
+            <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+          </svg>
+        </div>
+        <span class="icon-size-label">sobre blanco</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PALETTE -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Paleta</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="palette">
+
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#0C1A2E;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Navy</div>
+          <div class="swatch-hex">#0C1A2E</div>
+          <div class="swatch-use">Ícono · nav · fondos principales</div>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#162B4A;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Navy Mid</div>
+          <div class="swatch-hex">#162B4A</div>
+          <div class="swatch-use">Superficies secundarias · hover</div>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#00C9A7;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Teal</div>
+          <div class="swatch-hex">#00C9A7</div>
+          <div class="swatch-use">Acento · positivo · CTA</div>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#F0F5FB; border-bottom:1px solid #D2E0EE;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Polar</div>
+          <div class="swatch-hex">#F0F5FB</div>
+          <div class="swatch-use">Fondo light · contenedores</div>
+        </div>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-chip" style="background:#8A9BB0;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Slate</div>
+          <div class="swatch-hex">#8A9BB0</div>
+          <div class="swatch-use">Texto secundario · labels</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Tipografía</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="type-stack">
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="t-label">Wordmark</div>
+          <div class="t-spec">DM Sans · 200i + 700</div>
+        </div>
+        <div style="display:flex;align-items:baseline;">
+          <span style="font-family:'DM Sans',sans-serif;font-weight:200;font-style:italic;font-size:36px;color:var(--txt-3);letter-spacing:.01em;">my</span><span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:36px;color:var(--txt-1);letter-spacing:-.025em;">Finance</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="t-label">Heading</div>
+          <div class="t-spec">DM Sans · 700 · −0.02em</div>
+        </div>
+        <span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:26px;color:var(--txt-1);letter-spacing:-.02em;">Portafolio Global</span>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="t-label">Body</div>
+          <div class="t-spec">DM Sans · 400 · 14px</div>
+        </div>
+        <span style="font-family:'DM Sans',sans-serif;font-size:14px;color:var(--txt-2);line-height:1.6;max-width:52ch;">Rentabilidad acumulada desde apertura de cuenta. Valorizado al tipo de cambio Rextie (compra) del día.</span>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="t-label">Data / Labels</div>
+          <div class="t-spec">DM Mono · 400–500</div>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--txt-1);font-variant-numeric:tabular-nums;letter-spacing:.01em;">$21,483.62 USD · +14.3%</span>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="t-label">Micro label</div>
+          <div class="t-spec">DM Mono · 9px · 0.2em</div>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--txt-3);">Patrimonio neto · Sep 2026</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- USAGE CONTEXT -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Contexto de uso</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="usage-grid">
+
+      <!-- Nav context -->
+      <div class="u-card">
+        <div class="u-card-nav">
+          <div class="logo logo--sm">
+            <svg width="22" height="22" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="8" fill="#162B4A"/>
+              <polyline points="8,30 8,22 16,22 16,15 25,15 25,8 33,8" fill="none" stroke="#00C9A7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="33" cy="8" r="2.5" fill="#00C9A7"/>
+            </svg>
+            <div class="logo-wordmark">
+              <span class="wm-my" style="font-size:17px;">my</span><span class="wm-fin" style="font-size:17px;">Finance</span>
+            </div>
+          </div>
+          <div class="u-nav-right">
+            <span class="u-nav-link active">Patrimonio</span>
+            <span class="u-nav-link">Portafolios</span>
+            <span class="u-nav-link">Simulación</span>
+            <div class="u-nav-dot"></div>
+          </div>
+        </div>
+        <div class="u-card-body">
+          <div class="u-card-title">Patrimonio neto · Sep 2026</div>
+          <div class="u-row">
+            <span class="u-row-label">Schwab (USD)</span>
+            <span class="u-row-value up">$21,483.62</span>
+          </div>
+          <div class="u-row">
+            <span class="u-row-label">Renta4 SAB</span>
+            <span class="u-row-value">S/ 38,920.00</span>
+          </div>
+          <div class="u-row">
+            <span class="u-row-label">Prestamype</span>
+            <span class="u-row-value">S/ 12,000.00</span>
+          </div>
+          <div class="u-row">
+            <span class="u-row-label">Total USD equiv.</span>
+            <span class="u-row-value up" style="font-weight:600;">$35,240.18</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favicon + wordmark only -->
+      <div class="u-card" style="background:var(--surface);padding:28px;">
+        <div class="u-card-title">Wordmark solo</div>
+        <div style="display:flex;flex-direction:column;gap:20px;margin-top:8px;">
+          <div style="display:flex;align-items:baseline;">
+            <span style="font-family:'DM Sans',sans-serif;font-weight:200;font-style:italic;font-size:32px;color:rgba(12,26,46,.38);letter-spacing:.01em;">my</span><span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:32px;color:var(--navy);letter-spacing:-.025em;">Finance</span>
+          </div>
+          <div style="width:100%;height:1px;background:var(--rule);"></div>
+          <div style="display:flex;align-items:baseline;">
+            <span style="font-family:'DM Sans',sans-serif;font-weight:200;font-style:italic;font-size:32px;color:rgba(255,255,255,.5);letter-spacing:.01em;">my</span><span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:32px;color:#fff;letter-spacing:-.025em;">Finance</span>
+          </div>
+          <div style="background:var(--navy);padding:16px;border-radius:3px;margin:-4px 0 0;"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- CHART PALETTE -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Paleta de gráficas</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="chart-swatches">
+      <div class="chart-swatch">
+        <div class="chart-dot" style="background:#00C9A7;"></div>
+        <div>
+          <span class="chart-swatch-name">Teal</span>
+          <span class="chart-swatch-hex">#00C9A7</span>
+        </div>
+      </div>
+      <div class="chart-swatch">
+        <div class="chart-dot" style="background:#5B8CF7;"></div>
+        <div>
+          <span class="chart-swatch-name">Azul</span>
+          <span class="chart-swatch-hex">#5B8CF7</span>
+        </div>
+      </div>
+      <div class="chart-swatch">
+        <div class="chart-dot" style="background:#F5A623;"></div>
+        <div>
+          <span class="chart-swatch-name">Ámbar</span>
+          <span class="chart-swatch-hex">#F5A623</span>
+        </div>
+      </div>
+      <div class="chart-swatch">
+        <div class="chart-dot" style="background:#C47FD5;"></div>
+        <div>
+          <span class="chart-swatch-name">Violeta</span>
+          <span class="chart-swatch-hex">#C47FD5</span>
+        </div>
+      </div>
+      <div class="chart-swatch">
+        <div class="chart-dot" style="background:#E8836B;"></div>
+        <div>
+          <span class="chart-swatch-name">Coral</span>
+          <span class="chart-swatch-hex">#E8836B</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-preview">
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-line" style="background:#00C9A7;"></div>
+          <span class="legend-label">Schwab</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background:#5B8CF7;"></div>
+          <span class="legend-label">Renta4 SAB</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-line" style="background:#F5A623;"></div>
+          <span class="legend-label">Seminario SAB</span>
+        </div>
+      </div>
+
+      <svg viewBox="0 0 760 178" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible;">
+        <defs>
+          <clipPath id="chart-clip">
+            <rect x="36" y="10" width="704" height="142"/>
+          </clipPath>
+        </defs>
+
+        <!-- Grid lines -->
+        <line x1="36" y1="48"  x2="736" y2="48"  stroke-width="1" stroke-dasharray="4 4" class="chart-grid-line"/>
+        <line x1="36" y1="84"  x2="736" y2="84"  stroke-width="1" stroke-dasharray="4 4" class="chart-grid-line"/>
+        <line x1="36" y1="120" x2="736" y2="120" stroke-width="1" stroke-dasharray="4 4" class="chart-grid-line"/>
+
+        <!-- Area fills -->
+        <path clip-path="url(#chart-clip)" d="M 36,111 L 136,93 L 236,85 L 336,98 L 436,74 L 536,64 L 636,71 L 736,48 L 736,148 L 36,148 Z" fill="#00C9A7" fill-opacity="0.10"/>
+        <path clip-path="url(#chart-clip)" d="M 36,124 L 136,116 L 236,111 L 336,115 L 436,106 L 536,98 L 636,102 L 736,90 L 736,148 L 36,148 Z" fill="#5B8CF7" fill-opacity="0.10"/>
+        <path clip-path="url(#chart-clip)" d="M 36,135 L 136,131 L 236,127 L 336,130 L 436,124 L 536,120 L 636,122 L 736,115 L 736,148 L 36,148 Z" fill="#F5A623" fill-opacity="0.13"/>
+
+        <!-- Stroke lines -->
+        <polyline clip-path="url(#chart-clip)" points="36,111 136,93 236,85 336,98 436,74 536,64 636,71 736,48" fill="none" stroke="#00C9A7" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <polyline clip-path="url(#chart-clip)" points="36,124 136,116 236,111 336,115 436,106 536,98 636,102 736,90"  fill="none" stroke="#5B8CF7" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <polyline clip-path="url(#chart-clip)" points="36,135 136,131 236,127 336,130 436,124 536,120 636,122 736,115" fill="none" stroke="#F5A623" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+
+        <!-- Endpoint dots -->
+        <circle cx="736" cy="48"  r="3.5" fill="#00C9A7"/>
+        <circle cx="736" cy="90"  r="3.5" fill="#5B8CF7"/>
+        <circle cx="736" cy="115" r="3.5" fill="#F5A623"/>
+
+        <!-- Bottom axis -->
+        <line x1="36" y1="148" x2="736" y2="148" stroke-width="1" class="chart-axis-line"/>
+
+        <!-- Month labels -->
+        <text x="36"  y="165" text-anchor="middle" class="chart-label">Feb</text>
+        <text x="136" y="165" text-anchor="middle" class="chart-label">Mar</text>
+        <text x="236" y="165" text-anchor="middle" class="chart-label">Abr</text>
+        <text x="336" y="165" text-anchor="middle" class="chart-label">May</text>
+        <text x="436" y="165" text-anchor="middle" class="chart-label">Jun</text>
+        <text x="536" y="165" text-anchor="middle" class="chart-label">Jul</text>
+        <text x="636" y="165" text-anchor="middle" class="chart-label">Ago</text>
+        <text x="736" y="165" text-anchor="middle" class="chart-label">Sep</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- SEMANTIC COLORS -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Colores semánticos</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="semantic-list">
+      <div class="sem-row">
+        <div class="sem-stripe" style="background:#00C9A7;"></div>
+        <div class="sem-body">
+          <div>
+            <div class="sem-name">Positivo</div>
+            <div class="sem-meta">
+              <span class="sem-hex">#00C9A7</span>
+              <span class="sem-use">Ganancias · rendimiento favorable · balance positivo</span>
+            </div>
+          </div>
+          <span class="sem-example" style="color:#00C9A7;">+14.3%</span>
+        </div>
+      </div>
+      <div class="sem-row">
+        <div class="sem-stripe" style="background:#E24C4C;"></div>
+        <div class="sem-body">
+          <div>
+            <div class="sem-name">Negativo</div>
+            <div class="sem-meta">
+              <span class="sem-hex">#E24C4C</span>
+              <span class="sem-use">Pérdidas · retiros · alertas críticas · egreso</span>
+            </div>
+          </div>
+          <span class="sem-example" style="color:#E24C4C;">−3.2%</span>
+        </div>
+      </div>
+      <div class="sem-row">
+        <div class="sem-stripe" style="background:#F5A623;"></div>
+        <div class="sem-body">
+          <div>
+            <div class="sem-name">Alerta</div>
+            <div class="sem-meta">
+              <span class="sem-hex">#F5A623</span>
+              <span class="sem-use">Sincronizar ⚠ · diferencia detectada · acción requerida</span>
+            </div>
+          </div>
+          <span class="sem-example" style="color:#F5A623;">⚠ S/1.40</span>
+        </div>
+      </div>
+      <div class="sem-row">
+        <div class="sem-stripe" style="background:#8A9BB0;"></div>
+        <div class="sem-body">
+          <div>
+            <div class="sem-name">Neutro</div>
+            <div class="sem-meta">
+              <span class="sem-hex">#8A9BB0</span>
+              <span class="sem-use">Sin cambio · pendiente de datos · deshabilitado</span>
+            </div>
+          </div>
+          <span class="sem-example" style="color:#8A9BB0;">0.0%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Badges</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <span class="badge badge--sim">Simulación</span>
+      <span class="badge badge--fam">Familia</span>
+      <span class="badge badge--sub">Suscripción</span>
+    </div>
+
+    <div class="badge-demo">
+      <div class="badge-demo-header">Flujo de caja · Sep 2026</div>
+      <div class="badge-row">
+        <div class="badge-row-left">
+          <span class="badge badge--sim">Simulación</span>
+          <span class="badge-row-label">Portafolio Schwab vinculado</span>
+        </div>
+        <span class="badge-row-value" style="color:#00C9A7;">$21,483.62</span>
+      </div>
+      <div class="badge-row">
+        <div class="badge-row-left">
+          <span class="badge badge--fam">Familia</span>
+          <span class="badge-row-label">Alquiler depto. Miraflores</span>
+        </div>
+        <span class="badge-row-value" style="color:#E24C4C;">−S/ 3,200.00</span>
+      </div>
+      <div class="badge-row">
+        <div class="badge-row-left">
+          <span class="badge badge--sub">Suscripción</span>
+          <span class="badge-row-label">Adobe Creative Cloud</span>
+        </div>
+        <span class="badge-row-value" style="color:#E24C4C;">−S/ 82.50</span>
+      </div>
+      <div class="badge-row">
+        <div class="badge-row-left">
+          <span class="badge-row-label">Prestamype · cuota mensual</span>
+        </div>
+        <span class="badge-row-value" style="color:#00C9A7;">+S/ 1,450.00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SURFACE SCALE -->
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-tag">Escala de superficies</span>
+      <div class="sec-rule"></div>
+    </div>
+
+    <div class="surface-scale">
+      <div class="surf-swatch">
+        <div class="surf-chip" style="background:#0C1A2E;"></div>
+        <div class="surf-info">
+          <div class="surf-role">Navy</div>
+          <div class="surf-hex">#0C1A2E</div>
+        </div>
+      </div>
+      <div class="surf-swatch">
+        <div class="surf-chip" style="background:#162B4A;"></div>
+        <div class="surf-info">
+          <div class="surf-role">Navy Mid</div>
+          <div class="surf-hex">#162B4A</div>
+        </div>
+      </div>
+      <div class="surf-swatch">
+        <div class="surf-chip" style="background:#8A9BB0;"></div>
+        <div class="surf-info">
+          <div class="surf-role">Slate</div>
+          <div class="surf-hex">#8A9BB0</div>
+        </div>
+      </div>
+      <div class="surf-swatch">
+        <div class="surf-chip" style="background:#D2E0EE; border-bottom:1px solid #D2E0EE;"></div>
+        <div class="surf-info">
+          <div class="surf-role">Regla</div>
+          <div class="surf-hex">#D2E0EE</div>
+        </div>
+      </div>
+      <div class="surf-swatch">
+        <div class="surf-chip" style="background:#F0F5FB; border-bottom:1px solid #D2E0EE;"></div>
+        <div class="surf-info">
+          <div class="surf-role">Polar</div>
+          <div class="surf-hex">#F0F5FB</div>
+        </div>
+      </div>
+      <div class="surf-swatch">
+        <div class="surf-chip" style="background:#FFFFFF; border-bottom:1px solid #D2E0EE;"></div>
+        <div class="surf-info">
+          <div class="surf-role">Blanco</div>
+          <div class="surf-hex">#FFFFFF</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
