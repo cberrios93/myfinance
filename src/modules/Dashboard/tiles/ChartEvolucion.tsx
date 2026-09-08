@@ -3,7 +3,7 @@ import {
 } from 'recharts'
 import { formatAbrev } from '../../../lib/formatMonto'
 import type { DashboardData } from '../useDashboardData'
-import { CARD, LABEL } from './shared'
+import { CARD, LABEL, fmtAxisY } from './shared'
 
 // Tile "Evolución del patrimonio". Extraído de Dashboard.tsx sin cambios (Etapa 2).
 
@@ -17,7 +17,7 @@ export function ChartEvolucion({ d }: { d: DashboardData }) {
           <LineChart data={historialChart} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
             <XAxis dataKey="periodo" tick={{ fill: 'var(--color-muted)', fontSize: 10 }} />
-            <YAxis tick={{ fill: 'var(--color-muted)', fontSize: 10 }} tickFormatter={v => formatAbrev(v, config)} width={36} />
+            <YAxis tick={{ fill: 'var(--color-muted)', fontSize: 10 }} tickFormatter={fmtAxisY} width={48} />
             <Tooltip
               contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, color: 'var(--color-texto)', fontSize: 11 }}
               formatter={(v, name) => [formatAbrev(v as number, config), name === 'total' ? 'Total' : name === 'pen' ? 'S/ directo' : 'USD en S/']}

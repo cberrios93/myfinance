@@ -11,6 +11,7 @@
 | Tipo | Estado | Ítem |
 |------|--------|------|
 | Mejora | En PROD | **Tablas ordenables** — Rendimientos (todas las columnas), Historial Mensual (fecha, montos, deltas), Patrimonio (por cuenta/PEN/USD dentro de cada categoría). En PROD v2.8.0 (2026-09-08). |
+| Feature | En PROD | **Evaluar con IA en Instrumentos** — botón en Simulación > Instrumentos que genera un prompt con patrimonio desglosado + escenario activo + instrumento candidato (nombre, monto USD/PEN, tasa, plazo, detalles). En PROD v2.9.0 (2026-09-08). |
 
 ---
 

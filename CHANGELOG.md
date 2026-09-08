@@ -10,9 +10,15 @@ Criterios de tipo:
 
 ---
 
-## [Unreleased] — DEV
+## [v2.9.0] — 2026-09-08 — PROD
 
-#### Tooltips en términos financieros (implementado 2026-09-08)
+#### Evaluar con IA en Instrumentos
+- **Feature** — Botón "Evaluar con IA" (ícono Sparkles) en el header de Simulación > Instrumentos. Abre un modal donde describes el instrumento candidato (nombre, monto en USD o PEN, rendimiento esperado, plazo, detalles libres). Genera un prompt estructurado con el contexto completo: patrimonio desglosado por categoría con % de concentración, últimos 3 meses de historial, portafolio actual del escenario activo (instrumentos, tasas, % de cada uno), flujo de caja mensual, y parámetros del escenario (edad de retiro, aporte anual, SWR). El prompt cierra con 5 preguntas específicas de evaluación. Botón "Copiar prompt" → pegar en Claude para análisis.
+
+#### Fix eje Y en charts del Dashboard
+- **Fix** — `ChartEvolucion` y `ChartProyeccion`: labels del eje Y se recortaban por `width={36}` insuficiente. Nuevo helper `fmtAxisY` en `shared.ts` con formato compacto sin prefijo de moneda (`3.2M`, `800k`) + `width` aumentado a 48px. El tooltip sigue usando `formatAbrev` completo.
+
+#### Tooltips en términos financieros
 - **Feature** — Componente `<FinancialTerm>`: subrayado punteado teal sobre cualquier término técnico; popup al hover (desktop) o tap (móvil) con nombre completo en teal y definición en 1 línea. Diccionario de 25 términos en `src/lib/financialTerms.ts`. Extensible: agregar término al diccionario + envolver con `<FinancialTerm term="clave">`.
 - **Mejora** — Aplicado en 7 módulos: Dashboard (Patrimonio neto, Flujo neto, Tasa de ahorro, Fondo emergencia), Analytics (Racha actual, Aceleración patrimonial, CAGR), Proyección (SWR), Rendimientos (Retorno s/ capital propio), Haberes (Gratificación, AFP, EsSalud, Impuesto 5ta Categoría), Simulador de préstamos (TEA).
 

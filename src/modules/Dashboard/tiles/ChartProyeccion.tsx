@@ -3,7 +3,7 @@ import {
 } from 'recharts'
 import { formatAbrev } from '../../../lib/formatMonto'
 import type { DashboardData } from '../useDashboardData'
-import { CARD, LABEL } from './shared'
+import { CARD, LABEL, fmtAxisY } from './shared'
 
 // Tile "Proyección · escenario activo". Extraído de Dashboard.tsx sin cambios (Etapa 2).
 
@@ -32,7 +32,7 @@ export function ChartProyeccion({ d }: { d: DashboardData }) {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
               <XAxis dataKey="edad" tick={{ fill: 'var(--color-muted)', fontSize: 10 }}
                 tickFormatter={v => `${v}`} interval="preserveStartEnd" />
-              <YAxis tick={{ fill: 'var(--color-muted)', fontSize: 10 }} tickFormatter={v => formatAbrev(v, config)} width={36} />
+              <YAxis tick={{ fill: 'var(--color-muted)', fontSize: 10 }} tickFormatter={fmtAxisY} width={48} />
               <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, color: 'var(--color-texto)', fontSize: 11 }}
                 formatter={(v) => [formatAbrev(v as number, config), 'Capital']}
                 labelFormatter={l => `Edad: ${l}`} />

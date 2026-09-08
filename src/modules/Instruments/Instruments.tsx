@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Plus, Trash2, Edit2, Check, X, Link2, RefreshCw } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Plus, Trash2, Edit2, Check, X, Link2, RefreshCw, Sparkles } from 'lucide-react'
 import { v4 as uuid } from 'uuid'
 import { useScenario } from '../../data/ScenarioContext'
 import { usePatrimony } from '../../data/PatrimonyContext'
@@ -7,7 +7,7 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
-import type { Instrumento, TipoRenta } from '../../data/types'
+import type { Instrumento, TipoRenta, CuentaPatrimonio, FlujoCajaItem, Escenario } from '../../data/types'
 
 const CATEGORIAS_PRESET = ['Alto riesgo', 'Diversificado', 'Efectivo/pool', 'Inmobiliario', 'Renta fija', 'Otro']
 const CAT_COLORES: Record<string, string> = {
@@ -45,13 +45,14 @@ const EMPTY_INST: Omit<Instrumento, 'id'> = {
 
 export default function Instruments() {
   const { escenarioActivo, actualizarEscenario } = useScenario()
-  const { cuentas } = usePatrimony()
-  const { rendimientos } = useFinanceData()
+  const { cuentas, historial } = usePatrimony()
+  const { rendimientos, flujoCaja } = useFinanceData()
   const { tc: tcRextie } = useTipoCambio()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Instrumento | null>(null)
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState<Instrumento>({ id: '', ...EMPTY_INST })
+  const [showEval, setShowEval] = useState(false)
 
   // TC: live de Rextie si disponible, fallback 3.7
   const tc = tcRextie?.compra ?? 3.7
@@ -121,6 +122,16 @@ export default function Instruments() {
 
   return (
     <div className="space-y-6">
+      {showEval && (
+        <EvalModal
+          cuentas={cuentas}
+          historial={historial}
+          flujoCaja={flujoCaja}
+          escenario={escenarioActivo}
+          tc={tc}
+          onClose={() => setShowEval(false)}
+        />
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-texto)' }}>Instrumentos</h1>
@@ -144,6 +155,13 @@ export default function Instruments() {
               <RefreshCw size={14} /> Sincronizar{hayDesync ? ' ⚠' : ''}
             </button>
           )}
+          <button
+            onClick={() => setShowEval(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold"
+            style={{ border: '1px solid var(--color-acento)', color: 'var(--color-acento)', background: 'var(--color-acento)10' }}
+          >
+            <Sparkles size={14} /> Evaluar con IA
+          </button>
           <button
             onClick={startAdd}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
@@ -246,6 +264,317 @@ export default function Instruments() {
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Evaluar con IA ──────────────────────────────────────────────────────────
+
+function fmt(n: number) {
+  return n.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
+interface CandidatoInstrumento {
+  nombre: string
+  montoMoneda: 'PEN' | 'USD'
+  monto: number
+  tasa: string
+  plazo: string
+  detalles: string
+}
+
+function buildEvalPrompt(
+  cuentas: CuentaPatrimonio[],
+  historial: import('../../data/types').HistorialMensual[],
+  flujoCaja: FlujoCajaItem[],
+  escenario: Escenario | null,
+  tc: number,
+  candidato: CandidatoInstrumento,
+): string {
+  // Patrimonio por categoría
+  const categorias: Record<string, { pen: number; usd: number }> = {}
+  for (const c of cuentas) {
+    if (!categorias[c.categoria]) categorias[c.categoria] = { pen: 0, usd: 0 }
+    categorias[c.categoria].pen += c.montoPEN ?? 0
+    categorias[c.categoria].usd += c.montoUSD ?? 0
+  }
+  const totalPEN = cuentas.reduce((s, c) => s + (c.montoPEN ?? 0) + (c.montoUSD ?? 0) * tc, 0)
+
+  const patrimonioStr = Object.entries(categorias)
+    .sort(([, a], [, b]) => (b.pen + b.usd * tc) - (a.pen + a.usd * tc))
+    .map(([cat, v]) => {
+      const total = v.pen + v.usd * tc
+      const pct = totalPEN > 0 ? (total / totalPEN * 100).toFixed(1) : '0'
+      const detalle = v.usd > 0
+        ? `S/ ${fmt(v.pen)} + $${fmt(v.usd)} × ${tc.toFixed(2)} = S/ ${fmt(total)}`
+        : `S/ ${fmt(total)}`
+      return `  - ${cat}: S/ ${fmt(total)} (${pct}%) — ${detalle}`
+    })
+    .join('\n')
+
+  // Instrumentos del escenario
+  const instrStr = escenario?.instrumentos.length
+    ? escenario.instrumentos.map(i => {
+        const monto = i.cuentaPatrimonioId
+          ? cuentas.find(c => c.id === i.cuentaPatrimonioId)
+            ? (cuentas.find(c => c.id === i.cuentaPatrimonioId)!.montoPEN ?? 0) + (cuentas.find(c => c.id === i.cuentaPatrimonioId)!.montoUSD ?? 0) * tc
+            : i.montoInicial
+          : i.montoInicial
+        const pct = totalPEN > 0 ? (monto / totalPEN * 100).toFixed(1) : '0'
+        return `  - ${i.nombre}: S/ ${fmt(monto)} (${pct}% del portafolio) — tasa ${(i.tasaReal * 100).toFixed(1)}% real anual — ${i.categoria}`
+      }).join('\n')
+    : '  Sin instrumentos registrados'
+
+  // Parámetros del escenario
+  const g = escenario?.general
+  const carrera = escenario?.carrera
+  const pct = (v: number | undefined, d = 2) => v !== undefined ? `${(v * 100).toFixed(d)}%` : '—'
+  const escenarioStr = g && carrera
+    ? `- Escenario: "${escenario!.nombre}"
+- Edad actual: ${g.edadActual} años | Retiro: ${g.edadRetiro} años (en ${g.edadRetiro - g.edadActual} años)
+- Aporte anual base: S/ ${fmt(carrera.aporteAnualBase)} (S/ ${fmt(carrera.aporteAnualBase / 12)}/mes)
+- SWR: ${pct(g.swr)} | Incremento salarial: ${pct(g.incrementoSalarialAnual, 1)}/año`
+    : '- Sin escenario activo'
+
+  // Flujo de caja
+  const ingresos = flujoCaja.filter(f => f.tipo === 'Income' && f.activo)
+  const egresos = flujoCaja.filter(f => f.tipo === 'Expense' && f.activo)
+  const totalIng = ingresos.reduce((s, f) => s + (f.montoPEN ?? 0) + (f.montoUSD ?? 0) * tc, 0)
+  const totalEgr = egresos.reduce((s, f) => s + (f.montoPEN ?? 0) + (f.montoUSD ?? 0) * tc, 0)
+  const flujoNeto = totalIng - totalEgr
+  const tasaAhorro = totalIng > 0 ? (flujoNeto / totalIng * 100).toFixed(1) : '—'
+
+  // Historial reciente
+  const valid = [...historial].filter(h => !h.nota).sort((a, b) => a.fecha.localeCompare(b.fecha))
+  const ultimo = valid[valid.length - 1]
+  const ultimos3 = valid.slice(-3).map(h => {
+    const t = h.totalPEN + h.totalUSD * h.tipoCambio
+    return `  ${h.periodo}: S/ ${fmt(t)}`
+  }).join('\n')
+
+  // Monto candidato en PEN
+  const montoCandidatoPEN = candidato.montoMoneda === 'USD'
+    ? candidato.monto * tc
+    : candidato.monto
+  const pctCandidato = totalPEN > 0 ? (montoCandidatoPEN / totalPEN * 100).toFixed(1) : '0'
+
+  return `# Evaluación de instrumento financiero — ${new Date().toLocaleDateString('es-PE')}
+
+## MI SITUACIÓN ACTUAL
+
+### Patrimonio total: S/ ${fmt(totalPEN)} (TC Rextie: ${tc.toFixed(3)})
+Por categoría:
+${patrimonioStr}
+
+### Últimos 3 meses de historial:
+${ultimos3 || '  Sin datos'}
+${ultimo ? `Período más reciente: ${ultimo.periodo}` : ''}
+
+### Portafolio de inversión (escenario activo):
+${escenarioStr}
+
+Instrumentos actuales:
+${instrStr}
+
+### Flujo de caja mensual:
+- Ingresos: S/ ${fmt(totalIng)}/mes
+- Egresos: S/ ${fmt(totalEgr)}/mes
+- Flujo neto: S/ ${fmt(flujoNeto)}/mes
+- Tasa de ahorro: ${tasaAhorro}%
+
+---
+
+## INSTRUMENTO QUE ESTOY EVALUANDO
+
+- Nombre/tipo: ${candidato.nombre || '(sin especificar)'}
+- Monto a invertir: ${candidato.montoMoneda === 'USD' ? `$${fmt(candidato.monto)} USD` : `S/ ${fmt(candidato.monto)}`}${candidato.montoMoneda === 'USD' ? ` (≈ S/ ${fmt(montoCandidatoPEN)} al TC actual)` : ''} — ${pctCandidato}% de mi patrimonio total
+${candidato.tasa ? `- Rendimiento esperado: ${candidato.tasa}` : ''}
+${candidato.plazo ? `- Plazo: ${candidato.plazo}` : ''}
+${candidato.detalles ? `- Detalles adicionales: ${candidato.detalles}` : ''}
+
+---
+
+## SOLICITUD
+
+Dado mi patrimonio y escenario actual, evalúa si me conviene agregar este instrumento:
+
+1. ¿Es coherente con mi portafolio actual? ¿Agrega diversificación o aumenta concentración?
+2. ¿El monto propuesto (${pctCandidato}% del patrimonio) es razonable dado mi perfil y flujo de caja?
+3. ¿El rendimiento esperado justifica el riesgo y la iliquidez relativa?
+4. ¿Qué riesgos concretos debo considerar antes de comprometer ese capital?
+5. Recomendación final: ¿sí, no, o condicionado a qué?
+
+Sé directo y específico — usa los números reales del contexto. Responde en español.`
+}
+
+function EvalModal({
+  cuentas,
+  historial,
+  flujoCaja,
+  escenario,
+  tc,
+  onClose,
+}: {
+  cuentas: CuentaPatrimonio[]
+  historial: import('../../data/types').HistorialMensual[]
+  flujoCaja: FlujoCajaItem[]
+  escenario: Escenario | null
+  tc: number
+  onClose: () => void
+}) {
+  const [candidato, setCandidato] = useState<CandidatoInstrumento>({
+    nombre: '',
+    montoMoneda: 'USD',
+    monto: 0,
+    tasa: '',
+    plazo: '',
+    detalles: '',
+  })
+  const [copied, setCopied] = useState(false)
+
+  const prompt = useMemo(
+    () => buildEvalPrompt(cuentas, historial, flujoCaja, escenario, tc, candidato),
+    [cuentas, historial, flujoCaja, escenario, tc, candidato]
+  )
+
+  function handleCopy() {
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  const inputStyle = {
+    background: 'var(--color-fondo)',
+    color: 'var(--color-texto)',
+    border: '1px solid var(--color-borde)',
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="w-full max-w-2xl rounded-2xl flex flex-col"
+        style={{ background: 'var(--color-fondo)', border: '1px solid var(--color-borde)', maxHeight: '90vh' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--color-borde)' }}>
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} style={{ color: 'var(--color-acento)' }} />
+            <span className="font-semibold text-sm" style={{ color: 'var(--color-texto)' }}>Evaluar instrumento con IA</span>
+          </div>
+          <button onClick={onClose} style={{ color: 'var(--color-muted)' }} className="hover:opacity-70">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          {/* Candidato form */}
+          <div className="px-5 py-4 space-y-3" style={{ borderBottom: '1px solid var(--color-borde)' }}>
+            <p className="text-xs font-medium" style={{ color: 'var(--color-muted)' }}>Instrumento que estás evaluando</p>
+
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Nombre / tipo</label>
+              <input
+                value={candidato.nombre}
+                onChange={e => setCandidato(p => ({ ...p, nombre: e.target.value }))}
+                placeholder="Ej. Prestamype, bono corporativo, ETF QQQM…"
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                style={inputStyle}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Monto a invertir</label>
+                <div className="flex gap-2">
+                  <select
+                    value={candidato.montoMoneda}
+                    onChange={e => setCandidato(p => ({ ...p, montoMoneda: e.target.value as 'PEN' | 'USD' }))}
+                    className="px-2 py-2 rounded-lg text-sm outline-none"
+                    style={{ ...inputStyle, width: '70px' }}
+                  >
+                    <option value="USD">USD</option>
+                    <option value="PEN">PEN</option>
+                  </select>
+                  <input
+                    type="number" min={0}
+                    value={candidato.monto || ''}
+                    onChange={e => setCandidato(p => ({ ...p, monto: parseFloat(e.target.value) || 0 }))}
+                    placeholder="0"
+                    className="flex-1 px-3 py-2 rounded-lg text-sm outline-none text-right font-mono"
+                    style={inputStyle}
+                  />
+                </div>
+                {candidato.monto > 0 && candidato.montoMoneda === 'USD' && (
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+                    ≈ S/ {fmt(candidato.monto * tc)} al TC {tc.toFixed(2)}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Rendimiento esperado</label>
+                <input
+                  value={candidato.tasa}
+                  onChange={e => setCandidato(p => ({ ...p, tasa: e.target.value }))}
+                  placeholder="Ej. 12% anual en USD"
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Plazo</label>
+              <input
+                value={candidato.plazo}
+                onChange={e => setCandidato(p => ({ ...p, plazo: e.target.value }))}
+                placeholder="Ej. 12 meses, indefinido, líquido…"
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Detalles adicionales</label>
+              <textarea
+                value={candidato.detalles}
+                onChange={e => setCandidato(p => ({ ...p, detalles: e.target.value }))}
+                placeholder="Ej. Prestamype subasta de facturas, LTV 60%, emisor con BBB+, requiere bloqueo de capital…"
+                rows={3}
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none resize-none"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Prompt preview */}
+          <div className="px-5 py-4">
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-muted)' }}>Prompt generado — copia y pega en Claude</p>
+            <pre
+              className="text-xs rounded-xl p-4 overflow-x-auto whitespace-pre-wrap"
+              style={{ background: 'var(--color-card)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)', maxHeight: '260px', overflowY: 'auto', fontFamily: 'monospace' }}
+            >
+              {prompt}
+            </pre>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 flex-shrink-0" style={{ borderTop: '1px solid var(--color-borde)' }}>
+          <button
+            onClick={handleCopy}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background: copied ? '#00C9A7' : 'var(--color-acento)' }}
+          >
+            {copied ? <Check size={16} /> : <Sparkles size={16} />}
+            {copied ? '¡Copiado! Pégalo en Claude' : 'Copiar prompt'}
+          </button>
+        </div>
       </div>
     </div>
   )

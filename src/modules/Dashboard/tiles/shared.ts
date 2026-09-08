@@ -27,6 +27,14 @@ export const LABEL: React.CSSProperties = { fontSize: 12, fontWeight: 600, lette
 
 export function fmtPct(n: number) { return `${n.toFixed(1)}%` }
 
+/** Formatter compacto para ejes Y de Recharts — sin prefijo de moneda, máx 1 decimal. */
+export function fmtAxisY(v: number): string {
+  const abs = Math.abs(v)
+  if (abs >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000) return `${(v / 1_000).toFixed(0)}k`
+  return `${v.toFixed(0)}`
+}
+
 export function fmtVenc(iso?: string) {
   if (!iso) return '—'
   const diff = Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000)
