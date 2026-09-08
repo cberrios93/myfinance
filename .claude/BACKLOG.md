@@ -11,10 +11,6 @@
 | Tipo | Estado | Ítem |
 |------|--------|------|
 | Mejora | En PROD | **Tablas ordenables** — Rendimientos (todas las columnas), Historial Mensual (fecha, montos, deltas), Patrimonio (por cuenta/PEN/USD dentro de cada categoría). En PROD v2.8.0 (2026-09-08). |
-| Técnico | Definido | **Eliminar secret `SUPABASE_USER_ID` en GitHub Actions** — El script `crear-historial.mjs` ya no lo usa (refactorizado a multi-usuario). Ir a GitHub → repo → Settings → Secrets and variables → Actions y borrarlo. |
-| Técnico | Definido | **Verificar config Proyección en PROD** — Confirmar que `mesAjusteSalarial = 4` (Abril) e `incrementoSalarialAnual` / `tasaPatrimonioNoInvertido` están calibrados en Parámetros del escenario activo en PROD. |
-| Técnico | Definido | **Verificar migración Eventos de Vida en PROD** — Confirmar que los 26 eventos de vida migrados el 2026-09-05 son visibles y correctos en la app PROD (ruta `/eventos-vida`). |
-| Técnico | Definido | **Verificar usuario `me@cesarberrios.com` en PROD** — La migración DEV→PROD del 2026-09-03 borró todos los datos de este usuario (no existía en DEV). Confirmar si necesita ser reinvitado desde Gestión de Usuarios y si tiene data que recrear. |
 
 ---
 
