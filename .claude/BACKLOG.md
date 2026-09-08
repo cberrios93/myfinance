@@ -52,7 +52,6 @@
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
-| Feature | Definido | **Composición de categorías por tiempo** (Analytics opción 1) — Gráfico de barras apiladas mostrando la distribución del patrimonio por categoría (Savings, Investment, etc.) mes a mes. **Bloqueado:** `historial_mensual` solo almacena `total_pen` y `total_usd`; no hay desglose por categoría. Opciones: (a) aceptar snapshot del estado actual como dato único, (b) descartar, (c) agregar campos per-categoría en historial → requiere migración `019_historial_categorias.sql` + refactor del script de creación mensual. **Pendiente decisión de César.** |
 | Feature | En PROD | **Deploy Analytics a PROD** — FlujoRealTab y donut de concentración. En PROD v2.8.0 (2026-09-08). |
 
 ---
