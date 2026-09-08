@@ -10,6 +10,13 @@ Criterios de tipo:
 
 ---
 
+## [v2.9.1] — 2026-09-08 — PROD
+
+#### Fix tooltips financieros — posicionamiento
+- **Fix** — `FinancialTerm`: tooltip se renderiza vía `createPortal` en `document.body` con `position: fixed` usando coordenadas reales del viewport (`getBoundingClientRect`). Eliminado el `window.scrollY` que desplazaba el tooltip al lugar incorrecto. Agrega flip logic: si el anchor está a menos de 80px del top, el tooltip aparece debajo con triángulo invertido. El triángulo sigue apuntando al centro exacto del término incluso cuando el tooltip se desplaza horizontalmente para no salirse de pantalla.
+
+---
+
 ## [v2.9.0] — 2026-09-08 — PROD
 
 #### Evaluar con IA en Instrumentos
