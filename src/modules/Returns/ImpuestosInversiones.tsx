@@ -67,7 +67,7 @@ export default function ImpuestosInversiones() {
 
   function montoImp(r: typeof registrosVisibles[0]): number {
     if (r.tasaImpuesto <= 0) return 0
-    const g = r.gananciasPEN ?? (r.gananciasUSD != null ? r.gananciasUSD * tc : 0)
+    const g = r.gananciasPEN ?? (r.gananciasUSD != null ? r.gananciasUSD * (tc ?? 1) : 0)
     return g * (r.tasaImpuesto / 100)
   }
 
@@ -183,7 +183,7 @@ export default function ImpuestosInversiones() {
               <tbody>
                 {registrosVisibles.map((r, i) => {
                   const tipo = tipoImpMap.get(r.instrumentoNombre) ?? 'mensual'
-                  const gBruta = r.gananciasPEN ?? (r.gananciasUSD != null ? r.gananciasUSD * tc : undefined)
+                  const gBruta = r.gananciasPEN ?? (r.gananciasUSD != null ? r.gananciasUSD * (tc ?? 1) : undefined)
                   const imp = montoImp(r)
                   const tieneImp = r.tasaImpuesto > 0
                   const isToggling = toggling.has(r.id)

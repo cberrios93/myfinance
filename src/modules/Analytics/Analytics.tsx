@@ -1567,7 +1567,7 @@ function ImpuestosTab() {
                 tickFormatter={(v) => `S/${(v/1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
-                formatter={(value: unknown, name: string) => [`S/ ${fmt(value as number)}`, name === 'pagado' ? 'Pagado' : 'Pendiente']}
+                formatter={(value: unknown, name: unknown) => [`S/ ${fmt(value as number)}`, name === 'pagado' ? 'Pagado' : 'Pendiente']}
               />
               <Bar dataKey="pagado" name="pagado" stackId="a" fill="#00C9A7" radius={[0, 0, 0, 0]} />
               <Bar dataKey="pendiente" name="pendiente" stackId="a" fill="#F59E0B" radius={[4, 4, 0, 0]} />
