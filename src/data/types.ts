@@ -26,6 +26,11 @@ export interface CambioTasa {
 // variable: se registra el valor actual y el sistema calcula el delta
 export type TipoRenta = 'pago' | 'capitalizacion' | 'variable'
 
+// mensual: impuesto por cada registro de rendimiento (default)
+// al_cierre: impuesto aplica recién al vender/liquidar; registros mensuales son valorizaciones sin impuesto
+// exonerado: instrumento exento de impuesto (ej. bonos soberanos, cuentas de ahorro exoneradas)
+export type TipoImpuesto = 'mensual' | 'al_cierre' | 'exonerado'
+
 export interface Instrumento {
   id: string
   nombre: string
@@ -33,7 +38,8 @@ export interface Instrumento {
   tasaReal: number
   categoria: string
   esPool: boolean
-  tipoRenta?: TipoRenta     // default 'pago' si no está definido
+  tipoRenta?: TipoRenta       // default 'pago' si no está definido
+  tipoImpuesto?: TipoImpuesto // default 'mensual' si no está definido
   cambioTasa?: CambioTasa
   cuentaPatrimonioId?: string
 }
@@ -189,6 +195,8 @@ export interface Rendimiento {
   aporteMesUSD?: number
   rentabilidad?: number  // calculado automáticamente si hay ganancia e inversión
   tasaImpuesto: number   // % sobre la ganancia bruta (ej: 5 = 5%). 0 = ya es neto o sin impuesto
+  impuestoPagado: boolean
+  esCierreFiscal: boolean  // true = liquidación/venta; aplica a instrumentos al_cierre
   reinvertido: boolean
   marcado: boolean
   esTraspaso: boolean

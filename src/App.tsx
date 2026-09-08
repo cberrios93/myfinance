@@ -24,6 +24,7 @@ import Patrimony from './modules/Patrimony/Patrimony'
 import FinanceHistory from './modules/History/FinanceHistory'
 import CashFlow from './modules/CashFlow/CashFlow'
 import Returns from './modules/Returns/Returns'
+import ImpuestosInversiones from './modules/Returns/ImpuestosInversiones'
 import Paycheck from './modules/Paycheck/Paycheck'
 import Subscriptions from './modules/Subscriptions/Subscriptions'
 import Tax5th from './modules/Tax5th/Tax5th'
@@ -114,6 +115,7 @@ function ProtectedRoutes() {
               <Route path="/historial" element={<FinanceHistory />} />
               <Route path="/flujo-caja" element={<CashFlow />} />
               <Route path="/rendimientos" element={<Returns />} />
+              <Route path="/impuestos-inversiones" element={<ImpuestosInversiones />} />
               <Route path="/flujos-capital" element={<CapitalFlows />} />
               <Route path="/haberes" element={<Paycheck />} />
               <Route path="/suscripciones" element={<Subscriptions />} />

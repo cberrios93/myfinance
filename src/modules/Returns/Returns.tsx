@@ -9,7 +9,7 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import { useScenario } from '../../data/ScenarioContext'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
-import type { Rendimiento, TipoRenta } from '../../data/types'
+import type { Rendimiento, TipoRenta, TipoImpuesto } from '../../data/types'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
 import { useConfig } from '../../config/ConfigContext'
@@ -40,11 +40,12 @@ function emptyDraft(): Draft {
     fechaPago: hoy, gananciasPEN: undefined, gananciasUSD: undefined,
     inversionPEN: undefined, inversionUSD: undefined,
     aporteMesPEN: undefined, aporteMesUSD: undefined,
-    rentabilidad: undefined, tasaImpuesto: 0, reinvertido: false, marcado: false, esTraspaso: false, comentario: undefined,
+    rentabilidad: undefined, tasaImpuesto: 0, impuestoPagado: false, esCierreFiscal: false,
+    reinvertido: false, marcado: false, esTraspaso: false, comentario: undefined,
   }
 }
 
-type InstrInfo = { moneda: 'PEN' | 'USD'; montoInicial: number; montoActual?: number; tipoRenta: TipoRenta; cuentaId?: string }
+type InstrInfo = { moneda: 'PEN' | 'USD'; montoInicial: number; montoActual?: number; tipoRenta: TipoRenta; tipoImpuesto?: TipoImpuesto; cuentaId?: string }
 
 function aplicarImpuesto(monto: number, tasa: number) {
   return monto * (1 - tasa / 100)
@@ -77,6 +78,7 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
   const moneda = info?.moneda ?? 'PEN'
   const simbolo = moneda === 'PEN' ? 'S/' : '$'
   const tipo = info?.tipoRenta ?? 'pago'
+  const tipoImpuesto = info?.tipoImpuesto ?? 'mensual'
   const base = info?.montoActual ?? info?.montoInicial
 
   const ganancia = moneda === 'PEN' ? value.gananciasPEN : value.gananciasUSD
@@ -390,20 +392,38 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
             disabled={disabled}
           />
         </div>
-        <div>
-          <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>
-            Impuesto % <span className="opacity-50">— 0 si ya es neto</span>
-          </label>
-          <input
-            type="number" step={0.5} min={0} max={100}
-            value={value.tasaImpuesto > 0 ? value.tasaImpuesto : ''}
-            onChange={e => onChange({ ...value, tasaImpuesto: e.target.value !== '' ? parseFloat(e.target.value) : 0 })}
-            className="w-full px-3 py-2 rounded-lg text-sm outline-none text-right font-mono"
-            style={inputStyle}
-            placeholder="0"
-            disabled={disabled}
-          />
-        </div>
+        {tipoImpuesto === 'mensual' && (
+          <div>
+            <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>
+              Impuesto % <span className="opacity-50">— 0 si ya es neto</span>
+            </label>
+            <input
+              type="number" step={0.5} min={0} max={100}
+              value={value.tasaImpuesto > 0 ? value.tasaImpuesto : ''}
+              onChange={e => onChange({ ...value, tasaImpuesto: e.target.value !== '' ? parseFloat(e.target.value) : 0 })}
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none text-right font-mono"
+              style={inputStyle}
+              placeholder="0"
+              disabled={disabled}
+            />
+          </div>
+        )}
+        {tipoImpuesto === 'al_cierre' && value.esCierreFiscal && (
+          <div>
+            <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>
+              Impuesto % <span className="opacity-50">— sobre ganancia total al liquidar</span>
+            </label>
+            <input
+              type="number" step={0.5} min={0} max={100}
+              value={value.tasaImpuesto > 0 ? value.tasaImpuesto : ''}
+              onChange={e => onChange({ ...value, tasaImpuesto: e.target.value !== '' ? parseFloat(e.target.value) : 0 })}
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none text-right font-mono"
+              style={inputStyle}
+              placeholder="0"
+              disabled={disabled}
+            />
+          </div>
+        )}
         <div className={tipo === 'variable' || tipo === 'capitalizacion' ? '' : 'sm:col-span-2'}>
           <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Notas</label>
           <input
@@ -428,8 +448,26 @@ function RendForm({ value, onChange, onSave, onCancel, instrumentoOpciones, inst
         </p>
       )}
 
+      {/* Nota exonerado */}
+      {!value.esTraspaso && tipoImpuesto === 'exonerado' && (
+        <p className="text-xs rounded-lg px-3 py-2" style={{ background: '#00C9A715', color: '#00C9A7', border: '1px solid #00C9A730' }}>
+          Este instrumento está exonerado de impuesto — no se aplica tasa sobre la ganancia.
+        </p>
+      )}
+
       {/* Checkboxes + acciones */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 flex-wrap">
+        {!value.esTraspaso && tipoImpuesto === 'al_cierre' && (
+          <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: value.esCierreFiscal ? '#F5A623' : 'var(--color-texto)' }}>
+            <input
+              type="checkbox"
+              checked={value.esCierreFiscal}
+              onChange={e => onChange({ ...value, esCierreFiscal: e.target.checked, tasaImpuesto: e.target.checked ? value.tasaImpuesto : 0 })}
+              disabled={disabled}
+            />
+            Cierre fiscal <span className="opacity-60">(liquidación/venta)</span>
+          </label>
+        )}
         {tipo === 'pago' && (
           <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--color-texto)' }}>
             <input type="checkbox" checked={value.reinvertido} onChange={e => onChange({ ...value, reinvertido: e.target.checked })} />
@@ -576,6 +614,7 @@ export default function Returns() {
         map.set(instr.nombre, {
           moneda, montoInicial: montoInicialDisplay, montoActual,
           tipoRenta: instr.tipoRenta ?? 'pago',
+          tipoImpuesto: instr.tipoImpuesto ?? 'mensual',
           cuentaId: instr.cuentaPatrimonioId,
         })
       }

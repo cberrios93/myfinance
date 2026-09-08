@@ -32,7 +32,7 @@ function cagr(start: number, end: number, years: number): number {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Tab = 'patrimonio' | 'flujo-real' | 'rendimientos'
+type Tab = 'patrimonio' | 'flujo-real' | 'rendimientos' | 'impuestos'
 type Granularity = 'mensual' | 'anual'
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
@@ -1474,6 +1474,154 @@ function PromptModal({
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// ImpuestosTab
+// ════════════════════════════════════════════════════════════════════════════
+
+function ImpuestosTab() {
+  const { rendimientos } = useFinanceData()
+
+  const base = useMemo(() => rendimientos.filter(r => !r.esTraspaso), [rendimientos])
+
+  // Impuesto total por año (todos los instrumentos, en PEN)
+  const porAnio = useMemo(() => {
+    const map: Record<number, { total: number; pagado: number }> = {}
+    for (const r of base) {
+      if (r.tasaImpuesto <= 0) continue
+      const gBruta = r.gananciasPEN ?? 0
+      const imp = gBruta * (r.tasaImpuesto / 100)
+      if (!map[r.anio]) map[r.anio] = { total: 0, pagado: 0 }
+      map[r.anio].total += imp
+      if (r.impuestoPagado) map[r.anio].pagado += imp
+    }
+    return Object.entries(map)
+      .map(([anio, v]) => ({ anio: String(anio), total: Math.round(v.total), pagado: Math.round(v.pagado), pendiente: Math.round(v.total - v.pagado) }))
+      .sort((a, b) => Number(a.anio) - Number(b.anio))
+  }, [base])
+
+  // Impuesto por instrumento (todos los años)
+  const porInstrumento = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const r of base) {
+      if (r.tasaImpuesto <= 0) continue
+      const gBruta = r.gananciasPEN ?? 0
+      const imp = gBruta * (r.tasaImpuesto / 100)
+      map[r.instrumentoNombre] = (map[r.instrumentoNombre] ?? 0) + imp
+    }
+    return Object.entries(map)
+      .map(([nombre, total]) => ({ nombre, total: Math.round(total) }))
+      .filter(d => d.total > 0)
+      .sort((a, b) => b.total - a.total)
+  }, [base])
+
+  const totalHistorico = porInstrumento.reduce((s, d) => s + d.total, 0)
+  const totalPagado = useMemo(() => {
+    return base.reduce((s, r) => {
+      if (!r.impuestoPagado || r.tasaImpuesto <= 0) return s
+      return s + (r.gananciasPEN ?? 0) * (r.tasaImpuesto / 100)
+    }, 0)
+  }, [base])
+  const pctPagado = totalHistorico > 0 ? (totalPagado / totalHistorico) * 100 : 0
+
+  const COLORS = ['#00C9A7', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444', '#10B981', '#6B7280', '#C47FD5']
+
+  if (base.filter(r => r.tasaImpuesto > 0).length === 0) {
+    return (
+      <div className="rounded-xl p-12 flex flex-col items-center gap-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+        <p className="text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>Sin registros con impuesto</p>
+        <p className="text-xs text-center" style={{ color: 'var(--color-muted)' }}>
+          Registra rendimientos con tasa de impuesto &gt; 0 para ver el análisis aquí
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* KPIs resumen */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Impuesto total histórico</p>
+          <p className="text-xl font-bold font-mono" style={{ color: 'var(--color-texto)' }}>S/ {fmt(totalHistorico)}</p>
+        </div>
+        <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Pagado / declarado</p>
+          <p className="text-xl font-bold font-mono" style={{ color: '#00C9A7' }}>S/ {fmt(totalPagado)}</p>
+        </div>
+        <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>% declarado</p>
+          <p className="text-xl font-bold font-mono" style={{ color: pctPagado >= 100 ? '#00C9A7' : pctPagado > 0 ? '#F59E0B' : '#E24C4C' }}>
+            {fmt(pctPagado, 1)}%
+          </p>
+        </div>
+      </div>
+
+      {/* Impuesto por año */}
+      {porAnio.length > 0 && (
+        <div className="rounded-xl p-5" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-sm font-semibold mb-4" style={{ color: 'var(--color-texto)' }}>Impuesto por año</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={porAnio} barGap={4}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
+              <XAxis dataKey="anio" tick={{ fill: 'var(--color-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'var(--color-muted)', fontSize: 11 }} axisLine={false} tickLine={false} width={60}
+                tickFormatter={(v) => `S/${(v/1000).toFixed(0)}k`} />
+              <Tooltip
+                contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
+                formatter={(value: unknown, name: string) => [`S/ ${fmt(value as number)}`, name === 'pagado' ? 'Pagado' : 'Pendiente']}
+              />
+              <Bar dataKey="pagado" name="pagado" stackId="a" fill="#00C9A7" radius={[0, 0, 0, 0]} />
+              <Bar dataKey="pendiente" name="pendiente" stackId="a" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex gap-4 mt-3 justify-end">
+            <span className="flex items-center gap-1.5 text-xs" style={{ color: '#00C9A7' }}>
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ background: '#00C9A7' }} /> Pagado
+            </span>
+            <span className="flex items-center gap-1.5 text-xs" style={{ color: '#F59E0B' }}>
+              <span className="inline-block w-3 h-3 rounded-sm" style={{ background: '#F59E0B' }} /> Pendiente
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Impuesto por instrumento */}
+      {porInstrumento.length > 0 && (
+        <div className="rounded-xl p-5" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+          <p className="text-sm font-semibold mb-4" style={{ color: 'var(--color-texto)' }}>Impuesto por instrumento (histórico)</p>
+          <div className="flex gap-6 items-center">
+            <ResponsiveContainer width={180} height={180}>
+              <PieChart>
+                <Pie data={porInstrumento} dataKey="total" nameKey="nombre" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                  {porInstrumento.map((_, idx) => (
+                    <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }}
+                  formatter={(v: unknown) => [`S/ ${fmt(v as number)}`, '']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-col gap-2 flex-1 min-w-0">
+              {porInstrumento.map((d, idx) => (
+                <div key={d.nombre} className="flex items-center gap-2 min-w-0">
+                  <span className="flex-shrink-0 w-3 h-3 rounded-sm" style={{ background: COLORS[idx % COLORS.length] }} />
+                  <span className="text-xs truncate flex-1" style={{ color: 'var(--color-texto)' }}>{d.nombre}</span>
+                  <span className="text-xs font-mono flex-shrink-0" style={{ color: 'var(--color-muted)' }}>S/ {fmt(d.total)}</span>
+                  <span className="text-xs font-mono flex-shrink-0 w-10 text-right" style={{ color: 'var(--color-muted)' }}>
+                    {totalHistorico > 0 ? `${fmt((d.total / totalHistorico) * 100, 0)}%` : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // Main Analytics component
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -1481,6 +1629,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'patrimonio', label: 'Patrimonio' },
   { id: 'flujo-real', label: 'Flujo real' },
   { id: 'rendimientos', label: 'Rendimientos' },
+  { id: 'impuestos', label: 'Impuestos' },
 ]
 
 export default function Analytics() {
@@ -1528,6 +1677,7 @@ export default function Analytics() {
       {tab === 'patrimonio'   && <PatrimonioTab />}
       {tab === 'flujo-real'   && <FlujoRealTab />}
       {tab === 'rendimientos' && <RendimientosTab />}
+      {tab === 'impuestos'    && <ImpuestosTab />}
 
       {showPrompt && (
         <PromptModal

@@ -7,7 +7,7 @@ import { useFinanceData } from '../../data/FinanceDataContext'
 import { useTipoCambio } from '../../hooks/useTipoCambio'
 import { useSubmitOnCmdEnter } from '../../hooks/useSubmitOnCmdEnter'
 import TipoCambioWidget from '../../components/TipoCambioWidget'
-import type { Instrumento, TipoRenta, CuentaPatrimonio, FlujoCajaItem, Escenario } from '../../data/types'
+import type { Instrumento, TipoRenta, TipoImpuesto, CuentaPatrimonio, FlujoCajaItem, Escenario } from '../../data/types'
 
 const CATEGORIAS_PRESET = ['Alto riesgo', 'Diversificado', 'Efectivo/pool', 'Inmobiliario', 'Renta fija', 'Otro']
 const CAT_COLORES: Record<string, string> = {
@@ -719,16 +719,35 @@ function InstrumentoForm({
             {value.tipoRenta === 'variable' && 'Ingresas el valor actual. El sistema calcula el delta vs Patrimonio.'}
           </p>
         </div>
-        <div className="flex items-end pb-6">
-          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>
-            <input
-              type="checkbox"
-              checked={value.esPool}
-              onChange={e => onChange({ ...value, esPool: e.target.checked })}
-            />
-            Es el Pool (recibe aportes y absorbe pagos)
-          </label>
+        <div>
+          <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Tributación</label>
+          <select
+            value={value.tipoImpuesto ?? 'mensual'}
+            onChange={e => onChange({ ...value, tipoImpuesto: e.target.value as TipoImpuesto })}
+            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+            style={inputStyle}
+          >
+            <option value="mensual">Por período — impuesto en cada rendimiento</option>
+            <option value="al_cierre">Al cierre — impuesto recién al vender/liquidar</option>
+            <option value="exonerado">Exonerado — sin obligación tributaria</option>
+          </select>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+            {(value.tipoImpuesto ?? 'mensual') === 'mensual' && 'Ej. Prestamype: cada pago mensual tiene su impuesto.'}
+            {value.tipoImpuesto === 'al_cierre' && 'Ej. fondos mutuos: el impuesto aplica al vender la posición.'}
+            {value.tipoImpuesto === 'exonerado' && 'Ej. bonos soberanos, cuentas exoneradas. No genera obligación de pago.'}
+          </p>
         </div>
+      </div>
+
+      <div className="flex items-center">
+        <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--color-texto)' }}>
+          <input
+            type="checkbox"
+            checked={value.esPool}
+            onChange={e => onChange({ ...value, esPool: e.target.checked })}
+          />
+          Es el Pool (recibe aportes y absorbe pagos)
+        </label>
       </div>
 
       <details>

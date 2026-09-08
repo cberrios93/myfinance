@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Settings2, Landmark, ArrowLeftRight,
   CalendarClock, TrendingUp, GitBranch, ArrowUpDown, Settings, LogOut, Menu, X,
   Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard,
-  Users, ChevronRight, LineChart, ShieldCheck, Banknote
+  Users, ChevronRight, LineChart, ShieldCheck, Banknote, FileText
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { useScenario } from '../../data/ScenarioContext'
@@ -26,6 +26,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/historial', label: 'Historial', icon: History },
       { to: '/flujo-caja', label: 'Flujo de Caja', icon: ArrowRightLeft },
       { to: '/rendimientos', label: 'Rendimientos', icon: BarChart3 },
+      { to: '/impuestos-inversiones', label: 'Impuestos', icon: FileText },
       { to: '/flujos-capital', label: 'Flujos de Capital', icon: Banknote },
       { to: '/haberes', label: 'Haberes', icon: Receipt },
       { to: '/suscripciones', label: 'Suscripciones', icon: CreditCard },

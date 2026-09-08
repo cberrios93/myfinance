@@ -103,6 +103,8 @@ Ejecutada el 2026-09-03 (v2.0.0) y repetida el 2026-09-07 (todos los datos reale
 | `016_rendimientos_impuesto.sql` | ✓ DEV + PROD |
 | `017_flujos_capital.sql` | ✓ DEV + PROD |
 | `018_dashboard_layout.sql` | ✓ DEV + PROD |
+| `019_rendimientos_impuesto_pagado.sql` | ✓ DEV + PROD |
+| `020_rendimientos_cierre_fiscal.sql` | ✓ DEV + PROD |
 
 
 ---

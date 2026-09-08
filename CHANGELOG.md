@@ -10,6 +10,18 @@ Criterios de tipo:
 
 ---
 
+## [Unreleased]
+
+#### Módulo Impuestos de Inversiones
+- **Feature** — Nueva vista `/impuestos-inversiones` en Tracking (debajo de Rendimientos) para seguimiento de impuestos por instrumento y período. Muestra todos los registros tributables (excluye traspasos y exonerados) con su ganancia bruta, tasa de impuesto, monto calculado y estado de pago. Toggle "Pagado / Pendiente" por registro, actualizable directamente en la tabla. KPIs: total impuesto del año, pagado, pendiente. Filtros por año e instrumento.
+- **Feature** — Tab "Impuestos" en Análisis: resumen histórico con KPIs (total histórico, pagado, % declarado), barra apilada de impuesto por año (pagado=teal / pendiente=ámbar), donut de distribución por instrumento.
+- **Feature** — `tipoImpuesto: 'mensual' | 'al_cierre' | 'exonerado'` en `Instrumento` (JSONB, sin migración). Configurable en Simulación → Instrumentos → campo "Tributación". Guía el comportamiento del formulario de Rendimientos — el impuesto real siempre vive en el registro de rendimiento.
+- **Feature** — Soporte instrumentos "al cierre" (ej. fondos mutuos): los registros mensuales son valorizaciones (tasaImpuesto=0); al vender se registra con `esCierreFiscal=true` y se aplica la tasa ahí. La vista Impuestos solo muestra los registros de cierre, no las valorizaciones.
+- **Feature** — Formulario Rendimientos adapta campos según `tipoImpuesto`: "mensual" muestra Impuesto % siempre; "al cierre" muestra checkbox "Cierre fiscal" y solo revela Impuesto % al marcarlo; "exonerado" oculta el campo y muestra nota explicativa.
+- **Técnico** — Campo `impuesto_pagado boolean DEFAULT false` en `rendimientos` (migración `019` ✓ DEV). Campo `es_cierre_fiscal boolean DEFAULT false` en `rendimientos` (migración `020` ✓ DEV). Ambos campos mapeados en `types.ts` y en el CRUD de `finance.ts`.
+
+---
+
 ## [v2.9.1] — 2026-09-08 — PROD
 
 #### Fix tooltips financieros — posicionamiento

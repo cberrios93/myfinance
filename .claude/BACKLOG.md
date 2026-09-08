@@ -58,6 +58,7 @@
 | Feature | Idea | **Asistente IA (chatbot + voz)** — chatbot flotante dentro de MyFinance con acceso al contexto financiero del usuario (patrimonio, flujo, rendimientos, simulación). Voz vía Web Speech API (nativa, $0). Backend: `api/chat.ts` Vercel edge function con streaming + prompt caching. Modelo recomendado: Haiku 4.5 con cache. Costo estimado: < $2/mes para 11 usuarios. |
 | Feature | Definido | **Sistema de roles granulares** — roles custom (viewer, editor, premium), checkboxes de features por rol, modelo free/paid para SaaS. Requiere rediseño DB: tablas `roles` y `role_permissions`, refactor `user_profiles` |
 | Feature | Idea | **Mensajes configurables del sistema** — para cuentas bloqueadas y usuarios pending. Tabla `system_config` (key-value) |
+| Feature | Listo DEV | **Módulo Impuestos de Inversiones** — vista `/impuestos-inversiones` en Tracking + tab en Análisis. Toggle pagado/pendiente por registro. Migración `019` ✓ DEV, pendiente PROD. |
 | Mejora | Idea | **Revisar Impuesto 5ta Categoría** — implementado pero requiere validación de flujo y UX |
 
 ---
