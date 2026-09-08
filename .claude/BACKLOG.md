@@ -45,7 +45,6 @@
 | Mejora | Idea | **Confirmaciones de borrado más amigables** — en lugar del borrado inmediato o confirm() del browser, usar un modal con ícono de advertencia, nombre del ítem a borrar y botones "Cancelar / Sí, borrar". Reduce el miedo a cometer errores. |
 | Feature | Idea | **Modo de solo lectura (viewer)** — que mamá pueda ver todos sus datos sin poder editar nada accidentalmente. Toggle en Admin o en su perfil. Relacionado con el sistema de roles granulares. |
 | Mejora | Idea | **Mensajes de ayuda en módulos vacíos complejos** — en Rendimientos y Simulación, agregar un panel de "¿Cómo funciona esto?" cuando no hay datos, con 3 bullets explicando el módulo antes del CTA. Actualmente el Empty State solo dice "agrega", no explica para qué sirve. |
-| Feature | Definido | **PWA / app instalable en celular** — `manifest.json` + `apple-touch-icon` para instalar MyFinance como ícono en pantalla de inicio. Logo revisado (2026-09-07): usar solo el símbolo M+gráfico (sin el texto "MyFinance") sobre fondo navy `#1a2f5e`; fondo blanco del PNG original es problemático en iOS. Se necesita el archivo fuente (AI/SVG/PNG sin fondo) o recortar el símbolo del PNG entregado. Siguiente paso: implementar cuando se confirme el asset final del ícono. |
 
 ---
 
