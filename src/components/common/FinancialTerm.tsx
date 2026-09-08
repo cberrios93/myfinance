@@ -9,8 +9,8 @@ export function FinancialTerm({ term, children }: { term: TermKey; children: Rea
   const [visible, setVisible] = useState(false)
   const [pos, setPos] = useState({ top: 0, left: 0, below: false })
   const anchorRef = useRef<HTMLSpanElement>(null)
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>()
-  const showTimer = useRef<ReturnType<typeof setTimeout>>()
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const showTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const def = FINANCIAL_TERMS[term]
 
   const calcPos = useCallback(() => {
