@@ -216,6 +216,8 @@ export function MatrimonioWizard({
     const pctLabel = s.tuPorcentaje < 100 ? ` (${s.tuPorcentaje}%)` : ''
     const proporcionPropia = s.tuPorcentaje < 100 ? s.tuPorcentaje : undefined
 
+    const mesBoda = s.mesCalendario
+
     if (resultado.montoMensual > 0 && resultado.anioInicioT < anioT) {
       eventos.push({
         nombre: `Matrimonio – Adelantos y separatas${pctLabel}`,
@@ -223,6 +225,7 @@ export function MatrimonioWizard({
         gastoRecurrente: {
           anioInicioT: resultado.anioInicioT,
           anioFinT: anioT,
+          mesFin: mesBoda,
           montoMensual: resultado.montoMensual,
         },
         ...(proporcionPropia !== undefined && { proporcionPropia }),
@@ -235,7 +238,7 @@ export function MatrimonioWizard({
       eventos.push({
         nombre: `Matrimonio – Pago final${pctLabel}`,
         tipoEvento: 'matrimonio',
-        retiroUnico: { anioT, monto: pagoFinalNeto },
+        retiroUnico: { anioT, mes: mesBoda, monto: pagoFinalNeto },
         ...(proporcionPropia !== undefined && { proporcionPropia }),
       })
     }
@@ -248,6 +251,7 @@ export function MatrimonioWizard({
         tipoEvento: 'matrimonio',
         gastoRecurrente: {
           anioInicioT: anioT,
+          mesInicio: mesBoda,
           anioFinT: anioFinPrestamo,
           montoMensual: resultado.cuotaPrestamo,
         },

@@ -192,8 +192,8 @@ const M = (n: number) => Math.round(n).toLocaleString('es-PE')
 
 // ── Componente principal ────────────────────────────────────────────────────────
 
-export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onConfirm, onCancel }: {
-  tipoId: string; tipoLabel: string; anioT: number; anioCalendario: number
+export function LoanSimulator({ tipoId, tipoLabel, anioT, mesCalendario, general: _general, onConfirm, onCancel }: {
+  tipoId: string; tipoLabel: string; anioT: number; anioCalendario: number; mesCalendario?: number
   general: GeneralParams; onConfirm: (eventos: Omit<EventoVida, 'id'>[]) => void; onCancel: () => void
 }) {
   const { tc: tcData, loading: tcLoading, actualizar } = useTipoCambio()
@@ -247,17 +247,18 @@ export function LoanSimulator({ tipoId, tipoLabel, anioT, general: _general, onC
     const pctLabel = compartida ? ` (${vc.miPorcentaje}%)` : ''
     const proporcionPropia = compartida ? vc.miPorcentaje : undefined
 
+    const mes = mesCalendario
     if (esV && vc.incluirGastosCierre && gc && gc.total > 0) {
       const miGastos = compartida ? Math.round(gc.total * vc.miPorcentaje / 100) : Math.round(gc.total)
-      eventos.push({ nombre: `${tipoLabel} – Gastos de cierre${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: miGastos }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
+      eventos.push({ nombre: `${tipoLabel} – Gastos de cierre${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT, ...(mes ? { mes } : {}), monto: miGastos }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     }
     const miInicial = compartida ? result.inicialPEN * vc.miPorcentaje / 100 : result.inicialPEN
     if (miInicial > 0)
-      eventos.push({ nombre: `${tipoLabel} – Cuota inicial${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT, monto: Math.round(miInicial) }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
+      eventos.push({ nombre: `${tipoLabel} – Cuota inicial${pctLabel}`, tipoEvento: tipoId, retiroUnico: { anioT, ...(mes ? { mes } : {}), monto: Math.round(miInicial) }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     const cuotaParaEvento = Math.round(result.cuotaRegularMensual)
     const miCuota = compartida ? Math.round(cuotaParaEvento * vc.miPorcentaje / 100) : cuotaParaEvento
     if (miCuota > 0)
-      eventos.push({ nombre: `${tipoLabel} – Cuota mensual${pctLabel}`, tipoEvento: tipoId, gastoRecurrente: { anioInicioT: anioT, anioFinT: anioT + Math.ceil(result.mesesReales / 12), montoMensual: miCuota }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
+      eventos.push({ nombre: `${tipoLabel} – Cuota mensual${pctLabel}`, tipoEvento: tipoId, gastoRecurrente: { anioInicioT: anioT, ...(mes ? { mesInicio: mes } : {}), anioFinT: anioT + Math.ceil(result.mesesReales / 12), montoMensual: miCuota }, ...(proporcionPropia !== undefined && { proporcionPropia }) })
     // Prepagos → cada uno como retiro único en el año correspondiente
     for (const pp of result.scenario.prepagos) {
       const ppAnioT = anioT + Math.floor((pp.mes - 1) / 12)

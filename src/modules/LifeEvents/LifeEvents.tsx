@@ -8,6 +8,8 @@ import { LoanSimulator } from './LoanSimulator'
 import { PosgradoWizard } from './PosgradoWizard'
 import { HijoWizard } from './HijoWizard'
 import { MatrimonioWizard } from './MatrimonioWizard'
+import { AlquilerWizard } from './AlquilerWizard'
+import { LunaMielWizard } from './LunaMielWizard'
 import type { EventoVida, GeneralParams } from '../../data/types'
 
 // ── Fórmula de amortización francesa ─────────────────────────────────────────
@@ -24,7 +26,10 @@ function calcCuota(principal: number, teaPct: number, meses: number): number {
   return (principal * i * Math.pow(1 + i, meses)) / (Math.pow(1 + i, meses) - 1)
 }
 
-// ── Helpers año ───────────────────────────────────────────────────────────────
+// ── Helpers año / mes ─────────────────────────────────────────────────────────
+
+const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+const MESES_LARGO  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 function anioTToCalendario(t: number, anioActual: number) {
   return anioActual + t
@@ -38,9 +43,13 @@ function anioTToEdad(t: number, edadActual: number) {
   return edadActual + t
 }
 
+function fmtMesAnio(mes: number | undefined, anio: number): string {
+  return mes ? `${MESES_CORTOS[mes - 1]} ${anio}` : `${anio}`
+}
+
 // ── Tipos de evento ───────────────────────────────────────────────────────────
 
-type TipoId = 'vivienda' | 'auto' | 'hijo' | 'matrimonio' | 'posgrado' | 'viaje' | 'custom'
+type TipoId = 'vivienda' | 'auto' | 'hijo' | 'matrimonio' | 'luna_miel' | 'posgrado' | 'alquiler' | 'viaje' | 'custom'
 
 interface TipoEventoConfig {
   id: TipoId
@@ -51,10 +60,13 @@ interface TipoEventoConfig {
   usaWizardPosgrado?: boolean
   usaWizardHijo?: boolean
   usaWizardMatrimonio?: boolean
+  usaWizardAlquiler?: boolean
+  usaWizardLunaMiel?: boolean
   campos?: string[]
   generar?: (params: {
     anioT: number
     anioCalendario: number
+    mes?: number
     montos: Record<string, number>
     duracion?: number
   }) => Omit<EventoVida, 'id'>[]
@@ -90,6 +102,13 @@ const TIPOS_EVENTO: TipoEventoConfig[] = [
     usaWizardMatrimonio: true,
   },
   {
+    id: 'luna_miel',
+    label: 'Luna de Miel',
+    icono: '🌙',
+    descripcion: 'Vuelos, hotel y gastos en destino · cotización con IA',
+    usaWizardLunaMiel: true,
+  },
+  {
     id: 'posgrado',
     label: 'Educación / Posgrado',
     icono: '🎓',
@@ -97,16 +116,23 @@ const TIPOS_EVENTO: TipoEventoConfig[] = [
     usaWizardPosgrado: true,
   },
   {
+    id: 'alquiler',
+    label: 'Alquiler',
+    icono: '🏘️',
+    descripcion: 'Alquiler mensual por período definido',
+    usaWizardAlquiler: true,
+  },
+  {
     id: 'viaje',
     label: 'Viaje o experiencia',
     icono: '✈️',
     descripcion: 'Gasto único planeado',
     campos: ['presupuesto'],
-    generar: ({ anioT, montos }) => [
+    generar: ({ anioT, mes, montos }) => [
       {
         nombre: 'Viaje',
         tipoEvento: 'viaje',
-        retiroUnico: { anioT, monto: montos.presupuesto ?? 5000 },
+        retiroUnico: { anioT, ...(mes ? { mes } : {}), monto: montos.presupuesto ?? 5000 },
       },
     ],
   },
@@ -157,7 +183,7 @@ interface LoanState {
 const LOAN_DEFAULTS: Record<TipoId, Partial<LoanState>> = {
   auto: { valorTotal: 50000, inicialPct: 20, teaPct: 18, plazoMeses: 60 },
   vivienda: { valorTotal: 300000, inicialPct: 20, teaPct: 9, plazoMeses: 240 },
-  hijo: {}, matrimonio: {}, posgrado: {}, viaje: {}, custom: {},
+  hijo: {}, matrimonio: {}, luna_miel: {}, posgrado: {}, alquiler: {}, viaje: {}, custom: {},
 }
 
 const LOAN_LABELS: Record<TipoId, { valor: string; inicial: string; entradas: string }> = {
@@ -165,7 +191,9 @@ const LOAN_LABELS: Record<TipoId, { valor: string; inicial: string; entradas: st
   vivienda: { valor: 'Valor de la propiedad', inicial: 'Cuota inicial / pie', entradas: 'Vivienda' },
   hijo: { valor: '', inicial: '', entradas: '' },
   matrimonio: { valor: '', inicial: '', entradas: '' },
+  luna_miel: { valor: '', inicial: '', entradas: '' },
   posgrado: { valor: '', inicial: '', entradas: '' },
+  alquiler: { valor: '', inicial: '', entradas: '' },
   viaje: { valor: '', inicial: '', entradas: '' },
   custom: { valor: '', inicial: '', entradas: '' },
 }
@@ -447,7 +475,9 @@ const TIPO_COLORES: Record<string, string> = {
   auto: '#F97316',
   hijo: '#EAB308',
   matrimonio: '#EC4899',
+  luna_miel: '#F472B6',
   posgrado: '#8B5CF6',
+  alquiler: '#06B6D4',
   viaje: '#10B981',
   custom: '#9CA3AF',
 }
@@ -955,14 +985,17 @@ function EventoResumen({ ev, general }: { ev: EventoVida; general: GeneralParams
   if (ev.retiroUnico) {
     const año = anioTToCalendario(ev.retiroUnico.anioT, anioActual)
     const edad = anioTToEdad(ev.retiroUnico.anioT, edadActual)
-    partes.push(`Retiro único S/${ev.retiroUnico.monto.toLocaleString()} en ${año} (${edad} años)`)
+    const fecha = fmtMesAnio(ev.retiroUnico.mes, año)
+    partes.push(`Retiro único S/${ev.retiroUnico.monto.toLocaleString()} en ${fecha} (${edad} años)`)
   }
   if (ev.gastoRecurrente) {
     const añoI = anioTToCalendario(ev.gastoRecurrente.anioInicioT, anioActual)
     const añoF = anioTToCalendario(ev.gastoRecurrente.anioFinT, anioActual)
     const edadI = anioTToEdad(ev.gastoRecurrente.anioInicioT, edadActual)
     const edadF = anioTToEdad(ev.gastoRecurrente.anioFinT, edadActual)
-    partes.push(`S/${ev.gastoRecurrente.montoMensual.toLocaleString()}/mes · ${añoI}–${añoF} (${edadI}–${edadF} años)`)
+    const fechaI = fmtMesAnio(ev.gastoRecurrente.mesInicio, añoI)
+    const fechaF = fmtMesAnio(ev.gastoRecurrente.mesFin, añoF)
+    partes.push(`S/${ev.gastoRecurrente.montoMensual.toLocaleString()}/mes · ${fechaI} – ${fechaF} (${edadI}–${edadF} años)`)
   }
 
   return (
@@ -993,6 +1026,7 @@ function EventoWizard({
   const [step, setStep] = useState<WizardStep>('tipo')
   const [tipoId, setTipoId] = useState<TipoId | null>(null)
   const [anioCalendario, setAnioCalendario] = useState(general.anioActual + 1)
+  const [mesCalendario, setMesCalendario] = useState(new Date().getMonth() + 1)
   const [montos, setMontos] = useState<Record<string, number>>({})
   const [customDraft, setCustomDraft] = useState<EventoVida>({ id: '', nombre: '' })
 
@@ -1017,7 +1051,7 @@ function EventoWizard({
     if (!tipo || !tipo.generar) return
     const durField = (tipo.campos ?? []).find(c => CAMPOS_ES_DURACION.has(c))
     const dur = durField ? (montos[durField] ?? undefined) : undefined
-    onConfirm(tipo.generar({ anioT, anioCalendario, montos, duracion: dur }))
+    onConfirm(tipo.generar({ anioT, anioCalendario, mes: mesCalendario, montos, duracion: dur }))
   }
 
   const camposValor = (tipo?.campos ?? []).filter(c => !CAMPOS_ES_DURACION.has(c))
@@ -1060,20 +1094,30 @@ function EventoWizard({
       {/* Paso 2: configuración */}
       {step === 'config' && tipo && (
         <>
-          {/* Selector de año — solo para tipos sin simulador propio */}
-          {tipo.id !== 'custom' && !tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && !tipo.usaWizardMatrimonio && (
+          {/* Selector de mes y año — para todos los tipos excepto los que gestionan su propia fecha */}
+          {tipo.id !== 'custom' && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && !tipo.usaWizardMatrimonio && !tipo.usaWizardAlquiler && !tipo.usaWizardLunaMiel && (
             <div>
               <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--color-muted)' }}>
-                ¿En qué año ocurrirá?
+                ¿Cuándo ocurrirá?
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={mesCalendario}
+                  onChange={e => setMesCalendario(parseInt(e.target.value))}
+                  className="px-2 py-2 rounded-lg text-sm outline-none"
+                  style={{ ...inputStyle, width: '90px' }}
+                >
+                  {MESES_CORTOS.map((m, i) => (
+                    <option key={i} value={i + 1}>{MESES_LARGO[i]}</option>
+                  ))}
+                </select>
                 <input
                   type="number"
                   min={general.anioActual + 1}
                   max={general.anioActual + (general.edadVidaEstimada - general.edadActual)}
                   value={anioCalendario}
                   onChange={e => setAnioCalendario(parseInt(e.target.value) || general.anioActual + 1)}
-                  className="w-28 px-3 py-2 rounded-lg text-sm outline-none font-mono"
+                  className="w-24 px-3 py-2 rounded-lg text-sm outline-none font-mono"
                   style={inputStyle}
                 />
                 <span className="text-sm" style={{ color: 'var(--color-muted)' }}>
@@ -1110,6 +1154,24 @@ function EventoWizard({
             />
           )}
 
+          {/* Wizard alquiler */}
+          {tipo.usaWizardAlquiler && (
+            <AlquilerWizard
+              general={general}
+              onConfirm={onConfirm}
+              onCancel={onCancel}
+            />
+          )}
+
+          {/* Wizard luna de miel */}
+          {tipo.usaWizardLunaMiel && (
+            <LunaMielWizard
+              general={general}
+              onConfirm={onConfirm}
+              onCancel={onCancel}
+            />
+          )}
+
           {/* Simulador de préstamo */}
           {tipo.usaCalculadoraPrestamo && (
             <LoanSimulator
@@ -1117,6 +1179,7 @@ function EventoWizard({
               tipoLabel={tipo.label}
               anioT={anioT}
               anioCalendario={anioCalendario}
+              mesCalendario={mesCalendario}
               general={general}
               onConfirm={onConfirm}
               onCancel={onCancel}
@@ -1124,7 +1187,7 @@ function EventoWizard({
           )}
 
           {/* Campos genéricos */}
-          {!tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && !tipo.usaWizardMatrimonio && tipo.id !== 'custom' && (
+          {!tipo.usaCalculadoraPrestamo && !tipo.usaWizardPosgrado && !tipo.usaWizardHijo && !tipo.usaWizardMatrimonio && !tipo.usaWizardAlquiler && !tipo.usaWizardLunaMiel && tipo.id !== 'custom' && (
             <>
               <div className="grid grid-cols-2 gap-3">
                 {camposValor.map(campo => (
@@ -1144,7 +1207,7 @@ function EventoWizard({
                   </div>
                 ))}
               </div>
-              <PreviewEventos tipo={tipo} anioT={anioT} anioCalendario={anioCalendario} montos={montos} general={general} />
+              <PreviewEventos tipo={tipo} anioT={anioT} anioCalendario={anioCalendario} mes={mesCalendario} montos={montos} general={general} />
               <div className="flex gap-2">
                 <button onClick={confirmGenerico} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: 'var(--color-acento)' }}>
                   <Check size={14} /> Agregar al escenario
@@ -1188,19 +1251,21 @@ function PreviewEventos({
   tipo,
   anioT,
   anioCalendario,
+  mes,
   montos,
   general,
 }: {
   tipo: TipoEventoConfig
   anioT: number
   anioCalendario: number
+  mes?: number
   montos: Record<string, number>
   general: GeneralParams
 }) {
   if (!tipo.generar) return null
   const durField = (tipo.campos ?? []).find(c => CAMPOS_ES_DURACION.has(c))
   const duracion = durField ? (montos[durField] ?? undefined) : undefined
-  const preview = tipo.generar({ anioT, anioCalendario, montos, duracion })
+  const preview = tipo.generar({ anioT, anioCalendario, mes, montos, duracion })
   if (preview.length === 0) return null
 
   return (
@@ -1271,21 +1336,34 @@ function EventoEditForm({
           Retiro único (egreso puntual)
         </label>
         {tieneRetiro && value.retiroUnico && (
-          <div className="grid grid-cols-2 gap-3 pl-6">
-            <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Año</label>
-              <input type="number" min={anioActual + 1}
-                value={anioTToCalendario(value.retiroUnico.anioT, anioActual)}
-                onChange={e => onChange({ ...value, retiroUnico: { ...value.retiroUnico!, anioT: calendarioToAnioT(parseInt(e.target.value) || anioActual + 1, anioActual) } })}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-acento)' }}>{edadLabel(value.retiroUnico.anioT)}</p>
+          <div className="space-y-2 pl-6">
+            <div className="flex items-end gap-2 flex-wrap">
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Mes</label>
+                <select
+                  value={value.retiroUnico.mes ?? 1}
+                  onChange={e => onChange({ ...value, retiroUnico: { ...value.retiroUnico!, mes: parseInt(e.target.value) } })}
+                  className="px-2 py-2 rounded-lg text-sm outline-none"
+                  style={{ ...inputStyle, width: '90px' }}
+                >
+                  {MESES_LARGO.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                </select>
+              </div>
+              <div className="w-24">
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Año</label>
+                <input type="number" min={anioActual + 1}
+                  value={anioTToCalendario(value.retiroUnico.anioT, anioActual)}
+                  onChange={e => onChange({ ...value, retiroUnico: { ...value.retiroUnico!, anioT: calendarioToAnioT(parseInt(e.target.value) || anioActual + 1, anioActual) } })}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
+              </div>
+              <div className="flex-1 min-w-[100px]">
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Monto (S/)</label>
+                <input type="number" min={0} value={value.retiroUnico.monto}
+                  onChange={e => onChange({ ...value, retiroUnico: { ...value.retiroUnico!, monto: parseFloat(e.target.value) || 0 } })}
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
+              </div>
             </div>
-            <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Monto (S/)</label>
-              <input type="number" min={0} value={value.retiroUnico.monto}
-                onChange={e => onChange({ ...value, retiroUnico: { ...value.retiroUnico!, monto: parseFloat(e.target.value) || 0 } })}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
-            </div>
+            <p className="text-xs" style={{ color: 'var(--color-acento)' }}>{edadLabel(value.retiroUnico.anioT)}</p>
           </div>
         )}
       </div>
@@ -1293,28 +1371,50 @@ function EventoEditForm({
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-sm cursor-pointer select-none" style={{ color: 'var(--color-texto)' }}>
           <input type="checkbox" checked={tieneRecurrente}
-            onChange={e => onChange({ ...value, gastoRecurrente: e.target.checked ? { anioInicioT: 1, anioFinT: 5, montoMensual: 0 } : undefined })} />
+            onChange={e => onChange({ ...value, gastoRecurrente: e.target.checked ? { anioInicioT: 1, mesInicio: 1, anioFinT: 5, mesFin: 12, montoMensual: 0 } : undefined })} />
           Gasto recurrente mensual
         </label>
         {tieneRecurrente && value.gastoRecurrente && (
-          <div className="grid grid-cols-3 gap-3 pl-6">
-            <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Desde (año)</label>
-              <input type="number" min={anioActual + 1}
-                value={anioTToCalendario(value.gastoRecurrente.anioInicioT, anioActual)}
-                onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, anioInicioT: calendarioToAnioT(parseInt(e.target.value) || anioActual + 1, anioActual) } })}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-acento)' }}>{edadLabel(value.gastoRecurrente.anioInicioT)}</p>
+          <div className="space-y-2 pl-6">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Inicio</label>
+                <div className="flex gap-1">
+                  <select
+                    value={value.gastoRecurrente.mesInicio ?? 1}
+                    onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, mesInicio: parseInt(e.target.value) } })}
+                    className="px-2 py-2 rounded-lg text-sm outline-none"
+                    style={{ ...inputStyle, width: '72px' }}
+                  >
+                    {MESES_CORTOS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                  </select>
+                  <input type="number" min={anioActual + 1}
+                    value={anioTToCalendario(value.gastoRecurrente.anioInicioT, anioActual)}
+                    onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, anioInicioT: calendarioToAnioT(parseInt(e.target.value) || anioActual + 1, anioActual) } })}
+                    className="flex-1 min-w-0 px-2 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
+                </div>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--color-acento)' }}>{edadLabel(value.gastoRecurrente.anioInicioT)}</p>
+              </div>
+              <div>
+                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Fin</label>
+                <div className="flex gap-1">
+                  <select
+                    value={value.gastoRecurrente.mesFin ?? 12}
+                    onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, mesFin: parseInt(e.target.value) } })}
+                    className="px-2 py-2 rounded-lg text-sm outline-none"
+                    style={{ ...inputStyle, width: '72px' }}
+                  >
+                    {MESES_CORTOS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                  </select>
+                  <input type="number" min={anioActual + 1}
+                    value={anioTToCalendario(value.gastoRecurrente.anioFinT, anioActual)}
+                    onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, anioFinT: calendarioToAnioT(parseInt(e.target.value) || anioActual + 1, anioActual) } })}
+                    className="flex-1 min-w-0 px-2 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
+                </div>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--color-acento)' }}>{edadLabel(value.gastoRecurrente.anioFinT)}</p>
+              </div>
             </div>
-            <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Hasta (año)</label>
-              <input type="number" min={anioActual + 1}
-                value={anioTToCalendario(value.gastoRecurrente.anioFinT, anioActual)}
-                onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, anioFinT: calendarioToAnioT(parseInt(e.target.value) || anioActual + 1, anioActual) } })}
-                className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono" style={inputStyle} />
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-acento)' }}>{edadLabel(value.gastoRecurrente.anioFinT)}</p>
-            </div>
-            <div>
+            <div className="max-w-[160px]">
               <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>S/ / mes</label>
               <input type="number" min={0} value={value.gastoRecurrente.montoMensual}
                 onChange={e => onChange({ ...value, gastoRecurrente: { ...value.gastoRecurrente!, montoMensual: parseFloat(e.target.value) || 0 } })}

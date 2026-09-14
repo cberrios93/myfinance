@@ -73,14 +73,27 @@ const ETAPAS: EtapaConfig[] = [
   },
 ]
 
+const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+const MESES_LARGO  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+
+interface EtapaDetalle {
+  pension: number
+  matriculaAnual: number
+  medico: number
+  otros: number
+}
+
 interface HijoState {
   nombreHijo: string
+  mesNacimiento: number         // 1-12
   anioNacimiento: number
   gastosParto: number
   miPorcentaje: number          // 0-100 — qué % de los gastos cubro yo
   costos: Record<string, number>
   habilitadas: Record<string, boolean>
   duracionPostUni: number
+  detalleActivo: Record<string, boolean>
+  detalles: Record<string, EtapaDetalle>
 }
 
 const DEFAULTS_MENSUAL: Record<string, number> = {
@@ -89,6 +102,19 @@ const DEFAULTS_MENSUAL: Record<string, number> = {
   colegio:     1_500,
   universidad: 2_500,
   postuni:       500,
+}
+
+// Defaults para el modo detallado por etapa
+const DEFAULTS_DETALLE: Record<string, EtapaDetalle> = {
+  bebe:        { pension: 0,     matriculaAnual: 0,      medico: 400, otros: 1_100 },
+  nido:        { pension: 800,   matriculaAnual: 1_200,  medico: 200, otros: 200   },
+  colegio:     { pension: 900,   matriculaAnual: 4_800,  medico: 200, otros: 300   },
+  universidad: { pension: 1_800, matriculaAnual: 0,      medico: 200, otros: 500   },
+  postuni:     { pension: 0,     matriculaAnual: 0,      medico: 100, otros: 400   },
+}
+
+function detalleToMensual(d: EtapaDetalle): number {
+  return Math.round(d.pension + d.matriculaAnual / 12 + d.medico + d.otros)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,17 +134,22 @@ function generarEventos(s: HijoState, general: GeneralParams): Omit<EventoVida, 
     eventos.push({
       nombre: `${label} · Parto y primeros gastos`,
       tipoEvento: 'hijo',
-      retiroUnico: { anioT: anioTNac, monto: Math.round(s.gastosParto * pct) },
+      retiroUnico: { anioT: anioTNac, mes: s.mesNacimiento, monto: Math.round(s.gastosParto * pct) },
       ...(proporcionPropia !== undefined && { proporcionPropia }),
     })
   }
 
   for (const etapa of ETAPAS) {
     if (etapa.opcional && !s.habilitadas[etapa.id]) continue
-    const costoTotal = s.costos[etapa.id] ?? 0
-    if (costoTotal <= 0) continue
 
-    const costoMio = Math.round(costoTotal * pct)
+    // Costo mensual efectivo: modo detallado o básico
+    const costoTotalBase = s.detalleActivo[etapa.id]
+      ? detalleToMensual(s.detalles[etapa.id] ?? DEFAULTS_DETALLE[etapa.id])
+      : (s.costos[etapa.id] ?? 0)
+
+    if (costoTotalBase <= 0) continue
+
+    const costoMio = Math.round(costoTotalBase * pct)
     const anioInicioT = anioTNac + etapa.edadDesde
     const duracion = etapa.id === 'postuni'
       ? s.duracionPostUni
@@ -131,7 +162,7 @@ function generarEventos(s: HijoState, general: GeneralParams): Omit<EventoVida, 
     eventos.push({
       nombre: `${label} · ${etapa.label} (${etapa.edadDesde}–${edadHastaLabel} años)`,
       tipoEvento: 'hijo',
-      gastoRecurrente: { anioInicioT, anioFinT, montoMensual: costoMio },
+      gastoRecurrente: { anioInicioT, mesInicio: s.mesNacimiento, anioFinT, montoMensual: costoMio },
       ...(proporcionPropia !== undefined && { proporcionPropia }),
     })
   }
@@ -156,12 +187,21 @@ export function HijoWizard({
 
   const [s, setS] = useState<HijoState>({
     nombreHijo: '',
+    mesNacimiento: new Date().getMonth() + 1,
     anioNacimiento: anioActual + 1,
     gastosParto: 5_000,
     miPorcentaje: proporcionDefault,
     costos: { ...DEFAULTS_MENSUAL },
     habilitadas: { postuni: false },
     duracionPostUni: 3,
+    detalleActivo: {},
+    detalles: {
+      bebe:        { ...DEFAULTS_DETALLE.bebe },
+      nido:        { ...DEFAULTS_DETALLE.nido },
+      colegio:     { ...DEFAULTS_DETALLE.colegio },
+      universidad: { ...DEFAULTS_DETALLE.universidad },
+      postuni:     { ...DEFAULTS_DETALLE.postuni },
+    },
   })
 
   const anioTNac = calendarioToAnioT(s.anioNacimiento, anioActual)
@@ -186,7 +226,9 @@ export function HijoWizard({
     let total = s.gastosParto
     for (const etapa of ETAPAS) {
       if (etapa.opcional && !s.habilitadas[etapa.id]) continue
-      const costo = s.costos[etapa.id] ?? 0
+      const costo = s.detalleActivo[etapa.id]
+        ? detalleToMensual(s.detalles[etapa.id] ?? DEFAULTS_DETALLE[etapa.id])
+        : (s.costos[etapa.id] ?? 0)
       const dur = etapa.id === 'postuni'
         ? s.duracionPostUni
         : etapa.edadHasta - etapa.edadDesde + 1
@@ -203,6 +245,28 @@ export function HijoWizard({
 
   function toggleHabilitada(id: string) {
     setS(p => ({ ...p, habilitadas: { ...p.habilitadas, [id]: !p.habilitadas[id] } }))
+  }
+
+  function toggleDetalle(id: string) {
+    setS(p => {
+      const activando = !p.detalleActivo[id]
+      // Al activar: pre-llenar pension con el costo básico actual
+      const detalleActualizado = activando
+        ? { ...p.detalles[id], pension: p.costos[id] ?? DEFAULTS_MENSUAL[id] ?? 0, matriculaAnual: 0, medico: 0, otros: 0 }
+        : p.detalles[id]
+      return {
+        ...p,
+        detalleActivo: { ...p.detalleActivo, [id]: activando },
+        detalles: { ...p.detalles, [id]: detalleActualizado },
+      }
+    })
+  }
+
+  function setDetalle(id: string, campo: keyof EtapaDetalle, val: number) {
+    setS(p => ({
+      ...p,
+      detalles: { ...p.detalles, [id]: { ...p.detalles[id], [campo]: val } },
+    }))
   }
 
   const distribucionalLabel = s.miPorcentaje === 100
@@ -232,19 +296,27 @@ export function HijoWizard({
         </p>
       </div>
 
-      {/* Año de nacimiento */}
+      {/* Mes y año de nacimiento */}
       <div>
         <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--color-muted)' }}>
-          ¿En qué año nacerá o nació?
+          ¿Cuándo nacerá o nació?
         </label>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={s.mesNacimiento}
+            onChange={e => setS(p => ({ ...p, mesNacimiento: parseInt(e.target.value) }))}
+            className="px-2 py-2 rounded-lg text-sm outline-none"
+            style={{ ...inputStyle, width: '110px' }}
+          >
+            {MESES_LARGO.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+          </select>
           <input
             type="number"
             min={anioActual}
             max={anioActual + 20}
             value={s.anioNacimiento}
             onChange={e => setS(p => ({ ...p, anioNacimiento: parseInt(e.target.value) || anioActual + 1 }))}
-            className="w-28 px-3 py-2 rounded-lg text-sm outline-none font-mono"
+            className="w-24 px-3 py-2 rounded-lg text-sm outline-none font-mono"
             style={inputStyle}
           />
           <span className="text-sm" style={{ color: 'var(--color-muted)' }}>
@@ -351,7 +423,12 @@ export function HijoWizard({
             const edadHastaReal = etapa.id === 'postuni'
               ? etapa.edadDesde + s.duracionPostUni - 1
               : etapa.edadHasta
-            const costoMensualTotal = s.costos[etapa.id] ?? 0
+
+            const detalleOn = !!s.detalleActivo[etapa.id]
+            const det = s.detalles[etapa.id] ?? DEFAULTS_DETALLE[etapa.id]
+            const costoMensualTotal = detalleOn
+              ? detalleToMensual(det)
+              : (s.costos[etapa.id] ?? 0)
             const costoMensualMio = Math.round(costoMensualTotal * pct)
             const costoEtapaTotal = costoMensualTotal * 12 * dur
             const costoEtapaMio = Math.round(costoEtapaTotal * pct)
@@ -385,57 +462,123 @@ export function HijoWizard({
                     </p>
 
                     {habilitada && (
-                      <div className="flex items-end gap-3 flex-wrap">
-                        <div className="flex-1 min-w-[120px] max-w-[180px]">
-                          <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>
-                            S/ / mes (total pareja)
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            value={costoMensualTotal}
-                            onChange={e => setEtapaCosto(etapa.id, parseFloat(e.target.value) || 0)}
-                            className={inputCls}
-                            style={inputStyle}
-                          />
-                        </div>
+                      <>
+                        {/* Modo básico */}
+                        {!detalleOn && (
+                          <div className="flex items-end gap-3 flex-wrap">
+                            <div className="flex-1 min-w-[120px] max-w-[180px]">
+                              <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>
+                                S/ / mes (total pareja)
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                value={s.costos[etapa.id] ?? 0}
+                                onChange={e => setEtapaCosto(etapa.id, parseFloat(e.target.value) || 0)}
+                                className={inputCls}
+                                style={inputStyle}
+                              />
+                            </div>
 
-                        {etapa.id === 'postuni' && (
-                          <div className="w-20">
-                            <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Años</label>
-                            <input
-                              type="number"
-                              min={1} max={10}
-                              value={s.duracionPostUni}
-                              onChange={e => setS(p => ({ ...p, duracionPostUni: parseInt(e.target.value) || 1 }))}
-                              className={inputCls}
-                              style={inputStyle}
-                            />
+                            {etapa.id === 'postuni' && (
+                              <div className="w-20">
+                                <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>Años</label>
+                                <input
+                                  type="number"
+                                  min={1} max={10}
+                                  value={s.duracionPostUni}
+                                  onChange={e => setS(p => ({ ...p, duracionPostUni: parseInt(e.target.value) || 1 }))}
+                                  className={inputCls}
+                                  style={inputStyle}
+                                />
+                              </div>
+                            )}
+
+                            <div className="text-right min-w-[80px]">
+                              {s.miPorcentaje < 100 ? (
+                                <>
+                                  <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Mi parte / mes</p>
+                                  <p className="text-sm font-semibold font-mono" style={{ color: 'var(--color-acento)' }}>
+                                    S/ {FM(costoMensualMio)}
+                                  </p>
+                                  <p className="text-xs font-mono" style={{ color: 'var(--color-muted)' }}>
+                                    S/ {FM(costoEtapaMio)} total
+                                  </p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Total etapa</p>
+                                  <p className="text-sm font-semibold font-mono" style={{ color: 'var(--color-texto)' }}>
+                                    S/ {FM(costoEtapaTotal)}
+                                  </p>
+                                  <p className="text-xs" style={{ color: 'var(--color-muted)' }}>{dur} {dur === 1 ? 'año' : 'años'}</p>
+                                </>
+                              )}
+                            </div>
                           </div>
                         )}
 
-                        <div className="text-right min-w-[80px]">
-                          {s.miPorcentaje < 100 ? (
-                            <>
-                              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Mi parte / mes</p>
-                              <p className="text-sm font-semibold font-mono" style={{ color: 'var(--color-acento)' }}>
-                                S/ {FM(costoMensualMio)}
+                        {/* Modo detallado */}
+                        {detalleOn && (
+                          <div className="space-y-2.5 p-3 rounded-lg" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
+                            {[
+                              { campo: 'pension' as const,      label: 'Pensión mensual', hint: 'S//mes' },
+                              { campo: 'matriculaAnual' as const, label: 'Matrícula anual', hint: 'S//año' },
+                              { campo: 'medico' as const,        label: 'Médico / salud', hint: 'S//mes' },
+                              { campo: 'otros' as const,         label: 'Alimentación / ropa / ocio', hint: 'S//mes' },
+                            ].map(({ campo, label, hint }) => (
+                              <div key={campo} className="flex items-center gap-3">
+                                <div className="flex-1">
+                                  <span className="text-xs" style={{ color: 'var(--color-muted)' }}>{label}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={det[campo]}
+                                    onChange={e => setDetalle(etapa.id, campo, parseFloat(e.target.value) || 0)}
+                                    className="w-24 px-2 py-1.5 rounded-lg text-sm outline-none font-mono text-right"
+                                    style={inputStyle}
+                                  />
+                                  <span className="text-xs w-12 shrink-0" style={{ color: 'var(--color-muted)' }}>{hint}</span>
+                                </div>
+                                {campo === 'matriculaAnual' && det.matriculaAnual > 0 && (
+                                  <span className="text-xs font-mono shrink-0" style={{ color: 'var(--color-muted)' }}>
+                                    = S/ {FM(det.matriculaAnual / 12)}/mes
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                            <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid var(--color-borde)' }}>
+                              <span className="text-xs font-semibold" style={{ color: 'var(--color-texto)' }}>Total mensual (pareja)</span>
+                              <span className="text-sm font-bold font-mono" style={{ color: 'var(--color-acento)' }}>
+                                S/ {FM(costoMensualTotal)}/mes
+                              </span>
+                            </div>
+                            {s.miPorcentaje < 100 && (
+                              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+                                Mi parte: <strong style={{ color: 'var(--color-acento)' }}>S/ {FM(costoMensualMio)}/mes</strong>
+                                {' '}· S/ {FM(costoEtapaMio)} total en {dur} {dur === 1 ? 'año' : 'años'}
                               </p>
-                              <p className="text-xs font-mono" style={{ color: 'var(--color-muted)' }}>
-                                S/ {FM(costoEtapaMio)} total
+                            )}
+                            {s.miPorcentaje === 100 && (
+                              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+                                Total etapa: <strong style={{ color: 'var(--color-texto)' }}>S/ {FM(costoEtapaTotal)}</strong>
+                                {' '}en {dur} {dur === 1 ? 'año' : 'años'}
                               </p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>Total etapa</p>
-                              <p className="text-sm font-semibold font-mono" style={{ color: 'var(--color-texto)' }}>
-                                S/ {FM(costoEtapaTotal)}
-                              </p>
-                              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>{dur} {dur === 1 ? 'año' : 'años'}</p>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Toggle detalle */}
+                        <button
+                          onClick={() => toggleDetalle(etapa.id)}
+                          className="mt-2 text-xs underline"
+                          style={{ color: 'var(--color-acento)' }}
+                        >
+                          {detalleOn ? '← Modo simple' : 'Detallar gastos →'}
+                        </button>
+                      </>
                     )}
                   </div>
 

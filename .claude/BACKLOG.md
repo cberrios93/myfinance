@@ -32,7 +32,7 @@
 
 | Tipo | Estado | Ítem |
 |------|--------|------|
-| Feature | Definido | **Wizard Luna de Miel** — evento separado del Matrimonio (decisión 2026-08-31). Variables propias: destino, vuelos, hotel (noches + categoría), gastos en destino. Modelo: retiro único con posible gasto previo (reservas). Usar patrón de `MatrimonioWizard.tsx` con toggle PEN/USD. |
+| Feature | Listo DEV | **Wizard Luna de Miel** — wizard 2 pasos: destino/fechas + presupuesto. Tipos de destino (Nacional/LATAM/Internacional/Largo radio) con estimados pre-cargados. Cotización con IA (Haiku 4.5) vía botón "✨ Cotizar". Toggle PEN/USD, split %, categoría hotel. Genera 2 retiros: Reservas (mes reserva) + Gastos en destino (mes viaje). Endpoint `api/cotizar-viaje.ts` compartible con Viaje. |
 
 ### Ideas del brainstorm (priorizadas)
 

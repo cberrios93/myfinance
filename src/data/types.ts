@@ -54,12 +54,15 @@ export interface Movimiento {
 
 export interface RetiroUnico {
   anioT: number
+  mes?: number        // 1-12; mes dentro del año en que ocurre
   monto: number
 }
 
 export interface GastoRecurrente {
   anioInicioT: number
+  mesInicio?: number  // 1-12; mes de inicio (default: 1 = enero)
   anioFinT: number
+  mesFin?: number     // 1-12; mes de fin (default: 12 = diciembre)
   montoMensual: number
 }
 

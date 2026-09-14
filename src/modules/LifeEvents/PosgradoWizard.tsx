@@ -70,8 +70,11 @@ export function PosgradoWizard({
   const { tc, loading: tcLoading, actualizar } = useTipoCambio()
   const tcVenta = tc?.venta ?? 3.80
 
+  const MESES_LARGO = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+
   const [step, setStep] = useState<PStep>('programa')
   const [extraOpen, setExtraOpen] = useState(false)
+  const [mesCalendario, setMesCalendario] = useState(new Date().getMonth() + 1)
   const [s, setS] = useState<PS>({
     destino: 'local', moneda: 'PEN',
     costoTotal: 20000, duracionMeses: 24,
@@ -188,23 +191,24 @@ export function PosgradoWizard({
   function generar() {
     const ev: Omit<EventoVida, 'id'>[] = []
     const suf = s.tieneBeca ? ` (beca ${s.pctBeca}%)` : ''
+    const mes = mesCalendario
 
     if (admisionPEN > 0)
-      ev.push({ nombre: 'Posgrado – Proceso de admisión', tipoEvento: 'posgrado', retiroUnico: { anioT, monto: Math.round(admisionPEN) } })
+      ev.push({ nombre: 'Posgrado – Proceso de admisión', tipoEvento: 'posgrado', retiroUnico: { anioT, mes, monto: Math.round(admisionPEN) } })
     if (inscripcionPEN > 0)
-      ev.push({ nombre: 'Posgrado – Inscripción / matrícula', tipoEvento: 'posgrado', retiroUnico: { anioT, monto: Math.round(inscripcionPEN) } })
+      ev.push({ nombre: 'Posgrado – Inscripción / matrícula', tipoEvento: 'posgrado', retiroUnico: { anioT, mes, monto: Math.round(inscripcionPEN) } })
     if (s.tieneIdioma && s.costoIdiomaMensual > 0)
-      ev.push({ nombre: 'Posgrado – Cursos de idioma', tipoEvento: 'posgrado', gastoRecurrente: { anioInicioT: idiomaAnioT, anioFinT: anioT, montoMensual: Math.round(s.costoIdiomaMensual) } })
+      ev.push({ nombre: 'Posgrado – Cursos de idioma', tipoEvento: 'posgrado', gastoRecurrente: { anioInicioT: idiomaAnioT, anioFinT: anioT, mesFin: mes, montoMensual: Math.round(s.costoIdiomaMensual) } })
     if (mudanzaPEN > 0)
-      ev.push({ nombre: 'Posgrado – Mudanza / establecimiento', tipoEvento: 'posgrado', retiroUnico: { anioT, monto: Math.round(mudanzaPEN) } })
+      ev.push({ nombre: 'Posgrado – Mudanza / establecimiento', tipoEvento: 'posgrado', retiroUnico: { anioT, mes, monto: Math.round(mudanzaPEN) } })
     if (s.estrategia === 'unico' && fin.inicialPEN > 0)
-      ev.push({ nombre: `Posgrado – Pago único${suf}`, tipoEvento: 'posgrado', retiroUnico: { anioT, monto: Math.round(fin.inicialPEN) } })
+      ev.push({ nombre: `Posgrado – Pago único${suf}`, tipoEvento: 'posgrado', retiroUnico: { anioT, mes, monto: Math.round(fin.inicialPEN) } })
     if (s.estrategia === 'prestamo' && fin.inicialPEN > 0)
-      ev.push({ nombre: `Posgrado – Cuota inicial${suf}`, tipoEvento: 'posgrado', retiroUnico: { anioT, monto: Math.round(fin.inicialPEN) } })
+      ev.push({ nombre: `Posgrado – Cuota inicial${suf}`, tipoEvento: 'posgrado', retiroUnico: { anioT, mes, monto: Math.round(fin.inicialPEN) } })
     if ((s.estrategia === 'cuotas' || s.estrategia === 'prestamo') && fin.mensual > 0)
-      ev.push({ nombre: s.estrategia === 'prestamo' ? `Posgrado – Cuota préstamo${suf}` : `Posgrado – Cuotas${suf}`, tipoEvento: 'posgrado', gastoRecurrente: { anioInicioT: anioT, anioFinT: fin.anioFinPagoT, montoMensual: fin.mensual } })
+      ev.push({ nombre: s.estrategia === 'prestamo' ? `Posgrado – Cuota préstamo${suf}` : `Posgrado – Cuotas${suf}`, tipoEvento: 'posgrado', gastoRecurrente: { anioInicioT: anioT, mesInicio: mes, anioFinT: fin.anioFinPagoT, montoMensual: fin.mensual } })
     if (extrasMensualesPEN > 0)
-      ev.push({ nombre: s.destino === 'local' ? 'Posgrado – Gastos adicionales' : 'Posgrado – Vida en el exterior', tipoEvento: 'posgrado', gastoRecurrente: { anioInicioT: anioT, anioFinT, montoMensual: Math.round(extrasMensualesPEN) } })
+      ev.push({ nombre: s.destino === 'local' ? 'Posgrado – Gastos adicionales' : 'Posgrado – Vida en el exterior', tipoEvento: 'posgrado', gastoRecurrente: { anioInicioT: anioT, mesInicio: mes, anioFinT, montoMensual: Math.round(extrasMensualesPEN) } })
     if (tesisPEN > 0)
       ev.push({ nombre: 'Posgrado – Tesis / proyecto final', tipoEvento: 'posgrado', retiroUnico: { anioT: anioFinT, monto: Math.round(tesisPEN) } })
 
@@ -230,14 +234,22 @@ export function PosgradoWizard({
           </PWGroup>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>¿En qué año inicias?</label>
-            <div className="flex items-center gap-3">
+            <label className="block text-sm font-semibold" style={{ color: 'var(--color-texto)' }}>¿Cuándo inicias?</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <select
+                value={mesCalendario}
+                onChange={e => setMesCalendario(parseInt(e.target.value))}
+                className="px-2 py-3 rounded-xl text-sm outline-none"
+                style={{ ...iStyle, width: '120px' }}
+              >
+                {MESES_LARGO.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+              </select>
               <input type="number"
                 min={general.anioActual + 1}
                 max={general.anioActual + (general.edadVidaEstimada - general.edadActual)}
                 value={s.anioCalendario}
                 onChange={e => set({ anioCalendario: parseInt(e.target.value) || general.anioActual + 1 })}
-                className="w-28 px-4 py-3 rounded-xl text-sm outline-none font-mono" style={iStyle} />
+                className="w-24 px-4 py-3 rounded-xl text-sm outline-none font-mono" style={iStyle} />
               <span className="text-sm" style={{ color: 'var(--color-muted)' }}>
                 → tendrás <strong style={{ color: 'var(--color-acento)' }}>{edad} años</strong>
               </span>
