@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, Check, CheckCheck, Activity, Trophy, AlertTriangle } from 'lucide-react'
-import { useNotificacionesCtx, type Notificacion } from '../../context/NotificacionesContext'
+import { Bell, X, CheckCheck, Activity, Trophy, AlertTriangle } from 'lucide-react'
+import { useNotificacionesCtx } from '../../context/NotificacionesContext'
+import type { Notificacion } from '../../lib/supabase/notificaciones'
 import { useAlertas } from './useAlertas'
 
 type Tab = 'actividad' | 'alertas' | 'logros'

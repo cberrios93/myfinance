@@ -71,7 +71,7 @@ interface Props {
 
 export function AlquilerWizard({ general, onConfirm, onCancel }: Props) {
   const { anioActual } = general
-  const mesActual = new Date().getMonth() + 1
+  // mesActual reservado para uso futuro
 
   const [nombre, setNombre] = useState('Alquiler depa')
   const [moneda, setMoneda] = useState<'PEN' | 'USD'>('PEN')

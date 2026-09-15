@@ -1112,7 +1112,7 @@ function EventoWizard({
                   className="px-2 py-2 rounded-lg text-sm outline-none"
                   style={{ ...inputStyle, width: '90px' }}
                 >
-                  {MESES_CORTOS.map((m, i) => (
+                  {MESES_CORTOS.map((_m, i) => (
                     <option key={i} value={i + 1}>{MESES_LARGO[i]}</option>
                   ))}
                 </select>

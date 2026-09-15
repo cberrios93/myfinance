@@ -11,7 +11,7 @@ export type { Notificacion }
 export function useNotificaciones() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
   const [noLeidas, setNoLeidas] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
 
   const cargar = useCallback(async () => {
     if (!supabaseConfigured) return

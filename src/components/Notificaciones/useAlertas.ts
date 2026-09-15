@@ -69,8 +69,8 @@ export function useAlertas(): Alerta[] {
     })
 
     // 4. Flujo de caja negativo (egresos > ingresos)
-    const ingresos = flujoCaja.filter(f => f.tipo === 'ingreso' && f.activo).reduce((s, f) => s + (f.montoPEN ?? 0), 0)
-    const egresos  = flujoCaja.filter(f => f.tipo === 'gasto'   && f.activo).reduce((s, f) => s + (f.montoPEN ?? 0), 0)
+    const ingresos = flujoCaja.filter(f => f.tipo === 'Income' && f.activo).reduce((s, f) => s + (f.montoPEN ?? 0), 0)
+    const egresos  = flujoCaja.filter(f => f.tipo === 'Expense' && f.activo).reduce((s, f) => s + (f.montoPEN ?? 0), 0)
     if (ingresos > 0 && egresos > ingresos) {
       alertas.push({
         emoji: '⚠️',

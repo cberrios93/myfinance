@@ -5,7 +5,6 @@ import { useTipoCambio } from '../../hooks/useTipoCambio'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function anioTToCalendario(t: number, anioActual: number) { return anioActual + t }
 function anioTToEdad(t: number, edadActual: number) { return edadActual + t }
 function calendarioToAnioT(year: number, anioActual: number) { return Math.max(1, year - anioActual) }
 function fmt(n: number) { return n.toLocaleString('es-PE', { maximumFractionDigits: 0 }) }

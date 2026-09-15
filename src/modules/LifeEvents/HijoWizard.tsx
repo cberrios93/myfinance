@@ -73,7 +73,6 @@ const ETAPAS: EtapaConfig[] = [
   },
 ]
 
-const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
 const MESES_LARGO  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 interface EtapaDetalle {
