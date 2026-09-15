@@ -578,6 +578,10 @@ export default async function handler(req: Request) {
 
   const sb = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } })
 
+  // ?force=true salta el chequeo de hora (solo para pruebas con CRON_SECRET)
+  const url = new URL(req.url)
+  const force = url.searchParams.get('force') === 'true'
+
   // Hora actual en UTC
   const ahora = new Date()
   const resultados: Array<{ user_id: string; email: string; status: string; error?: string }> = []
@@ -601,7 +605,7 @@ export default async function handler(req: Request) {
       const horaUsuario = ahoraUsuario.getHours()
       const diaSemana = ahoraUsuario.getDay()
 
-      if (diaSemana !== pref.dia_semana || horaUsuario !== pref.hora) {
+      if (!force && (diaSemana !== pref.dia_semana || horaUsuario !== pref.hora)) {
         continue
       }
 
