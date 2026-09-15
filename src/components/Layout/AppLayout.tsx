@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../../auth/AuthContext'
 import { useScenario } from '../../data/ScenarioContext'
 import { useConfig } from '../../config/ConfigContext'
+import { NotificacionesPanel } from '../Notificaciones/NotificacionesPanel'
 
 type NavSection = { section: string; items: { to: string; label: string; icon: React.ElementType }[] }
 
@@ -226,7 +227,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="px-4 py-3 border-t" style={{ borderColor: 'var(--color-borde)' }}>
-          <p className="text-xs truncate mb-2" style={{ color: 'var(--color-muted)' }}>{user?.email}</p>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs truncate" style={{ color: 'var(--color-muted)' }}>{user?.email}</p>
+            <NotificacionesPanel placement="sidebar" />
+          </div>
           <button
             onClick={signOut}
             className="flex items-center gap-2 text-sm w-full px-2 py-1.5 rounded-lg transition-colors hover:opacity-80"
@@ -252,6 +256,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <div style={{ display: 'flex', alignItems: 'baseline', lineHeight: 1 }}>
             <span style={{ fontWeight: 200, fontStyle: 'italic', color: 'rgba(237,242,248,0.45)', fontSize: '14px', letterSpacing: '0.01em' }}>my</span>
             <span style={{ fontWeight: 700, color: 'var(--color-texto)', fontSize: '14px', letterSpacing: '-0.02em' }}>Finance</span>
+          </div>
+          <div className="ml-auto">
+            <NotificacionesPanel />
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 lg:p-6" style={{ color: 'var(--color-texto)' }}>

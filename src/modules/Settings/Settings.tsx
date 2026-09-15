@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useConfig } from '../../config/ConfigContext'
 import { PALETAS } from '../../config/themes'
 import { obtenerHistorialAuto, setHistorialAuto } from '../../lib/supabase/preferences'
+import { EmailPreferencias } from '../../components/Settings/EmailPreferencias'
 
 const MODULOS_OPCIONALES = [
   { to: '/haberes', label: 'Haberes' },
@@ -307,6 +308,14 @@ export default function Settings() {
               <Toggle on={historialAuto} onToggle={toggleHistorialAuto} disabled={guardandoAuto} />
             </label>
           </Card>
+        </div>
+      </div>
+
+      {/* ── Sección: Email ── */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--color-acento)' }}>Email</p>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <EmailPreferencias />
         </div>
       </div>
 

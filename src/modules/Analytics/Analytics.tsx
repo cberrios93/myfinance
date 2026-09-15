@@ -1044,30 +1044,6 @@ function RendimientosTab() {
         )
       })()}
 
-      {/* Rentabilidad line chart — only if rentabilidad field exists */}
-      {(() => {
-        const withRent = filtered.filter(r => r.rentabilidad !== undefined && r.rentabilidad !== null)
-        if (withRent.length < 2) return null
-        const rentData = withRent.map(r => ({
-          label: `${r.instrumentoNombre} ${r.anio}`,
-          Rentabilidad: parseFloat((r.rentabilidad! * 100).toFixed(2)),
-        }))
-        return (
-          <div className="rounded-xl p-4" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
-            <p className="text-sm font-semibold mb-4" style={{ color: 'var(--color-texto)' }}>Rentabilidad % por registro</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={rentData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-borde)" />
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: 'var(--color-muted)' }} interval={0} angle={-30} textAnchor="end" height={45} />
-                <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: 'var(--color-muted)' }} width={45} />
-                <Tooltip formatter={(v: unknown) => [`${(v as number).toFixed(2)}%`, 'Rentabilidad']} contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)', borderRadius: 8, fontSize: 12 }} />
-                <ReferenceLine y={0} stroke="var(--color-borde)" />
-                <Line type="monotone" dataKey="Rentabilidad" stroke="#00C9A7" strokeWidth={2} dot={{ fill: '#00C9A7', r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )
-      })()}
     </div>
   )
 }

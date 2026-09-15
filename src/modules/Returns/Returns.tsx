@@ -15,6 +15,7 @@ import TipoCambioWidget from '../../components/TipoCambioWidget'
 import { useConfig } from '../../config/ConfigContext'
 import { formatMonto } from '../../lib/formatMonto'
 import { FinancialTerm } from '../../components/common/FinancialTerm'
+import { useNotificacionesCtx } from '../../context/NotificacionesContext'
 
 function fmt(n: number, dec = 2) { return n.toLocaleString('es-PE', { minimumFractionDigits: dec, maximumFractionDigits: dec }) }
 function fmtPct(n: number) { return `${(n * 100).toFixed(2)}%` }
@@ -567,6 +568,7 @@ export default function Returns() {
   const { tc: tcData } = useTipoCambio()
   const tc = tcData?.compra ?? 3.7
   const { config } = useConfig()
+  const { registrar: registrarNotif } = useNotificacionesCtx()
 
   const [adding, setAdding] = useState(false)
   const [newDraft, setNewDraft] = useState<Draft>(emptyDraft)
@@ -718,6 +720,9 @@ export default function Returns() {
       : newDraft
     await agregarRendimiento(toSave)
     checkPropuestaPatrimonio(newDraft)
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+    const periodoStr = newDraft.mes ? `${meses[(newDraft.mes ?? 1) - 1]} ${newDraft.anio}` : `${newDraft.anio}`
+    registrarNotif({ tipo: 'actividad', categoria: 'rendimiento', titulo: `Rendimiento registrado: ${newDraft.instrumentoNombre}`, descripcion: `Período ${periodoStr}`, link: '/rendimientos' })
     setAdding(false); setNewDraft(emptyDraft())
   }
 
@@ -728,6 +733,9 @@ export default function Returns() {
       : editDraft
     await actualizarRendimiento(toSave)
     checkPropuestaPatrimonio(editDraft)
+    const mesesE = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+    const periodoE = editDraft.mes ? `${mesesE[(editDraft.mes ?? 1) - 1]} ${editDraft.anio}` : `${editDraft.anio}`
+    registrarNotif({ tipo: 'actividad', categoria: 'rendimiento', titulo: `Rendimiento editado: ${editDraft.instrumentoNombre}`, descripcion: `Período ${periodoE}`, link: '/rendimientos' })
     setEditingId(null); setEditDraft(null)
   }
 

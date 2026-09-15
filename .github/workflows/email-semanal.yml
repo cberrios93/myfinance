@@ -1,0 +1,27 @@
+name: Email Semanal
+
+on:
+  # Cada hora en punto (UTC) — el Edge Function filtra por zona horaria de cada usuario
+  schedule:
+    - cron: '0 * * * *'
+  # Trigger manual para pruebas
+  workflow_dispatch:
+
+jobs:
+  enviar-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger email-semanal Edge Function
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${APP_URL}/api/email-semanal" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "Error: Edge Function retornó $STATUS"
+            exit 1
+          fi

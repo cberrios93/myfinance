@@ -105,6 +105,8 @@ Ejecutada el 2026-09-03 (v2.0.0) y repetida el 2026-09-07 (todos los datos reale
 | `018_dashboard_layout.sql` | ✓ DEV + PROD |
 | `019_rendimientos_impuesto_pagado.sql` | ✓ DEV + PROD |
 | `020_rendimientos_cierre_fiscal.sql` | ✓ DEV + PROD |
+| `021_notificaciones.sql` | ✓ DEV |
+| `022_email_preferencias.sql` | ✓ DEV |
 
 
 ---
@@ -126,6 +128,10 @@ Ejecutada el 2026-09-03 (v2.0.0) y repetida el 2026-09-07 (todos los datos reale
 | `scripts/crear-historial.mjs` | Cron script — crea historial mensual para todos los usuarios con `historial_auto=true` |
 | `.github/workflows/historial-mensual.yml` | GitHub Actions cron: se ejecuta el 1° de cada mes a las 8:00 UTC (3am Lima) |
 | `api/tipo-cambio.ts` | Proxy Vercel para Rextie |
+| `api/email-semanal.ts` | Edge Function — compila datos usuario → Claude Haiku insights → Resend. Llamada por GitHub Actions cron horario con CRON_SECRET. |
+| `src/lib/supabase/emailPreferencias.ts` | CRUD para `email_preferencias` (día, hora, zona horaria, activo) |
+| `src/components/Settings/EmailPreferencias.tsx` | UI de configuración del email semanal (en Settings → Email) |
+| `.github/workflows/email-semanal.yml` | Cron horario que llama al Edge Function vía HTTP |
 | `api/boleta.ts` | Proxy Vercel para Anthropic API |
 | `api/invite-user.ts` | Edge Function — invita usuarios vía Supabase Admin API (redirectTo dinámico desde referer) |
 | `api/block-user.ts` | Edge Function — bloquea/desbloquea usuarios (requiere SUPABASE_SERVICE_ROLE_KEY) |

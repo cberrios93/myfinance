@@ -12,6 +12,20 @@ Criterios de tipo:
 
 ## [Unreleased]
 
+#### Email semanal con insights de IA
+- **Feature** — Resumen financiero semanal enviado por email vía Resend (dominio `cesarberrios.com`). Incluye: patrimonio neto + delta, KPIs de flujo (ingresos/egresos/tasa de ahorro), proyección de retiro con escenario activo, ganancias de inversiones del mes, alertas automáticas, deudas por cobrar, eventos próximos y 5 insights generados por Claude Haiku.
+- **Feature** — **5 insights semanales por IA** (Claude Haiku): analiza el contexto financiero completo del usuario y genera observaciones concretas con cifras reales + acción recomendada para la semana. Costo: ~$0.002 USD/usuario/semana.
+- **Feature** — Preferencias configurables por usuario: día de la semana, hora y zona horaria. UI en Configuración → Email. Multi-usuario desde el inicio.
+- **Técnico** — Nueva tabla `email_preferencias` (migración `022` ✓ DEV) con RLS. Edge Function `api/email-semanal.ts`: valida CRON_SECRET, filtra usuarios por zona horaria, compila contexto desde Supabase con service role, llama a Anthropic, construye HTML con inline styles y envía por Resend.
+- **Técnico** — GitHub Actions workflow `email-semanal.yml`: cron horario `0 * * * *` que llama al Edge Function vía HTTP. Secrets necesarios: `CRON_SECRET`, `APP_URL`. Variables Vercel: `RESEND_API_KEY`, `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+#### Centro de Notificaciones in-app
+- **Feature** — Campana 🔔 en el nav (sidebar desktop + header móvil) con badge rojo que muestra el número de no leídas (9+ para más de 9). Click abre panel overlay sin cambiar de vista.
+- **Feature** — Panel con 3 tabs: **Actividad** (acciones del usuario guardadas en BD), **Alertas** (condiciones del estado actual calculadas al vuelo), **Logros** (hitos persistidos en BD). Botón "marcar todo como leído" en el header del panel.
+- **Feature** — **Alertas automáticas al vuelo**: rendimiento del mes anterior sin registrar, impuestos con períodos vencidos sin pagar, eventos de vida próximos (≤4 meses), flujo de caja mensual negativo.
+- **Feature** — **Actividad instrumentada** en: Rendimientos (registrar/editar), Eventos de Vida (agregar). Cada acción genera una fila en la tabla `notificaciones` con título, descripción, link al módulo y timestamp.
+- **Técnico** — Nueva tabla `notificaciones` (migración `021` ✓ DEV) con RLS. Capa de datos en `src/lib/supabase/notificaciones.ts`. Hook `useNotificaciones` + `NotificacionesProvider` en contexto global. Componente `NotificacionesPanel` + `useAlertas`.
+
 #### Módulo Eventos de Vida — Wizard Luna de Miel
 - **Feature** — **Nuevo tipo de evento "Luna de Miel"** (`tipoEvento: 'luna_miel'`). Wizard 2 pasos: (1) Destino y fechas: selector de tipo destino (Nacional 🇵🇪 / LATAM 🌎 / Internacional 🌍 / Largo radio ✈️) con estimados pre-cargados, destino libre, noches, fecha del viaje y mes de reserva (auto: 3 meses antes), categoría de alojamiento (3★/4★/5★/All-inclusive). (2) Presupuesto: 3 categorías editables (vuelos, hotel, gastos en destino), buffer %, toggle PEN/USD con TC Rextie, split `tuPorcentaje`. Genera 2 retiros únicos: "Reservas (vuelos + hotel)" en mes de reserva y "Gastos en destino" en mes del viaje. Color: rosa `#F472B6`.
 - **Feature** — **Cotización con IA** vía botón "✨ Cotizar" en paso 1. Llama a `api/cotizar-viaje.ts` (Haiku 4.5, max_tokens 256) con destino, noches, mes, categoría hotel → retorna JSON con rangos por categoría → pre-llena las 3 categorías del wizard con el punto medio de cada rango. Muestra nota/tip de la IA al usuario. En DEV: proxy Vite reconstruye el body para Anthropic.

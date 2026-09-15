@@ -5,6 +5,7 @@ import { useAuth } from './auth/AuthContext'
 import { ScenarioProvider } from './data/ScenarioContext'
 import { PatrimonyProvider } from './data/PatrimonyContext'
 import { FinanceDataProvider } from './data/FinanceDataContext'
+import { NotificacionesProvider } from './context/NotificacionesContext'
 import AppLayout from './components/Layout/AppLayout'
 import UndoToast from './components/UndoToast'
 import LoginPage from './modules/Auth/LoginPage'
@@ -106,6 +107,7 @@ function ProtectedRoutes() {
     <ScenarioProvider>
       <PatrimonyProvider>
         <FinanceDataProvider>
+          <NotificacionesProvider>
           {showOnboarding && <OnboardingWizard onComplete={completeOnboarding} />}
           <UndoToast />
           <AppLayout>
@@ -137,6 +139,7 @@ function ProtectedRoutes() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AppLayout>
+          </NotificacionesProvider>
         </FinanceDataProvider>
       </PatrimonyProvider>
     </ScenarioProvider>

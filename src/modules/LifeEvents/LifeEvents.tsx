@@ -11,6 +11,7 @@ import { MatrimonioWizard } from './MatrimonioWizard'
 import { AlquilerWizard } from './AlquilerWizard'
 import { LunaMielWizard } from './LunaMielWizard'
 import type { EventoVida, GeneralParams } from '../../data/types'
+import { useNotificacionesCtx } from '../../context/NotificacionesContext'
 
 // ── Fórmula de amortización francesa ─────────────────────────────────────────
 // Convierte TEA → TEM, luego calcula cuota fija mensual
@@ -813,6 +814,7 @@ function GraficaEventos({ eventos, general }: { eventos: EventoVida[]; general: 
 
 export default function LifeEvents() {
   const { escenarios, escenarioActivo, actualizarEscenario } = useScenario()
+  const { registrar: registrarNotif } = useNotificacionesCtx()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<EventoVida | null>(null)
   const [wizardOpen, setWizardOpen] = useState(false)
@@ -841,6 +843,9 @@ export default function LifeEvents() {
   async function addEventos(nuevos: Omit<EventoVida, 'id'>[]) {
     const conIds = nuevos.map(e => ({ ...e, id: uuid() }))
     await save([...eventosVida, ...conIds])
+    nuevos.forEach(ev => {
+      registrarNotif({ tipo: 'actividad', categoria: 'evento_vida', titulo: `Evento de vida agregado: ${ev.nombre}`, link: '/eventos' })
+    })
     setWizardOpen(false)
   }
 
