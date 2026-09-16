@@ -90,7 +90,7 @@ const TIPOS_EVENTO: TipoEventoConfig[] = [
   },
   {
     id: 'hijo',
-    label: 'Nacimiento de hijo',
+    label: 'Hijo(a)',
     icono: '👶',
     descripcion: 'Parto + etapas de crianza, nido, colegio y universidad',
     usaWizardHijo: true,

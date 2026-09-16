@@ -87,6 +87,7 @@ interface HijoState {
   mesNacimiento: number         // 1-12
   anioNacimiento: number
   gastosParto: number
+  cuotaIngresoColegio: number   // retiro único al inicio del colegio (edad 6)
   miPorcentaje: number          // 0-100 — qué % de los gastos cubro yo
   costos: Record<string, number>
   habilitadas: Record<string, boolean>
@@ -96,20 +97,29 @@ interface HijoState {
 }
 
 const DEFAULTS_MENSUAL: Record<string, number> = {
-  bebe:        1_500,
-  nido:        1_200,
-  colegio:     1_500,
+  bebe:        1_100,
+  nido:        1_450,
+  colegio:     2_000,
   universidad: 2_500,
   postuni:       500,
 }
 
 // Defaults para el modo detallado por etapa
 const DEFAULTS_DETALLE: Record<string, EtapaDetalle> = {
-  bebe:        { pension: 0,     matriculaAnual: 0,      medico: 400, otros: 1_100 },
-  nido:        { pension: 800,   matriculaAnual: 1_200,  medico: 200, otros: 200   },
-  colegio:     { pension: 900,   matriculaAnual: 4_800,  medico: 200, otros: 300   },
-  universidad: { pension: 1_800, matriculaAnual: 0,      medico: 200, otros: 500   },
+  bebe:        { pension: 0,     matriculaAnual: 600,    medico: 300, otros: 800   },
+  nido:        { pension: 900,   matriculaAnual: 1_800,  medico: 150, otros: 250   },
+  colegio:     { pension: 1_500, matriculaAnual: 6_000,  medico: 150, otros: 350   },
+  universidad: { pension: 1_800, matriculaAnual: 1_500,  medico: 150, otros: 550   },
   postuni:     { pension: 0,     matriculaAnual: 0,      medico: 100, otros: 400   },
+}
+
+// Labels contextuales por etapa para el modo detallado
+const DETALLE_LABELS: Record<string, { pension: string; matriculaAnual: string; medico: string; otros: string }> = {
+  bebe:        { pension: 'Niñera / guardería',      matriculaAnual: 'Vacunas / controles (anual)', medico: 'Médico / pediatra',    otros: 'Pañales / alimentación / ropa' },
+  nido:        { pension: 'Pensión mensual',          matriculaAnual: 'Matrícula anual',              medico: 'Médico / salud',        otros: 'Útiles / uniforme / actividades' },
+  colegio:     { pension: 'Pensión mensual',          matriculaAnual: 'Matrícula anual',              medico: 'Médico / salud',        otros: 'Varios' },
+  universidad: { pension: 'Pensión / mensualidad',   matriculaAnual: 'Matrícula / inscripción',       medico: 'Seguro / salud',        otros: 'Transp. / libros / gastos personales' },
+  postuni:     { pension: 'Apoyo mensual',            matriculaAnual: '',                             medico: 'Salud / seguro',        otros: 'Varios' },
 }
 
 function detalleToMensual(d: EtapaDetalle): number {
@@ -124,7 +134,7 @@ function generarEventos(s: HijoState, general: GeneralParams): Omit<EventoVida, 
   const { anioActual } = general
   const anioTNac = calendarioToAnioT(s.anioNacimiento, anioActual)
   const pct = s.miPorcentaje / 100
-  const label = s.nombreHijo.trim() || 'Hijo/a'
+  const label = s.nombreHijo.trim() || 'Hijo(a)'
   const eventos: Omit<EventoVida, 'id'>[] = []
 
   const proporcionPropia = s.miPorcentaje < 100 ? s.miPorcentaje : undefined
@@ -134,6 +144,16 @@ function generarEventos(s: HijoState, general: GeneralParams): Omit<EventoVida, 
       nombre: `${label} · Parto y primeros gastos`,
       tipoEvento: 'hijo',
       retiroUnico: { anioT: anioTNac, mes: s.mesNacimiento, monto: Math.round(s.gastosParto * pct) },
+      ...(proporcionPropia !== undefined && { proporcionPropia }),
+    })
+  }
+
+  if (s.cuotaIngresoColegio > 0) {
+    const anioTIngreso = anioTNac + 6  // edad 6 = entrada al colegio
+    eventos.push({
+      nombre: `${label} · Colegio – Cuota de ingreso`,
+      tipoEvento: 'hijo',
+      retiroUnico: { anioT: anioTIngreso, monto: Math.round(s.cuotaIngresoColegio * pct) },
       ...(proporcionPropia !== undefined && { proporcionPropia }),
     })
   }
@@ -188,7 +208,8 @@ export function HijoWizard({
     nombreHijo: '',
     mesNacimiento: new Date().getMonth() + 1,
     anioNacimiento: anioActual + 1,
-    gastosParto: 5_000,
+    gastosParto: 8_000,
+    cuotaIngresoColegio: 8_000,
     miPorcentaje: proporcionDefault,
     costos: { ...DEFAULTS_MENSUAL },
     habilitadas: { postuni: false },
@@ -222,7 +243,7 @@ export function HijoWizard({
   const preview = useMemo(() => generarEventos(s, general), [s, general])
 
   const costoTotalBruto = useMemo(() => {
-    let total = s.gastosParto
+    let total = s.gastosParto + s.cuotaIngresoColegio
     for (const etapa of ETAPAS) {
       if (etapa.opcional && !s.habilitadas[etapa.id]) continue
       const costo = s.detalleActivo[etapa.id]
@@ -285,13 +306,13 @@ export function HijoWizard({
           type="text"
           value={s.nombreHijo}
           onChange={e => setS(p => ({ ...p, nombreHijo: e.target.value }))}
-          placeholder="Ej. Primer hijo, Segundo hijo, Sofía…"
+          placeholder="Ej. Primer hijo(a), Segundo hijo(a), Sofía…"
           className="w-full px-3 py-2 rounded-lg text-sm outline-none"
           style={inputStyle}
           autoFocus
         />
         <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
-          Aparece en el nombre de cada entrada. Si lo dejas vacío se usa "Hijo/a".
+          Aparece en el nombre de cada entrada. Si lo dejas vacío se usa "Hijo(a)".
         </p>
       </div>
 
@@ -327,7 +348,7 @@ export function HijoWizard({
       {/* Gasto de parto */}
       <div>
         <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--color-muted)' }}>
-          Gastos de parto (S/) — costo total · retiro único en {s.anioNacimiento}
+          Gastos de parto (S/) — retiro único en {s.anioNacimiento}
         </label>
         <input
           type="number"
@@ -338,7 +359,7 @@ export function HijoWizard({
           style={inputStyle}
         />
         <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
-          Incluye clínica, parto, preparación, layette inicial.
+          Clínica, parto, preparación prenatal, layette inicial.
           {s.miPorcentaje < 100 && (
             <span style={{ color: 'var(--color-acento)' }}>
               {' '}Mi parte: S/ {FM(Math.round(s.gastosParto * pct))}
@@ -521,11 +542,11 @@ export function HijoWizard({
                         {detalleOn && (
                           <div className="space-y-2.5 p-3 rounded-lg" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
                             {[
-                              { campo: 'pension' as const,      label: 'Pensión mensual', hint: 'S//mes' },
-                              { campo: 'matriculaAnual' as const, label: 'Matrícula anual', hint: 'S//año' },
-                              { campo: 'medico' as const,        label: 'Médico / salud', hint: 'S//mes' },
-                              { campo: 'otros' as const,         label: 'Alimentación / ropa / ocio', hint: 'S//mes' },
-                            ].map(({ campo, label, hint }) => (
+                              { campo: 'pension' as const,       label: DETALLE_LABELS[etapa.id]?.pension ?? 'Pensión mensual',   hint: 'S//mes' },
+                              { campo: 'matriculaAnual' as const, label: DETALLE_LABELS[etapa.id]?.matriculaAnual ?? 'Matrícula anual', hint: 'S//año' },
+                              { campo: 'medico' as const,         label: DETALLE_LABELS[etapa.id]?.medico ?? 'Médico / salud',     hint: 'S//mes' },
+                              { campo: 'otros' as const,          label: DETALLE_LABELS[etapa.id]?.otros ?? 'Varios',              hint: 'S//mes' },
+                            ].filter(f => f.label !== '').map(({ campo, label, hint }) => (
                               <div key={campo} className="flex items-center gap-3">
                                 <div className="flex-1">
                                   <span className="text-xs" style={{ color: 'var(--color-muted)' }}>{label}</span>
@@ -569,14 +590,43 @@ export function HijoWizard({
                           </div>
                         )}
 
-                        {/* Toggle detalle */}
-                        <button
-                          onClick={() => toggleDetalle(etapa.id)}
-                          className="mt-2 text-xs underline"
-                          style={{ color: 'var(--color-acento)' }}
-                        >
-                          {detalleOn ? '← Modo simple' : 'Detallar gastos →'}
-                        </button>
+                        {/* Toggle detalle — no aplica para post-uni */}
+                        {etapa.id !== 'postuni' && (
+                          <button
+                            onClick={() => toggleDetalle(etapa.id)}
+                            className="mt-2 text-xs underline"
+                            style={{ color: 'var(--color-acento)' }}
+                          >
+                            {detalleOn ? '← Modo simple' : 'Detallar gastos →'}
+                          </button>
+                        )}
+
+                        {/* Cuota de ingreso — solo colegio */}
+                        {etapa.id === 'colegio' && (
+                          <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-borde)' }}>
+                            <label className="text-xs mb-1 block" style={{ color: 'var(--color-muted)' }}>
+                              Cuota de ingreso (S/) — retiro único al entrar al colegio
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="number"
+                                min={0}
+                                value={s.cuotaIngresoColegio}
+                                onChange={e => setS(p => ({ ...p, cuotaIngresoColegio: parseFloat(e.target.value) || 0 }))}
+                                className="w-36 px-3 py-2 rounded-lg text-sm outline-none font-mono"
+                                style={inputStyle}
+                              />
+                              {s.miPorcentaje < 100 && s.cuotaIngresoColegio > 0 && (
+                                <span className="text-xs font-mono" style={{ color: 'var(--color-acento)' }}>
+                                  Mi parte: S/ {FM(Math.round(s.cuotaIngresoColegio * pct))}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+                              Se paga una sola vez al ingresar. Deja en 0 si no aplica.
+                            </p>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -604,7 +654,7 @@ export function HijoWizard({
       {/* Resumen financiero */}
       <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--color-card)', border: '1px solid var(--color-borde)' }}>
         <p className="text-xs font-semibold" style={{ color: 'var(--color-acento)' }}>
-          Resumen — {s.nombreHijo.trim() || 'Hijo/a'}
+          Resumen — {s.nombreHijo.trim() || 'Hijo(a)'}
         </p>
         <div className="grid grid-cols-3 gap-4">
           <div>

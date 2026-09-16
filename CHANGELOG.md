@@ -12,6 +12,14 @@ Criterios de tipo:
 
 ## [Unreleased]
 
+#### Módulo Eventos de Vida — Wizard Hijo(a)
+- **Mejora** — Renombrado de "Nacimiento de hijo" → **"Hijo(a)"** en el selector y en todos los labels internos del wizard.
+- **Feature** — **Cuota de ingreso al colegio**: nuevo campo retiro único (default S/ 8,000) que se genera al año en que el hijo(a) entra al colegio (edad 6). Se puede poner en 0 si no aplica.
+- **Mejora** — **Labels contextuales en modo detallado**: cada etapa muestra campos con nombres apropiados. Bebé: "Niñera/guardería", "Vacunas/controles (anual)", "Médico/pediatra", "Pañales/alimentación/ropa". Universidad: "Pensión/mensualidad", "Matrícula/inscripción", "Seguro/salud". Colegio y Nido: "Varios" en lugar de "Libros/extracurriculares".
+- **Mejora** — **Post-uni simplificado**: sin modo detallado — solo monto mensual simple.
+- **Mejora** — Defaults actualizados para reflejar Lima privado: parto S/8k, bebé S/1,100 base, nido S/1,450, colegio S/2,000, universidad con matrícula S/1,500/año.
+
+
 #### Email semanal con insights de IA
 - **Feature** — Resumen financiero semanal enviado por email vía Resend (dominio `cesarberrios.com`). Incluye: patrimonio neto + delta, KPIs de flujo (ingresos/egresos/tasa de ahorro), proyección de retiro con escenario activo, ganancias de inversiones del mes, alertas automáticas, deudas por cobrar, eventos próximos y 5 insights generados por Claude Haiku.
 - **Feature** — **5 insights semanales por IA** (Claude Haiku): analiza el contexto financiero completo del usuario y genera observaciones concretas con cifras reales + acción recomendada para la semana. Costo: ~$0.002 USD/usuario/semana.
