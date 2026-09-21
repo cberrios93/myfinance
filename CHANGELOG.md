@@ -12,6 +12,9 @@ Criterios de tipo:
 
 ## [Unreleased]
 
+#### Configuración — Tamaño de texto
+- **Mejora** — Reemplazado el slider de tamaño de texto por **5 botones preset** (80% Compacto / 90% Pequeño / 100% Normal / 115% Grande / 130% Extra grande) que aplican el cambio al hacer clic, sin re-render en tiempo real. Corrige el descuadre de layout que ocurría al arrastrar el slider. Se agrega opción **"Valor personalizado"** (input numérico 70–200%) que aplica al presionar Enter o al perder el foco.
+
 #### Módulo Eventos de Vida — Wizard Hijo(a)
 - **Mejora** — Renombrado de "Nacimiento de hijo" → **"Hijo(a)"** en el selector y en todos los labels internos del wizard.
 - **Feature** — **Cuota de ingreso al colegio**: nuevo campo retiro único (default S/ 8,000) que se genera al año en que el hijo(a) entra al colegio (edad 6). Se puede poner en 0 si no aplica.

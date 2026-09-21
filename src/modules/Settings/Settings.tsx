@@ -45,6 +45,85 @@ function Card({ title, description, children }: { title: string; description?: s
   )
 }
 
+const TAMANOS_PRESET = [
+  { valor: 80, label: '80%', desc: 'Compacto' },
+  { valor: 90, label: '90%', desc: 'Pequeño' },
+  { valor: 100, label: '100%', desc: 'Normal' },
+  { valor: 115, label: '115%', desc: 'Grande' },
+  { valor: 130, label: '130%', desc: 'Extra grande' },
+]
+
+function TextSizeControl({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [customInput, setCustomInput] = useState(String(value))
+  const [showCustom, setShowCustom] = useState(!TAMANOS_PRESET.some(p => p.valor === value))
+
+  const esPreset = TAMANOS_PRESET.some(p => p.valor === value)
+
+  function aplicarCustom() {
+    const num = parseInt(customInput)
+    if (!isNaN(num) && num >= 70 && num <= 200) {
+      onChange(num)
+    } else {
+      setCustomInput(String(value))
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-5 gap-1.5">
+        {TAMANOS_PRESET.map(p => (
+          <button
+            key={p.valor}
+            onClick={() => { onChange(p.valor); setCustomInput(String(p.valor)); setShowCustom(false) }}
+            className="rounded-lg py-2.5 px-1 flex flex-col items-center gap-0.5 transition-all"
+            style={{
+              background: value === p.valor ? 'var(--color-acento)' : 'transparent',
+              color: value === p.valor ? '#fff' : 'var(--color-muted)',
+              border: `1px solid ${value === p.valor ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+            }}
+          >
+            <span className="text-sm font-bold leading-none">{p.label}</span>
+            <span className="text-xs leading-none opacity-80">{p.desc}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowCustom(v => !v)}
+          className="text-xs underline underline-offset-2 transition-opacity"
+          style={{ color: 'var(--color-muted)', opacity: 0.8 }}
+        >
+          {showCustom ? 'Ocultar personalizado' : 'Valor personalizado'}
+        </button>
+        {!esPreset && (
+          <span className="text-xs font-mono font-bold" style={{ color: 'var(--color-acento)' }}>
+            Actual: {value}%
+          </span>
+        )}
+      </div>
+      {showCustom && (
+        <div className="flex items-center gap-2">
+          <input
+            type="number" min={70} max={200}
+            value={customInput}
+            onChange={e => setCustomInput(e.target.value)}
+            onBlur={aplicarCustom}
+            onKeyDown={e => e.key === 'Enter' && aplicarCustom()}
+            className="w-24 rounded-lg px-3 py-2 text-sm font-mono text-center outline-none"
+            style={{
+              background: 'var(--color-fondo)',
+              border: '1px solid var(--color-borde)',
+              color: 'var(--color-texto)',
+            }}
+            placeholder="100"
+          />
+          <span className="text-xs" style={{ color: 'var(--color-muted)' }}>% — Entre 70 y 200. Enter para aplicar.</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Settings() {
   const { config, setConfig } = useConfig()
   const [historialAuto, setHistorialAutoState] = useState(false)
@@ -119,20 +198,8 @@ export default function Settings() {
           </Card>
 
           {/* Tamaño de texto */}
-          <Card title="Tamaño de texto">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Escala de la interfaz</span>
-              <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-acento)' }}>{config.tamanoTexto}%</span>
-            </div>
-            <input
-              type="range" min={80} max={150} step={5}
-              value={config.tamanoTexto}
-              onChange={e => setConfig({ ...config, tamanoTexto: parseInt(e.target.value) })}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
-              <span>80%</span><span>100%</span><span>150%</span>
-            </div>
+          <Card title="Tamaño de texto" description="Escala de la interfaz. Afecta textos, íconos y espaciado.">
+            <TextSizeControl value={config.tamanoTexto} onChange={v => setConfig({ ...config, tamanoTexto: v })} />
           </Card>
 
           {/* Densidad */}
