@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { Plus, Trash2, Edit2, Check, X, Download, Upload, AlertCircle } from 'lucide-react'
 import { usePatrimony } from '../../data/PatrimonyContext'
 import type { HistorialMensual } from '../../data/types'
@@ -137,6 +137,24 @@ function parseCSV(text: string, threshold = 10): Omit<HistorialMensual, 'id' | '
 
 // ────────────────────────────────────────────────────────────────────────────
 
+// ── Draft de "Agregar mes" persistido en sessionStorage ─────────────────────
+const SESSION_KEY = 'mf_historial_draft'
+
+function loadDraftSession(): { adding: boolean; draft: ReturnType<typeof makeEmpty> } | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function saveDraftSession(adding: boolean, draft: ReturnType<typeof makeEmpty>) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ adding, draft })) } catch { /* noop */ }
+}
+
+function clearDraftSession() {
+  try { sessionStorage.removeItem(SESSION_KEY) } catch { /* noop */ }
+}
+
 // Clave localStorage: `periodo-descartado:${id}:${periodoCalculado}`
 function dismissKey(id: string, calculado: string) { return `periodo-descartado:${id}:${calculado}` }
 function isDismissed(id: string, calculado: string) {
@@ -161,15 +179,20 @@ export default function FinanceHistory() {
   const { historial, loading, agregarHistorial, actualizarHistorial, borrarHistorial } = usePatrimony()
   const { config } = useConfig()
   const diaCorte = config.diaCorteHistorial
-  const [adding, setAdding] = useState(false)
-  const [newDraft, setNewDraft] = useState(makeEmpty())
+  const [adding, setAdding] = useState(() => loadDraftSession()?.adding ?? false)
+  const [newDraft, setNewDraft] = useState(() => loadDraftSession()?.draft ?? makeEmpty())
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<HistorialMensual | null>(null)
   const [importing, setImporting] = useState(false)
   const [importStatus, setImportStatus] = useState<{ ok?: number; err?: string } | null>(null)
   const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(() => new Set())
-  const [sortState, setSortState] = useState<{ col: string; dir: 'asc' | 'desc' } | null>(null)
+  const [sortState, setSortState] = useState<{ col: string; dir: 'asc' | 'desc' } | null>({ col: 'fecha', dir: 'desc' })
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (adding) saveDraftSession(adding, newDraft)
+    else clearDraftSession()
+  }, [adding, newDraft])
 
   const sorted = [...historial].sort((a, b) => a.fecha.localeCompare(b.fecha))
 
@@ -253,8 +276,8 @@ export default function FinanceHistory() {
 
   async function handleAdd() {
     if (!newDraft.totalPEN && !newDraft.totalUSD) return
-    // periodo ya viene del form (con la lógica aplicada o sobrescrito manualmente)
     await agregarHistorial(newDraft)
+    clearDraftSession()
     setAdding(false)
     setNewDraft(makeEmpty(diaCorte))
   }
@@ -384,7 +407,7 @@ export default function FinanceHistory() {
             value={newDraft}
             onChange={setNewDraft}
             onSave={handleAdd}
-            onCancel={() => { setAdding(false); setNewDraft(makeEmpty(diaCorte)) }}
+            onCancel={() => { clearDraftSession(); setAdding(false); setNewDraft(makeEmpty(diaCorte)) }}
           />
         </div>
       )}

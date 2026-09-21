@@ -12,6 +12,10 @@ Criterios de tipo:
 
 ## [Unreleased]
 
+#### Tracking > Historial — Mejoras UX
+- **Fix** — La tabla muestra los registros más recientes arriba por defecto (orden fecha desc al entrar).
+- **Mejora** — El borrador de "Agregar mes" se persiste en `sessionStorage`: si navegas a otra pantalla mientras llevas el PEN y USD a medias, al volver el formulario sigue abierto con los datos que dejaste. Se limpia automáticamente al guardar, cancelar, o cerrar la pestaña.
+
 #### Configuración — Tamaño de texto
 - **Mejora** — Reemplazado el slider de tamaño de texto por **5 botones preset** (80% Compacto / 90% Pequeño / 100% Normal / 115% Grande / 130% Extra grande) que aplican el cambio al hacer clic, sin re-render en tiempo real. Corrige el descuadre de layout que ocurría al arrastrar el slider. Se agrega opción **"Valor personalizado"** (input numérico 70–200%) que aplica al presionar Enter o al perder el foco.
 
