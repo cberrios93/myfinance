@@ -44,6 +44,28 @@ export async function setDiaCierreMensual(dia: number): Promise<void> {
   if (error) throw error
 }
 
+// Hora en zona Lima (UTC-5), 0–23. Default 8.
+export async function obtenerHoraCierreMensual(): Promise<number> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 8
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('hora_cierre_mensual')
+    .eq('user_id', user.id)
+    .single()
+  return data?.hora_cierre_mensual ?? 8
+}
+
+export async function setHoraCierreMensual(hora: number): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ hora_cierre_mensual: hora })
+    .eq('user_id', user.id)
+  if (error) throw error
+}
+
 // --- Dashboard layout (canvas de mosaicos) ---
 // Fuente de verdad: user_profiles.dashboard_layout jsonb (migración 018).
 // null = el usuario nunca personalizó → el caller usa el layout por defecto.

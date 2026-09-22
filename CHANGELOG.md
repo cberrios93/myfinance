@@ -16,6 +16,10 @@ Criterios de tipo:
 - **Fix** — La tabla muestra los registros más recientes arriba por defecto (orden fecha desc al entrar).
 - **Mejora** — El borrador de "Agregar mes" se persiste en `sessionStorage`: si navegas a otra pantalla mientras llevas el PEN y USD a medias, al volver el formulario sigue abierto con los datos que dejaste. Se limpia automáticamente al guardar, cancelar, o cerrar la pestaña.
 
+#### Configuración — Historial automático: hora configurable por usuario
+- **Feature** — Selector de hora en Settings > Automatización (dropdown 00:00–23:00, zona Lima UTC-5). Se guarda en `hora_cierre_mensual` en Supabase. El resumen al pie muestra día y hora configurados juntos.
+- **Técnico** — Nueva columna `hora_cierre_mensual` (smallint, default 8, rango 0–23) en `user_profiles` (migración `024` ✓ DEV). El script filtra ahora por día Y hora Lima. Cron actualizado a `0 * ...` (cada hora en los días candidatos) para cubrir cualquier hora que el usuario configure.
+
 #### Configuración — Historial automático configurable por usuario
 - **Feature** — Nuevo selector de día en Settings > Automatización (visible solo cuando el toggle está activo): `Día 1 / 5 / 10 / 15 / 20 / 25 / 28 / Último día`. Se guarda por usuario en Supabase. Reemplaza el día 1 hardcodeado.
 - **Técnico** — Nueva columna `dia_cierre_mensual` (smallint, default 1, rango 0–28) en `user_profiles` (migración `023` ✓ DEV). Valor `0` = último día del mes.

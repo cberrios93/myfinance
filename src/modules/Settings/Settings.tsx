@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useConfig } from '../../config/ConfigContext'
 import { PALETAS } from '../../config/themes'
-import { obtenerHistorialAuto, setHistorialAuto, obtenerDiaCierreMensual, setDiaCierreMensual } from '../../lib/supabase/preferences'
+import { obtenerHistorialAuto, setHistorialAuto, obtenerDiaCierreMensual, setDiaCierreMensual, obtenerHoraCierreMensual, setHoraCierreMensual } from '../../lib/supabase/preferences'
 import { EmailPreferencias } from '../../components/Settings/EmailPreferencias'
 
 const MODULOS_OPCIONALES = [
@@ -130,10 +130,13 @@ export default function Settings() {
   const [guardandoAuto, setGuardandoAuto] = useState(false)
   const [diaCierre, setDiaCierreState] = useState(1)
   const [guardandoDia, setGuardandoDia] = useState(false)
+  const [horaCierre, setHoraCierreState] = useState(8)
+  const [guardandoHora, setGuardandoHora] = useState(false)
 
   useEffect(() => {
     obtenerHistorialAuto().then(setHistorialAutoState)
     obtenerDiaCierreMensual().then(setDiaCierreState)
+    obtenerHoraCierreMensual().then(setHoraCierreState)
   }, [])
 
   async function toggleHistorialAuto() {
@@ -158,6 +161,18 @@ export default function Settings() {
       // revert on error
     } finally {
       setGuardandoDia(false)
+    }
+  }
+
+  async function handleHoraCierre(hora: number) {
+    setHoraCierreState(hora)
+    setGuardandoHora(true)
+    try {
+      await setHoraCierreMensual(hora)
+    } catch {
+      // revert on error
+    } finally {
+      setGuardandoHora(false)
     }
   }
 
@@ -426,6 +441,30 @@ export default function Settings() {
                   {diaCierre === 0
                     ? 'El registro se crea el último día de cada mes (28, 29, 30 o 31 según corresponda).'
                     : `El registro se crea el día ${diaCierre} de cada mes.`}
+                </p>
+
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-borde)' }}>
+                  <p className="text-xs mb-2" style={{ color: 'var(--color-muted)' }}>
+                    Hora del registro (Lima, UTC-5){guardandoHora ? ' · Guardando…' : ''}
+                  </p>
+                  <select
+                    value={horaCierre}
+                    onChange={e => handleHoraCierre(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ background: 'var(--color-fondo)', color: 'var(--color-texto)', border: '1px solid var(--color-borde)' }}
+                  >
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <option key={i} value={i}>
+                        {i.toString().padStart(2, '0')}:00 · Lima
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <p className="text-xs mt-2 font-medium" style={{ color: 'var(--color-acento)' }}>
+                  El registro automático corre{' '}
+                  {diaCierre === 0 ? 'el último día del mes' : `el día ${diaCierre}`}{' '}
+                  a las {horaCierre.toString().padStart(2, '0')}:00 Lima.
                 </p>
               </div>
             )}

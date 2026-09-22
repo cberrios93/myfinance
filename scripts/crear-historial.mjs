@@ -17,10 +17,12 @@ const headers = {
 
 const hoy = new Date()
 const diaHoy = hoy.getDate()
+const horaUTC = hoy.getUTCHours()
+const horaLima = (horaUTC - 5 + 24) % 24   // UTC-5
 const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate()
 const esUltimoDia = diaHoy === ultimoDiaMes
 
-console.log(`Hoy: ${hoy.toISOString().slice(0, 10)} (día ${diaHoy}, último del mes: ${esUltimoDia})`)
+console.log(`Hoy: ${hoy.toISOString().slice(0, 10)} · hora Lima: ${horaLima}:00 · último día del mes: ${esUltimoDia}`)
 
 // 1. Obtener tipo de cambio desde Rextie (una sola vez para todos)
 let tipoCambio = 3.70
@@ -43,7 +45,7 @@ try {
 
 // 2. Obtener todos los usuarios con historial_auto=true
 const perfilesRes = await fetch(
-  `${SUPABASE_URL}/rest/v1/user_profiles?historial_auto=eq.true&select=user_id,dia_cierre_mensual`,
+  `${SUPABASE_URL}/rest/v1/user_profiles?historial_auto=eq.true&select=user_id,dia_cierre_mensual,hora_cierre_mensual`,
   { headers }
 )
 if (!perfilesRes.ok) {
@@ -53,13 +55,15 @@ if (!perfilesRes.ok) {
 const perfilesAll = await perfilesRes.json()
 console.log(`Usuarios con historial_auto=true: ${perfilesAll.length}`)
 
-// Filtrar solo los usuarios cuyo día de cierre coincide con hoy
+// Filtrar usuarios cuyo día Y hora configurados coinciden con ahora
 const perfiles = perfilesAll.filter(p => {
-  const dia = p.dia_cierre_mensual ?? 1
-  if (dia === 0) return esUltimoDia       // "Último día del mes"
-  return diaHoy === dia
+  const dia  = p.dia_cierre_mensual  ?? 1
+  const hora = p.hora_cierre_mensual ?? 8
+  const diaOk  = dia === 0 ? esUltimoDia : diaHoy === dia
+  const horaOk = horaLima === hora
+  return diaOk && horaOk
 })
-console.log(`Usuarios a procesar hoy (día ${diaHoy}): ${perfiles.length}`)
+console.log(`Usuarios a procesar ahora (día ${diaHoy}, hora Lima ${horaLima}:00): ${perfiles.length}`)
 
 if (perfiles.length === 0) {
   console.log('Ningún usuario debe registrar historial hoy. Fin.')

@@ -1,11 +1,11 @@
 name: Historial Mensual
 
 on:
-  # Corre en los días candidatos a las 8:00 UTC (3:00am Lima).
-  # El script filtra por usuario según su día configurado.
+  # Corre cada hora en los días candidatos.
+  # El script filtra por usuario según su día y hora configurados (zona Lima, UTC-5).
   # Días cubiertos: 1, 5, 10, 15, 20, 25, 28, 29, 30, 31 (los últimos 4 cubren "último día del mes")
   schedule:
-    - cron: '0 8 1,5,10,15,20,25,28,29,30,31 * *'
+    - cron: '0 * 1,5,10,15,20,25,28,29,30,31 * *'
   # Trigger manual para pruebas
   workflow_dispatch:
 
