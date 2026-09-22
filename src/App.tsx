@@ -18,6 +18,7 @@ import LifeEvents from './modules/LifeEvents/LifeEvents'
 import Career from './modules/Career/Career'
 import Scenarios from './modules/Scenarios/Scenarios'
 import Projection from './modules/Projection/Projection'
+import IndFinanciera from './modules/IndFinanciera/IndFinanciera'
 import ExportImport from './modules/ExportImport/ExportImport'
 import Settings from './modules/Settings/Settings'
 import UserManagement from './modules/Admin/UserManagement'
@@ -132,6 +133,7 @@ function ProtectedRoutes() {
               <Route path="/eventos" element={<LifeEvents />} />
               <Route path="/carrera" element={<Career />} />
               <Route path="/proyeccion" element={<Projection />} />
+              <Route path="/ind-financiera" element={<IndFinanciera />} />
               <Route path="/escenarios" element={<Scenarios />} />
               <Route path="/exportar" element={<ExportImport />} />
               <Route path="/configuracion" element={<Settings />} />

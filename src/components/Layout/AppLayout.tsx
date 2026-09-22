@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Settings2, Landmark, ArrowLeftRight,
   CalendarClock, TrendingUp, GitBranch, ArrowUpDown, Settings, LogOut, Menu, X,
   Wallet, History, ArrowRightLeft, BarChart3, Receipt, CreditCard,
-  Users, ChevronRight, LineChart, ShieldCheck, Banknote, FileText
+  Users, ChevronRight, LineChart, ShieldCheck, Banknote, FileText, Flame
 } from 'lucide-react'
 import { useAuth } from '../../auth/AuthContext'
 import { useScenario } from '../../data/ScenarioContext'
@@ -49,6 +49,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/eventos', label: 'Eventos de vida', icon: CalendarClock },
       { to: '/carrera', label: 'Carrera y aportes', icon: TrendingUp },
       { to: '/proyeccion', label: 'Proyección', icon: LineChart },
+      { to: '/ind-financiera', label: 'Ind. Financiera', icon: Flame },
       { to: '/escenarios', label: 'Escenarios', icon: GitBranch },
     ],
   },
