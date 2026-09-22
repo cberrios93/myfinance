@@ -46,7 +46,6 @@
 | 5 | Mejora | Idea | **Presupuesto en Flujo de Caja** — columna `presupuesto` por ítem. El KPI de ahorro pasa a mostrar real vs. plan. Vista de varianza del mes. |
 | 6 | Mejora | Idea | **Benchmarking de rendimientos** — campo `benchmark` opcional por portafolio (VOO, QQQM, S&P500, IPC Lima, manual). Fetch del retorno anual del benchmark vía API (Yahoo Finance). Columna adicional: Tu retorno / Benchmark / Alpha. |
 | 7 | Feature | Idea | **Alertas proactivas** — sistema de notificaciones in-app o email: vencimiento de instrumento próximo, historial mensual sin cerrar, desviación flujo vs. presupuesto > umbral, rebalanceo necesario. El cron de GitHub Actions ya existe y se puede reutilizar. |
-| 8 | Feature | Idea | **FIRE metrics** — FI Number, FI Ratio, Work Optional Age, Coast/Lean/Fat FIRE labels. Calculables del engine existente (Scenarios + calculator.ts). Solo falta exponerlos como KPIs o sección en Scenarios. |
 | 9 | Feature | Idea | **Módulo AFP** — aporte mensual, comisión, TIR histórica personal, rentabilidad AFP vs benchmark, proyección hasta 65, simulación de fondo (1/2/3) y simulación Hábitat vs Profuturo, impacto de comisiones. Datos se ingresan manualmente. |
 | 10 | Feature | Idea | **Módulo Prestamype / Private Credit** — cronograma de pagos, estado (al día/mora), LTV, yield efectivo considerando premium de subasta, capital pendiente, interés cobrado. Datos manuales. |
 | 11 | Mejora | Idea | **FX Management básico** — TC ya integrado (Rextie). Agregar: distribución PEN/USD del patrimonio como KPI, ganancia/pérdida por FX en rendimientos, allocation objetivo por moneda configurable. Sin APIs adicionales. |
@@ -72,6 +71,7 @@
 | 34 | AI Copilot conversacional | Proyecto paralelo de alto esfuerzo. V3.0 eventual |
 | 37 | Monte Carlo | Ya decidido: backlog avanzado |
 | 38 | Investment Policy Statement | Documento de configuración — mejor en Notion/doc externo |
+| 8 | FIRE metrics (FI Number, FI Ratio, Work Optional, Coast/Lean/Fat) | Implementado y descartado (sep 2026): dato conocido, bajo valor incremental sobre lo que ya muestra Proyección |
 
 ---
 
