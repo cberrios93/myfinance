@@ -15,15 +15,12 @@ const headers = {
   'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
 }
 
-// Fecha de referencia: último día del mes anterior
 const hoy = new Date()
-const ultimoDiaMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth(), 0)
-const fecha   = ultimoDiaMesAnterior.toISOString().slice(0, 10)
-const mes     = String(ultimoDiaMesAnterior.getMonth() + 1).padStart(2, '0')
-const anio    = ultimoDiaMesAnterior.getFullYear()
-const periodo = `${mes} - ${anio}`
+const diaHoy = hoy.getDate()
+const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate()
+const esUltimoDia = diaHoy === ultimoDiaMes
 
-console.log(`Período: ${periodo} (fecha: ${fecha})`)
+console.log(`Hoy: ${hoy.toISOString().slice(0, 10)} (día ${diaHoy}, último del mes: ${esUltimoDia})`)
 
 // 1. Obtener tipo de cambio desde Rextie (una sola vez para todos)
 let tipoCambio = 3.70
@@ -46,20 +43,40 @@ try {
 
 // 2. Obtener todos los usuarios con historial_auto=true
 const perfilesRes = await fetch(
-  `${SUPABASE_URL}/rest/v1/user_profiles?historial_auto=eq.true&select=user_id`,
+  `${SUPABASE_URL}/rest/v1/user_profiles?historial_auto=eq.true&select=user_id,dia_cierre_mensual`,
   { headers }
 )
 if (!perfilesRes.ok) {
   console.error('Error al obtener perfiles:', await perfilesRes.text())
   process.exit(1)
 }
-const perfiles = await perfilesRes.json()
-console.log(`Usuarios con historial_auto=true: ${perfiles.length}`)
+const perfilesAll = await perfilesRes.json()
+console.log(`Usuarios con historial_auto=true: ${perfilesAll.length}`)
+
+// Filtrar solo los usuarios cuyo día de cierre coincide con hoy
+const perfiles = perfilesAll.filter(p => {
+  const dia = p.dia_cierre_mensual ?? 1
+  if (dia === 0) return esUltimoDia       // "Último día del mes"
+  return diaHoy === dia
+})
+console.log(`Usuarios a procesar hoy (día ${diaHoy}): ${perfiles.length}`)
 
 if (perfiles.length === 0) {
-  console.log('Ningún usuario tiene el historial automático activado. Fin.')
+  console.log('Ningún usuario debe registrar historial hoy. Fin.')
   process.exit(0)
 }
+
+// Fecha de referencia: el mes actual (el cron corre al final o inicio del mes que se registra)
+// Si el día de cierre es <= 5 asumimos que registra el mes anterior; si es mayor, registra el mes actual
+const refMes = diaHoy <= 5
+  ? new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
+  : new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+const fecha   = hoy.toISOString().slice(0, 10)
+const mes     = String(refMes.getMonth() + 1).padStart(2, '0')
+const anio    = refMes.getFullYear()
+const periodo = `${mes} - ${anio}`
+
+console.log(`Período: ${periodo} (fecha de registro: ${fecha})`)
 
 // 3. Procesar cada usuario
 let exitosos = 0

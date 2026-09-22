@@ -16,6 +16,12 @@ Criterios de tipo:
 - **Fix** — La tabla muestra los registros más recientes arriba por defecto (orden fecha desc al entrar).
 - **Mejora** — El borrador de "Agregar mes" se persiste en `sessionStorage`: si navegas a otra pantalla mientras llevas el PEN y USD a medias, al volver el formulario sigue abierto con los datos que dejaste. Se limpia automáticamente al guardar, cancelar, o cerrar la pestaña.
 
+#### Configuración — Historial automático configurable por usuario
+- **Feature** — Nuevo selector de día en Settings > Automatización (visible solo cuando el toggle está activo): `Día 1 / 5 / 10 / 15 / 20 / 25 / 28 / Último día`. Se guarda por usuario en Supabase. Reemplaza el día 1 hardcodeado.
+- **Técnico** — Nueva columna `dia_cierre_mensual` (smallint, default 1, rango 0–28) en `user_profiles` (migración `023` ✓ DEV). Valor `0` = último día del mes.
+- **Técnico** — Script `crear-historial.mjs` actualizado: lee `dia_cierre_mensual` por usuario y solo procesa los que deben registrar hoy. Calcula el período de referencia según si el día de cierre es antes o después del día 5 del mes.
+- **Técnico** — Cron de GitHub Actions actualizado de `1 * *` a `1,5,10,15,20,25,28,29,30,31 * *` para cubrir todos los días configurables. Los días 28–31 cubren el caso "Último día del mes" (el script detecta si hoy es efectivamente el último).
+
 #### Configuración — Email: fix de estilos
 - **Fix** — El card "Resumen semanal por email" usaba variables CSS incorrectas (`--color-border`, `--color-surface`, etc.) que no existen en el sistema de temas, causando fondos blancos y colores de browser por defecto. Corregido a las variables canónicas del proyecto (`--color-borde`, `--color-card`, `--color-texto`, `--color-muted`, `--color-fondo`, `--color-acento`). Toggle, selects y botón guardar ahora siguen el mismo patrón visual que el resto de Settings.
 

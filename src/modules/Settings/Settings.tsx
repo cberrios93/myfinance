@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useConfig } from '../../config/ConfigContext'
 import { PALETAS } from '../../config/themes'
-import { obtenerHistorialAuto, setHistorialAuto } from '../../lib/supabase/preferences'
+import { obtenerHistorialAuto, setHistorialAuto, obtenerDiaCierreMensual, setDiaCierreMensual } from '../../lib/supabase/preferences'
 import { EmailPreferencias } from '../../components/Settings/EmailPreferencias'
 
 const MODULOS_OPCIONALES = [
@@ -128,9 +128,12 @@ export default function Settings() {
   const { config, setConfig } = useConfig()
   const [historialAuto, setHistorialAutoState] = useState(false)
   const [guardandoAuto, setGuardandoAuto] = useState(false)
+  const [diaCierre, setDiaCierreState] = useState(1)
+  const [guardandoDia, setGuardandoDia] = useState(false)
 
   useEffect(() => {
     obtenerHistorialAuto().then(setHistorialAutoState)
+    obtenerDiaCierreMensual().then(setDiaCierreState)
   }, [])
 
   async function toggleHistorialAuto() {
@@ -143,6 +146,18 @@ export default function Settings() {
       setHistorialAutoState(!nuevoValor)
     } finally {
       setGuardandoAuto(false)
+    }
+  }
+
+  async function handleDiaCierre(dia: number) {
+    setDiaCierreState(dia)
+    setGuardandoDia(true)
+    try {
+      await setDiaCierreMensual(dia)
+    } catch {
+      // revert on error
+    } finally {
+      setGuardandoDia(false)
     }
   }
 
@@ -364,16 +379,56 @@ export default function Settings() {
       <div>
         <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--color-acento)' }}>Automatización</p>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <Card title="Historial mensual automático">
+          <Card title="Historial mensual automático" description="El sistema registra tu patrimonio en la fecha configurada.">
             <label className="flex items-center justify-between cursor-pointer">
               <div>
                 <p className="text-sm font-medium" style={{ color: 'var(--color-texto)' }}>Activar registro automático</p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
-                  El sistema registra tu patrimonio automáticamente el 1° de cada mes.
+                  Se ejecuta automáticamente según el día que elijas abajo.
                 </p>
               </div>
               <Toggle on={historialAuto} onToggle={toggleHistorialAuto} disabled={guardandoAuto} />
             </label>
+
+            {historialAuto && (
+              <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--color-borde)' }}>
+                <p className="text-xs mb-2" style={{ color: 'var(--color-muted)' }}>
+                  Día del mes para el registro{guardandoDia ? ' · Guardando…' : ''}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[1, 5, 10, 15, 20, 25, 28].map(d => (
+                    <button
+                      key={d}
+                      onClick={() => handleDiaCierre(d)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                      style={{
+                        background: diaCierre === d ? 'var(--color-acento)' : 'transparent',
+                        color: diaCierre === d ? '#fff' : 'var(--color-muted)',
+                        border: `1px solid ${diaCierre === d ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+                      }}
+                    >
+                      Día {d}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handleDiaCierre(0)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    style={{
+                      background: diaCierre === 0 ? 'var(--color-acento)' : 'transparent',
+                      color: diaCierre === 0 ? '#fff' : 'var(--color-muted)',
+                      border: `1px solid ${diaCierre === 0 ? 'var(--color-acento)' : 'var(--color-borde)'}`,
+                    }}
+                  >
+                    Último día
+                  </button>
+                </div>
+                <p className="text-xs mt-2" style={{ color: 'var(--color-muted)' }}>
+                  {diaCierre === 0
+                    ? 'El registro se crea el último día de cada mes (28, 29, 30 o 31 según corresponda).'
+                    : `El registro se crea el día ${diaCierre} de cada mes.`}
+                </p>
+              </div>
+            )}
           </Card>
         </div>
       </div>

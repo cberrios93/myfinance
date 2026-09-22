@@ -22,6 +22,28 @@ export async function setHistorialAuto(valor: boolean): Promise<void> {
   if (error) throw error
 }
 
+// 0 = último día del mes; 1–28 = día fijo
+export async function obtenerDiaCierreMensual(): Promise<number> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 1
+  const { data } = await supabase
+    .from('user_profiles')
+    .select('dia_cierre_mensual')
+    .eq('user_id', user.id)
+    .single()
+  return data?.dia_cierre_mensual ?? 1
+}
+
+export async function setDiaCierreMensual(dia: number): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ dia_cierre_mensual: dia })
+    .eq('user_id', user.id)
+  if (error) throw error
+}
+
 // --- Dashboard layout (canvas de mosaicos) ---
 // Fuente de verdad: user_profiles.dashboard_layout jsonb (migración 018).
 // null = el usuario nunca personalizó → el caller usa el layout por defecto.
