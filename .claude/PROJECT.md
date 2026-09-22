@@ -105,8 +105,8 @@ Ejecutada el 2026-09-03 (v2.0.0) y repetida el 2026-09-07 (todos los datos reale
 | `018_dashboard_layout.sql` | ✓ DEV + PROD |
 | `019_rendimientos_impuesto_pagado.sql` | ✓ DEV + PROD |
 | `020_rendimientos_cierre_fiscal.sql` | ✓ DEV + PROD |
-| `021_notificaciones.sql` | ✓ DEV |
-| `022_email_preferencias.sql` | ✓ DEV |
+| `021_notificaciones.sql` | ✓ DEV + PROD |
+| `022_email_preferencias.sql` | ✓ DEV + PROD |
 | `023_historial_dia_cierre.sql` | ✓ DEV + PROD |
 | `024_historial_hora_cierre.sql` | ✓ DEV + PROD |
 

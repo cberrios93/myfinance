@@ -12,17 +12,21 @@ Criterios de tipo:
 
 ## [Unreleased]
 
+---
+
+## [v2.10.0] — 2026-09-22 — PROD
+
 #### Tracking > Historial — Mejoras UX
 - **Fix** — La tabla muestra los registros más recientes arriba por defecto (orden fecha desc al entrar).
 - **Mejora** — El borrador de "Agregar mes" se persiste en `sessionStorage`: si navegas a otra pantalla mientras llevas el PEN y USD a medias, al volver el formulario sigue abierto con los datos que dejaste. Se limpia automáticamente al guardar, cancelar, o cerrar la pestaña.
 
 #### Configuración — Historial automático: hora configurable por usuario
 - **Feature** — Selector de hora en Settings > Automatización (dropdown 00:00–23:00, zona Lima UTC-5). Se guarda en `hora_cierre_mensual` en Supabase. El resumen al pie muestra día y hora configurados juntos.
-- **Técnico** — Nueva columna `hora_cierre_mensual` (smallint, default 8, rango 0–23) en `user_profiles` (migración `024` ✓ DEV). El script filtra ahora por día Y hora Lima. Cron actualizado a `0 * ...` (cada hora en los días candidatos) para cubrir cualquier hora que el usuario configure.
+- **Técnico** — Nueva columna `hora_cierre_mensual` (smallint, default 8, rango 0–23) en `user_profiles` (migración `024` ✓ DEV + PROD). El script filtra ahora por día Y hora Lima. Cron actualizado a `0 * ...` (cada hora en los días candidatos) para cubrir cualquier hora que el usuario configure.
 
 #### Configuración — Historial automático configurable por usuario
 - **Feature** — Nuevo selector de día en Settings > Automatización (visible solo cuando el toggle está activo): `Día 1 / 5 / 10 / 15 / 20 / 25 / 28 / Último día`. Se guarda por usuario en Supabase. Reemplaza el día 1 hardcodeado.
-- **Técnico** — Nueva columna `dia_cierre_mensual` (smallint, default 1, rango 0–28) en `user_profiles` (migración `023` ✓ DEV). Valor `0` = último día del mes.
+- **Técnico** — Nueva columna `dia_cierre_mensual` (smallint, default 1, rango 0–28) en `user_profiles` (migración `023` ✓ DEV + PROD). Valor `0` = último día del mes.
 - **Técnico** — Script `crear-historial.mjs` actualizado: lee `dia_cierre_mensual` por usuario y solo procesa los que deben registrar hoy. Calcula el período de referencia según si el día de cierre es antes o después del día 5 del mes.
 - **Técnico** — Cron de GitHub Actions actualizado de `1 * *` a `1,5,10,15,20,25,28,29,30,31 * *` para cubrir todos los días configurables. Los días 28–31 cubren el caso "Último día del mes" (el script detecta si hoy es efectivamente el último).
 
@@ -44,7 +48,7 @@ Criterios de tipo:
 - **Feature** — Resumen financiero semanal enviado por email vía Resend (dominio `cesarberrios.com`). Incluye: patrimonio neto + delta, KPIs de flujo (ingresos/egresos/tasa de ahorro), proyección de retiro con escenario activo, ganancias de inversiones del mes, alertas automáticas, deudas por cobrar, eventos próximos y 5 insights generados por Claude Haiku.
 - **Feature** — **5 insights semanales por IA** (Claude Haiku): analiza el contexto financiero completo del usuario y genera observaciones concretas con cifras reales + acción recomendada para la semana. Costo: ~$0.002 USD/usuario/semana.
 - **Feature** — Preferencias configurables por usuario: día de la semana, hora y zona horaria. UI en Configuración → Email. Multi-usuario desde el inicio.
-- **Técnico** — Nueva tabla `email_preferencias` (migración `022` ✓ DEV) con RLS. Edge Function `api/email-semanal.ts`: valida CRON_SECRET, filtra usuarios por zona horaria, compila contexto desde Supabase con service role, llama a Anthropic, construye HTML con inline styles y envía por Resend.
+- **Técnico** — Nueva tabla `email_preferencias` (migración `022` ✓ DEV + PROD) con RLS. Edge Function `api/email-semanal.ts`: valida CRON_SECRET, filtra usuarios por zona horaria, compila contexto desde Supabase con service role, llama a Anthropic, construye HTML con inline styles y envía por Resend.
 - **Técnico** — GitHub Actions workflow `email-semanal.yml`: cron horario `0 * * * *` que llama al Edge Function vía HTTP. Secrets necesarios: `CRON_SECRET`, `APP_URL`. Variables Vercel: `RESEND_API_KEY`, `CRON_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`.
 
 #### Centro de Notificaciones in-app
@@ -52,7 +56,7 @@ Criterios de tipo:
 - **Feature** — Panel con 3 tabs: **Actividad** (acciones del usuario guardadas en BD), **Alertas** (condiciones del estado actual calculadas al vuelo), **Logros** (hitos persistidos en BD). Botón "marcar todo como leído" en el header del panel.
 - **Feature** — **Alertas automáticas al vuelo**: rendimiento del mes anterior sin registrar, impuestos con períodos vencidos sin pagar, eventos de vida próximos (≤4 meses), flujo de caja mensual negativo.
 - **Feature** — **Actividad instrumentada** en: Rendimientos (registrar/editar), Eventos de Vida (agregar). Cada acción genera una fila en la tabla `notificaciones` con título, descripción, link al módulo y timestamp.
-- **Técnico** — Nueva tabla `notificaciones` (migración `021` ✓ DEV) con RLS. Capa de datos en `src/lib/supabase/notificaciones.ts`. Hook `useNotificaciones` + `NotificacionesProvider` en contexto global. Componente `NotificacionesPanel` + `useAlertas`.
+- **Técnico** — Nueva tabla `notificaciones` (migración `021` ✓ DEV + PROD) con RLS. Capa de datos en `src/lib/supabase/notificaciones.ts`. Hook `useNotificaciones` + `NotificacionesProvider` en contexto global. Componente `NotificacionesPanel` + `useAlertas`.
 
 #### Módulo Eventos de Vida — Wizard Luna de Miel
 - **Feature** — **Nuevo tipo de evento "Luna de Miel"** (`tipoEvento: 'luna_miel'`). Wizard 2 pasos: (1) Destino y fechas: selector de tipo destino (Nacional 🇵🇪 / LATAM 🌎 / Internacional 🌍 / Largo radio ✈️) con estimados pre-cargados, destino libre, noches, fecha del viaje y mes de reserva (auto: 3 meses antes), categoría de alojamiento (3★/4★/5★/All-inclusive). (2) Presupuesto: 3 categorías editables (vuelos, hotel, gastos en destino), buffer %, toggle PEN/USD con TC Rextie, split `tuPorcentaje`. Genera 2 retiros únicos: "Reservas (vuelos + hotel)" en mes de reserva y "Gastos en destino" en mes del viaje. Color: rosa `#F472B6`.
@@ -71,7 +75,7 @@ Criterios de tipo:
 - **Feature** — `tipoImpuesto: 'mensual' | 'al_cierre' | 'exonerado'` en `Instrumento` (JSONB, sin migración). Configurable en Simulación → Instrumentos → campo "Tributación". Guía el comportamiento del formulario de Rendimientos — el impuesto real siempre vive en el registro de rendimiento.
 - **Feature** — Soporte instrumentos "al cierre" (ej. fondos mutuos): los registros mensuales son valorizaciones (tasaImpuesto=0); al vender se registra con `esCierreFiscal=true` y se aplica la tasa ahí. La vista Impuestos solo muestra los registros de cierre, no las valorizaciones.
 - **Feature** — Formulario Rendimientos adapta campos según `tipoImpuesto`: "mensual" muestra Impuesto % siempre; "al cierre" muestra checkbox "Cierre fiscal" y solo revela Impuesto % al marcarlo; "exonerado" oculta el campo y muestra nota explicativa.
-- **Técnico** — Campo `impuesto_pagado boolean DEFAULT false` en `rendimientos` (migración `019` ✓ DEV). Campo `es_cierre_fiscal boolean DEFAULT false` en `rendimientos` (migración `020` ✓ DEV). Ambos campos mapeados en `types.ts` y en el CRUD de `finance.ts`.
+- **Técnico** — Campo `impuesto_pagado boolean DEFAULT false` en `rendimientos` (migración `019` ✓ DEV + PROD). Campo `es_cierre_fiscal boolean DEFAULT false` en `rendimientos` (migración `020` ✓ DEV + PROD). Ambos campos mapeados en `types.ts` y en el CRUD de `finance.ts`.
 
 ---
 

@@ -27,3 +27,6 @@ Thumbs.db
 
 # Supabase local (si usas CLI para dev local)
 supabase/.temp/
+
+# Scripts de prueba local (datos personales hardcodeados)
+scripts/test-*.mjs
