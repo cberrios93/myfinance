@@ -16,6 +16,9 @@ Criterios de tipo:
 - **Fix** — La tabla muestra los registros más recientes arriba por defecto (orden fecha desc al entrar).
 - **Mejora** — El borrador de "Agregar mes" se persiste en `sessionStorage`: si navegas a otra pantalla mientras llevas el PEN y USD a medias, al volver el formulario sigue abierto con los datos que dejaste. Se limpia automáticamente al guardar, cancelar, o cerrar la pestaña.
 
+#### Configuración — Email: fix de estilos
+- **Fix** — El card "Resumen semanal por email" usaba variables CSS incorrectas (`--color-border`, `--color-surface`, etc.) que no existen en el sistema de temas, causando fondos blancos y colores de browser por defecto. Corregido a las variables canónicas del proyecto (`--color-borde`, `--color-card`, `--color-texto`, `--color-muted`, `--color-fondo`, `--color-acento`). Toggle, selects y botón guardar ahora siguen el mismo patrón visual que el resto de Settings.
+
 #### Configuración — Tamaño de texto
 - **Mejora** — Reemplazado el slider de tamaño de texto por **5 botones preset** (80% Compacto / 90% Pequeño / 100% Normal / 115% Grande / 130% Extra grande) que aplican el cambio al hacer clic, sin re-render en tiempo real. Corrige el descuadre de layout que ocurría al arrastrar el slider. Se agrega opción **"Valor personalizado"** (input numérico 70–200%) que aplica al presionar Enter o al perder el foco.
 
