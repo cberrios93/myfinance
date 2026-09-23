@@ -19,7 +19,7 @@ Criterios de tipo:
 - Cronograma interactivo por instrumento: columnas Cuota, Fecha, Capital pendiente, Interés, Amortización, Total, Estado. Botón "Marcar pagado" por cuota con doble confirmación.
 - Al marcar cuota pagada → crea registro automático en Rendimientos con `gananciasPEN = interés` e `inversionPEN = capitalPendiente + premioSubasta`.
 - KPIs en vista lista: capital total, interés estimado YTD, yield mensual ponderado.
-- **Técnico** — Dos tablas nuevas: `prestamype_instrumentos` y `prestamype_cuotas` con RLS (migración `025` ✓ DEV).
+- **Técnico** — Dos tablas nuevas: `prestamype_instrumentos` y `prestamype_cuotas` con RLS (migración `025` ✓ DEV + PROD).
 - **Técnico** — CRUD en `src/lib/supabase/prestamype.ts`. Tipos en `src/data/types.ts`. Módulo en `src/modules/Prestamype/Prestamype.tsx`.
 
 ---
