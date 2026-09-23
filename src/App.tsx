@@ -35,6 +35,7 @@ import Notes from './modules/Notes/Notes'
 import Analytics from './modules/Analytics/Analytics'
 import OnboardingWizard from './modules/Onboarding/OnboardingWizard'
 import CapitalFlows from './modules/CapitalFlows/CapitalFlows'
+import Prestamype from './modules/Prestamype/Prestamype'
 
 function Loading() {
   return (
@@ -119,6 +120,7 @@ function ProtectedRoutes() {
               <Route path="/rendimientos" element={<Returns />} />
               <Route path="/impuestos-inversiones" element={<ImpuestosInversiones />} />
               <Route path="/flujos-capital" element={<CapitalFlows />} />
+              <Route path="/prestamype" element={<Prestamype />} />
               <Route path="/haberes" element={<Paycheck />} />
               <Route path="/suscripciones" element={<Subscriptions />} />
               <Route path="/gastos-familia" element={<FamilyExpenses />} />

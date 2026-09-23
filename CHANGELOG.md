@@ -12,6 +12,16 @@ Criterios de tipo:
 
 ## [Unreleased]
 
+#### Tracking > Prestamype — Módulo nuevo
+- **Feature** — Nuevo módulo `/prestamype` para seguimiento de inversiones en Prestamype: DPFs y préstamos con garantía hipotecaria.
+- DPF: capital, tasa mensual, frecuencia de pago (mensual/trimestral/semestral/al vencimiento), fecha vencimiento. Cronograma de cuotas auto-generado (interés periódico + capital bullet al vencimiento).
+- Hipotecario: amortización francesa, cuota fija, capital+tasa mensual+plazo → cronograma completo de 48 cuotas (o el plazo configurado). Campos: LTV, valor garantía, moneda, tipo de propiedad, ubicación, nivel de riesgo, premio de subasta.
+- Cronograma interactivo por instrumento: columnas Cuota, Fecha, Capital pendiente, Interés, Amortización, Total, Estado. Botón "Marcar pagado" por cuota con doble confirmación.
+- Al marcar cuota pagada → crea registro automático en Rendimientos con `gananciasPEN = interés` e `inversionPEN = capitalPendiente + premioSubasta`.
+- KPIs en vista lista: capital total, interés estimado YTD, yield mensual ponderado.
+- **Técnico** — Dos tablas nuevas: `prestamype_instrumentos` y `prestamype_cuotas` con RLS (migración `025` ✓ DEV).
+- **Técnico** — CRUD en `src/lib/supabase/prestamype.ts`. Tipos en `src/data/types.ts`. Módulo en `src/modules/Prestamype/Prestamype.tsx`.
+
 ---
 
 ## [v2.10.0] — 2026-09-22 — PROD

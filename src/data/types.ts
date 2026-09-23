@@ -380,6 +380,47 @@ export interface DashboardTile {
   h: number
 }
 
+// --- Prestamype ---
+
+export interface PrestamypeInstrumento {
+  id: string
+  tipo: 'dpf' | 'hipotecario'
+  nombre: string
+  capitalInvertido: number
+  premioSubasta: number
+  tasaMensual: number
+  tasaEfectivaAnual?: number
+  plazoMeses?: number
+  frecuenciaPago?: 'mensual' | 'trimestral' | 'semestral' | 'al_vencimiento'
+  fechaInicio: string
+  fechaVencimiento?: string
+  valorGarantia?: number
+  monedaGarantia?: 'PEN' | 'USD'
+  ltv?: number
+  tipoPropiedad?: string
+  ubicacion?: string
+  nivelRiesgo?: 'bajo' | 'medio' | 'alto'
+  estado: 'activo' | 'cancelado' | 'mora'
+  notas?: string
+  creadoEn: string
+  actualizadoEn: string
+}
+
+export interface PrestamypeCuota {
+  id: string
+  instrumentoId: string
+  numeroCuota: number
+  fechaPago: string
+  capitalPendiente: number
+  interes: number
+  amortizacion: number
+  cuotaTotal: number
+  pagado: boolean
+  fechaPagoReal?: string
+  rendimientoId?: string
+  creadoEn: string
+}
+
 // version 2 = grilla de 60 columnas. Un layout guardado con otra versión se descarta.
 export const DASHBOARD_LAYOUT_VERSION = 2
 
