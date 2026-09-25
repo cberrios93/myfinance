@@ -21,7 +21,7 @@ Criterios de tipo:
 - KPIs en vista lista: capital total, interés estimado YTD, yield mensual ponderado.
 - **Técnico** — Dos tablas nuevas: `prestamype_instrumentos` y `prestamype_cuotas` con RLS (migración `025` ✓ DEV + PROD).
 - **Técnico** — CRUD en `src/lib/supabase/prestamype.ts`. Tipos en `src/data/types.ts`. Módulo en `src/modules/Prestamype/Prestamype.tsx`.
-- **Mejora** — Vinculación opcional a cuenta de Patrimonio (`cuentaPatrimonioId`): en el formulario se puede seleccionar una cuenta de Patrimonio y el capital se lee desde `montoPEN` (read-only, fuente única de verdad). Badge del nombre de la cuenta aparece en vista lista. Migración `026` agrega columna `cuenta_patrimonio_id` a `prestamype_instrumentos` (✓ DEV — pendiente PROD).
+- **Mejora** — Vinculación opcional a cuenta de Patrimonio (`cuentaPatrimonioId`): en el formulario se puede seleccionar una cuenta de Patrimonio y el capital se lee desde `montoPEN` (read-only, fuente única de verdad). Badge del nombre de la cuenta aparece en vista lista. Migración `026` agrega columna `cuenta_patrimonio_id` a `prestamype_instrumentos` (✓ DEV + PROD).
 
 ---
 
