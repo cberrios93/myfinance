@@ -110,6 +110,7 @@ Ejecutada el 2026-09-03 (v2.0.0) y repetida el 2026-09-07 (todos los datos reale
 | `023_historial_dia_cierre.sql` | ✓ DEV + PROD |
 | `024_historial_hora_cierre.sql` | ✓ DEV + PROD |
 | `025_prestamype.sql` | ✓ DEV + PROD |
+| `026_prestamype_patrimonio_link.sql` | ✓ DEV — pendiente PROD |
 
 
 ---
