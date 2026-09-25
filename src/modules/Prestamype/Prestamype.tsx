@@ -4,13 +4,14 @@ import {
   Plus, X, ChevronLeft, Building2, Landmark, CheckCircle2,
   Clock, AlertTriangle, Edit2, Trash2, TrendingUp,
 } from 'lucide-react'
-import type { PrestamypeInstrumento, PrestamypeCuota, Rendimiento } from '../../data/types'
+import type { PrestamypeInstrumento, PrestamypeCuota, Rendimiento, CuentaPatrimonio } from '../../data/types'
 import {
   listarInstrumentos, guardarInstrumento, eliminarInstrumento,
   listarCuotas, insertarCuotasBulk, actualizarCuota,
 } from '../../lib/supabase/prestamype'
 import { guardarRendimiento } from '../../lib/supabase/finance'
 import { useUndo } from '../../contexts/UndoContext'
+import { usePatrimony } from '../../data/PatrimonyContext'
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -122,6 +123,7 @@ type Vista = 'lista' | 'detalle' | 'form'
 type DraftInst = {
   tipo: 'dpf' | 'hipotecario'
   nombre: string
+  cuentaPatrimonioId: string
   capitalInvertido: string
   premioSubasta: string
   tasaMensual: string
@@ -141,7 +143,7 @@ type DraftInst = {
 
 function emptyDraft(): DraftInst {
   return {
-    tipo: 'dpf', nombre: '', capitalInvertido: '', premioSubasta: '0',
+    tipo: 'dpf', nombre: '', cuentaPatrimonioId: '', capitalInvertido: '', premioSubasta: '0',
     tasaMensual: '', plazoMeses: '', frecuenciaPago: 'mensual',
     fechaInicio: todayISO(), fechaVencimiento: '', valorGarantia: '',
     monedaGarantia: 'USD', ltv: '', tipoPropiedad: '', ubicacion: '',
@@ -149,14 +151,17 @@ function emptyDraft(): DraftInst {
   }
 }
 
-function draftToInstrumento(d: DraftInst, id?: string): PrestamypeInstrumento {
+function draftToInstrumento(d: DraftInst, id?: string, cuentas?: CuentaPatrimonio[]): PrestamypeInstrumento {
   const now = new Date().toISOString()
   const tasa = parseFloat(d.tasaMensual)
+  const linkedCuenta = d.cuentaPatrimonioId ? cuentas?.find(c => c.id === d.cuentaPatrimonioId) : undefined
+  const capitalFinal = linkedCuenta ? (linkedCuenta.montoPEN ?? 0) : parseFloat(d.capitalInvertido)
   const inst: PrestamypeInstrumento = {
     id: id ?? uuid(),
     tipo: d.tipo,
     nombre: d.nombre.trim(),
-    capitalInvertido: parseFloat(d.capitalInvertido),
+    cuentaPatrimonioId: d.cuentaPatrimonioId || undefined,
+    capitalInvertido: capitalFinal,
     premioSubasta: parseFloat(d.premioSubasta) || 0,
     tasaMensual: tasa,
     tasaEfectivaAnual: isNaN(tasa) ? undefined : calcTEA(tasa),
@@ -185,6 +190,7 @@ function instToDraft(inst: PrestamypeInstrumento): DraftInst {
   return {
     tipo: inst.tipo,
     nombre: inst.nombre,
+    cuentaPatrimonioId: inst.cuentaPatrimonioId ?? '',
     capitalInvertido: String(inst.capitalInvertido),
     premioSubasta: String(inst.premioSubasta),
     tasaMensual: String(inst.tasaMensual),
@@ -212,6 +218,7 @@ const cardStyle = { background: 'var(--color-card)', border: '1px solid var(--co
 
 export default function Prestamype() {
   const { showUndo } = useUndo()
+  const { cuentas } = usePatrimony()
   const [vista, setVista] = useState<Vista>('lista')
   const [instrumentos, setInstrumentos] = useState<PrestamypeInstrumento[]>([])
   const [cuotas, setCuotas] = useState<PrestamypeCuota[]>([])
@@ -252,14 +259,15 @@ export default function Prestamype() {
   }, [])
 
   const handleGuardar = useCallback(async () => {
-    const { capitalInvertido, tasaMensual, nombre, tipo, plazoMeses, fechaVencimiento } = draft
-    if (!nombre || !capitalInvertido || !tasaMensual) return
+    const { capitalInvertido, cuentaPatrimonioId, tasaMensual, nombre, tipo, plazoMeses, fechaVencimiento } = draft
+    const tieneCapital = cuentaPatrimonioId ? !!cuentas.find(c => c.id === cuentaPatrimonioId) : !!capitalInvertido
+    if (!nombre || !tieneCapital || !tasaMensual) return
     if (tipo === 'hipotecario' && !plazoMeses) return
     if (tipo === 'dpf' && !fechaVencimiento) return
 
     setGuardando(true)
     try {
-      const inst = draftToInstrumento(draft, editandoId ?? undefined)
+      const inst = draftToInstrumento(draft, editandoId ?? undefined, cuentas)
       await guardarInstrumento(inst)
 
       if (!editandoId) {
@@ -364,6 +372,7 @@ export default function Prestamype() {
       onCancelar={() => setVista(editandoId ? 'detalle' : 'lista')}
       guardando={guardando}
       esEdicion={!!editandoId}
+      cuentas={cuentas}
     />
   }
 
@@ -423,6 +432,7 @@ export default function Prestamype() {
             <SeccionInstrumentos
               titulo="DPF — Depósitos a Plazo Fijo"
               instrumentos={dpfs}
+              cuentas={cuentas}
               onVerDetalle={abrirDetalle}
               onEditar={abrirFormEditar}
               onEliminar={handleEliminar}
@@ -432,6 +442,7 @@ export default function Prestamype() {
             <SeccionInstrumentos
               titulo="Préstamos con Garantía Hipotecaria"
               instrumentos={hipotecarios}
+              cuentas={cuentas}
               onVerDetalle={abrirDetalle}
               onEditar={abrirFormEditar}
               onEliminar={handleEliminar}
@@ -480,9 +491,10 @@ function BadgeRiesgo({ riesgo }: { riesgo?: PrestamypeInstrumento['nivelRiesgo']
   return <span className="text-xs font-medium" style={{ color: s.color }}>{s.label}</span>
 }
 
-function SeccionInstrumentos({ titulo, instrumentos, onVerDetalle, onEditar, onEliminar }: {
+function SeccionInstrumentos({ titulo, instrumentos, cuentas, onVerDetalle, onEditar, onEliminar }: {
   titulo: string
   instrumentos: PrestamypeInstrumento[]
+  cuentas?: CuentaPatrimonio[]
   onVerDetalle: (i: PrestamypeInstrumento) => void
   onEditar: (i: PrestamypeInstrumento) => void
   onEliminar: (i: PrestamypeInstrumento) => void
@@ -506,6 +518,11 @@ function SeccionInstrumentos({ titulo, instrumentos, onVerDetalle, onEditar, onE
                   <span className="font-semibold" style={{ color: 'var(--color-texto)' }}>{inst.nombre}</span>
                   <BadgeEstado estado={inst.estado} />
                   {inst.nivelRiesgo && <BadgeRiesgo riesgo={inst.nivelRiesgo} />}
+                  {inst.cuentaPatrimonioId && cuentas && (
+                    <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--color-acento)20', color: 'var(--color-acento)' }}>
+                      {cuentas.find(c => c.id === inst.cuentaPatrimonioId)?.nombre ?? 'Patrimonio'}
+                    </span>
+                  )}
                 </div>
                 {inst.ubicacion && (
                   <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>{inst.ubicacion}</p>
@@ -796,21 +813,24 @@ function DetalleInstrumento({ inst, cuotas, loading, confirmPagoId, onConfirmPag
   )
 }
 
-function FormInstrumento({ draft, onChange, onGuardar, onCancelar, guardando, esEdicion }: {
+function FormInstrumento({ draft, onChange, onGuardar, onCancelar, guardando, esEdicion, cuentas }: {
   draft: DraftInst
   onChange: (d: DraftInst) => void
   onGuardar: () => void
   onCancelar: () => void
   guardando: boolean
   esEdicion: boolean
+  cuentas: CuentaPatrimonio[]
 }) {
   const set = (k: keyof DraftInst, v: string) => onChange({ ...draft, [k]: v })
+  const linkedCuenta = draft.cuentaPatrimonioId ? cuentas.find(c => c.id === draft.cuentaPatrimonioId) : undefined
 
   const labelStyle = { color: 'var(--color-muted)', fontSize: '12px', marginBottom: '4px', display: 'block' }
   const inputClass = 'w-full rounded-lg px-3 py-2 text-sm'
 
+  const tieneCapital = linkedCuenta ? true : !!draft.capitalInvertido
   const esValido = draft.nombre.trim()
-    && draft.capitalInvertido
+    && tieneCapital
     && draft.tasaMensual
     && (draft.tipo === 'hipotecario' ? !!draft.plazoMeses : !!draft.fechaVencimiento)
 
@@ -857,15 +877,50 @@ function FormInstrumento({ draft, onChange, onGuardar, onCancelar, guardando, es
           />
         </div>
 
+        {/* Cuenta Patrimonio (vincular) */}
+        {cuentas.length > 0 && (
+          <div>
+            <label style={labelStyle}>Vincular a cuenta de Patrimonio (opcional)</label>
+            <select
+              className={inputClass} style={inp}
+              value={draft.cuentaPatrimonioId}
+              onChange={e => set('cuentaPatrimonioId', e.target.value)}
+            >
+              <option value="">— Sin vincular (ingresar capital manual) —</option>
+              {cuentas.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}{c.montoPEN != null ? ` — S/ ${c.montoPEN.toLocaleString('es-PE', { maximumFractionDigits: 0 })}` : ''}
+                </option>
+              ))}
+            </select>
+            {linkedCuenta && (
+              <p className="text-xs mt-1" style={{ color: 'var(--color-acento)' }}>
+                Capital tomado de Patrimonio: S/ {(linkedCuenta.montoPEN ?? 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Capital + Premio */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label style={labelStyle}>Capital invertido (S/) *</label>
-            <input
-              type="number" className={inputClass} style={inp}
-              placeholder="216000" value={draft.capitalInvertido}
-              onChange={e => set('capitalInvertido', e.target.value)}
-            />
+            <label style={labelStyle}>
+              Capital invertido (S/) {linkedCuenta ? '' : '*'}
+            </label>
+            {linkedCuenta ? (
+              <div
+                className={`${inputClass} opacity-50 cursor-not-allowed`}
+                style={{ ...inp, padding: '8px 12px' }}
+              >
+                S/ {(linkedCuenta.montoPEN ?? 0).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </div>
+            ) : (
+              <input
+                type="number" className={inputClass} style={inp}
+                placeholder="216000" value={draft.capitalInvertido}
+                onChange={e => set('capitalInvertido', e.target.value)}
+              />
+            )}
           </div>
           <div>
             <label style={labelStyle}>Premio subasta (S/)</label>

@@ -386,6 +386,7 @@ export interface PrestamypeInstrumento {
   id: string
   tipo: 'dpf' | 'hipotecario'
   nombre: string
+  cuentaPatrimonioId?: string
   capitalInvertido: number
   premioSubasta: number
   tasaMensual: number
